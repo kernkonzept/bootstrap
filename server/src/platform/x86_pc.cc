@@ -140,6 +140,8 @@ class Platform_x86_multiboot : public Platform_x86_1, public Boot_modules
 {
 public:
   Boot_modules *modules() { return this; }
+  unsigned base_mod_idx(Mod_info_flags mod_info_mod_type)
+  { return mod_info_mod_type - 1; }
 
   Module module(unsigned index, bool) const
   {
@@ -480,6 +482,9 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
   ctor_init();
   Platform_base::platform = &_x86_pc_platform;
   _x86_pc_platform.init();
+#ifdef IMAGE_MODE
+  init_modules_infos();
+#endif
 #ifdef ARCH_amd64
   // remember this info to reserve the memory in setup_memory_map later
   _x86_pc_platform.boot32_info = boot32_info;

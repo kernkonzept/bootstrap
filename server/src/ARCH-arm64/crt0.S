@@ -49,7 +49,7 @@ _start:
 .Lsctlr_done:
 
 	/* Figure how to move */
-        ldr     x7, .LCend_bin
+        ldr     x7, crt_end_bin
 	subs	x8, x5, x4	/* x8 is the distance between the blocks */
 	b.pl	move_behind
 
@@ -88,7 +88,7 @@ move_behind:
 	.align 3
 .LCrun:       .8byte run
 .LCstart_bin: .8byte _start
-.LCend_bin:   .8byte _module_data_end
+crt_end_bin:  .8byte _module_data_end
 
 run:
 	mrs	x9, MPIDR_EL1              /* CPU ID */

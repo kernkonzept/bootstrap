@@ -32,7 +32,8 @@ LDFLAGS              = -nostdlib -static -Bstatic
 EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
 		       $(wildcard $(L4DIR)/conf/Makeconf.boot $(OBJ_BASE)/conf/Makeconf.boot) \
 		       $(SRC_DIR)/build.pl $(BOOTSTRAP_MODULES_LIST) \
-		       $(SRC_DIR)/Makefile.platform
+		       $(SRC_DIR)/Makefile.platform $(L4DIR)/tool/lib/L4/Image.pm \
+                       $(L4DIR)/tool/bin/l4image
 INCLUDE_MAKE_RULES   = $(SRC_DIR)/*/Make.rules
 BOOTSTRAP_LD_dep    := $(SRC_DIR)/ldscript.inc
 
@@ -74,15 +75,6 @@ BOOTSTRAP_MODULE_PATH_BINLIB ?= $(OBJ_BASE)/bin/$(SYSTEM)/$(BUILD_ABI):$(OBJ_BAS
 BOOTSTRAP_ELF_NAME           ?= bootstrap.elf
 MKIMAGE                      ?= mkimage
 BOOTSTRAP_UIMAGE_COMPRESSION ?= none
-
-ifeq ($(BUILD_ARCH),$(filter $(BUILD_ARCH),arm arm64 ppc32 sparc mips))
-  # ARM/ARM64/PPC/SPARC/MIPS always uses single image mode
-  # when no entry is given we build the useless auto-build target
-  ifeq ($(E)$(ENTRY),)
-    BOOTSTRAP_ELF_NAME := bootstrap.auto-build-useless.elf
-  endif
-  ENTRY := auto-build-entry
-endif
 
 od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(if $(wildcard $(BOOTSTRAP_OUTPUT_DIR)),,$(shell mkdir -p $(BOOTSTRAP_OUTPUT_DIR))))
 od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(BOOTSTRAP_OUTPUT_DIR)/)
@@ -168,7 +160,6 @@ vpath bootstrap.ld.in $(SRC_DIR)/ARCH-$(ARCH)
 # can be overwritten by Makeconf.local
 COMPRESS	?= 0
 BUILD_PIE	?= 0
-SPARSE_ELF	?= n
 
 ifeq ($(BUILD_PIE),1)
 DRV_LIBS          := $(patsubst -l%,-l%.p,$(DRV_LIBS))
@@ -190,15 +181,21 @@ endif
 
 ENTRY_FN := $(shell echo "$(ENTRY)" | tr '[ ]' '[_]' )
 
+BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
+                        CROSS_COMPILE=$(CROSS_COMPILE) \
+                        MAKE_INC_FILE=$(PWD)/mod.make.inc \
+                        FLAGS_CC="$(CCXX_FLAGS) -I$(SRC_DIR)" \
+                        OUTPUT_DIR="$(BOOTSTRAP_OUTPUT_DIR)" \
+                        OPT_ARCH=$(ARCH) OPT_COMPRESS=$(COMPRESS) \
+                        L4DIR=$(L4DIR) \
+                        OPT_PLATFORM_TYPE=$(PLATFORM_TYPE) \
+                        QEMU_BINARY_NAME="$(if $(QEMU_PATH),$(QEMU_PATH),$(QEMU_ARCH_MAP_$(ARCH)))" \
+                        QEMU_OPTIONS="$(QEMU_OPTIONS)"
 
 ifneq ($(ENTRY),)
  ifeq ($(filter clean cleanall,$(MAKECMDGOALS)),)
   BUILD_MOD_CMD = ( SEARCHPATH="$(BOOTSTRAP_SEARCH_PATH):$(BOOTSTRAP_MODULE_PATH_BINLIB)" \
-                    CC="$(CC)" LD="$(LD)" CROSS_COMPILE=$(CROSS_COMPILE) \
-                    MAKE_INC_FILE=$(PWD)/mod.make.inc \
-                    FLAGS_CC="$(CCXX_FLAGS) -I$(SRC_DIR)" \
-                    OUTPUT_DIR="$(BOOTSTRAP_OUTPUT_DIR)" \
-                    OPT_ARCH=$(ARCH) OPT_COMPRESS=$(COMPRESS) L4DIR=$(L4DIR) \
+                    $(BUILD_MOD_CMD_ENVVARS) \
                     $(SRC_DIR)/build.pl $(1) $(BOOTSTRAP_MODULES_LIST) "$(ENTRY)" || \
                     (echo "processing-of-module-list-failed"; exit 1))
  endif
@@ -265,7 +262,7 @@ $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
  endif
 
 INSTALL_FILES += $(INSTALL_FILES-y)
-ifneq ($(ENTRY),auto-build-entry)
+
 all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 	$(VERBOSE)echo "  Image size(s) in bytes:"
 	$(VERBOSE)for f in $(filter bootstrap_$(ENTRY_FN).elf bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
@@ -278,7 +275,6 @@ all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 $(IMAGES_DIR)/%: $(od)%
 	$(VERBOSE)echo "  ==> Installing $< in image directory"
 	$(VERBOSE)(cd $(dir $@) && $(LN) -sf $(if $(od),,$(PWD)/)$<)
-endif # !auto-build-entry
 
 else
   INSTALL_FILES = bootstrap
@@ -288,11 +284,6 @@ ifneq ($(COMPRESS),0)
 SRC_C		+= uncompress.c gunzip.c
 CFLAGS_gunzip.c := -fno-strict-aliasing
 CPPFLAGS	+= -DCOMPRESS
-SPARSE_ELF	:= n
-endif
-
-ifeq ($(SPARSE_ELF),y)
-CPPFLAGS	+= -DPLACE_MODULES_AT_MODADDR
 endif
 
 ifneq ($(RAM_SIZE_MB),)
@@ -317,7 +308,7 @@ entry_files    := $(shell $(call BUILD_MOD_CMD,$(build_list_cmd)))
 # Avoid that pattern rules match on module files
 $(filter-out processing-of-module-list-failed,$(entry_files)): ;
 
-mod.make.inc $(od)mbi_modules.bin: $(GENERAL_D_LOC) $(entry_files)
+mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) $(entry_files)
 	@echo Building entry \""$(ENTRY)"\".
 	$(VERBOSE)$(call BUILD_MOD_CMD,build)
 
@@ -328,6 +319,15 @@ mod.make.inc $(od)mbi_modules.bin: $(GENERAL_D_LOC) $(entry_files)
  endif
 
  CPPFLAGS                     += -DIMAGE_MODE
+else
+mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) \
+                                 $(BOOTSTRAP_BUILD_OUTPUT_FORMATTER)
+	$(VERBOSE)$(BUILD_MOD_CMD_ENVVARS) $(SRC_DIR)/build.pl build
+
+  -include mod.make.inc
+  BOOTSTRAP_LD_dep             += mod.make.inc
+  STARTUP_C_dep                := mod.make.inc
+  OBJS_$(od)$(BOOTSTRAP_ELF_NAME)   += $(MODULE_OBJECT_FILES)
 endif
 
 CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
@@ -359,6 +359,9 @@ MKIMAGE_ARCH-ppc32   = ppc
 MKIMAGE_ARCH-mips    = $(if $(filter "64",$(CONFIG_CPU_ABI)),mips64,mips)
 
 MKIMAGE_ARCH = $(MKIMAGE_ARCH-$(ARCH))
+
+BID_POST_PROG_LINK_MSG_$(TARGET) = echo -e "  [$(PKGNAME_DIRNAME)] ==> Image post-processing $@"
+BID_POST_PROG_LINK_$(TARGET)     = $(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl postprocess $@ $(ARCH)
 
 # u-boot images, based on raw-version
 $(BOOTSTRAP_UIMAGE): $(BOOTSTRAP_RAW).$(BOOTSTRAP_UIMAGE_COMPRESSION)

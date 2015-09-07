@@ -19,8 +19,10 @@
 
 #include <l4/drivers/uart_base.h>
 #include <l4/util/mb_info.h>
-#include <stdio.h>
+#include "mod_info.h"
 #include "region.h"
+
+#include <stdio.h>
 #include <cstring>
 #include <cstdlib>
 
@@ -28,10 +30,11 @@ L4::Uart *uart();
 void set_stdio_uart(L4::Uart *uart);
 void ctor_init();
 
-// only available with image builds
-extern char _mbi_cmdline[];
-
 enum { Verbose_load = 0 };
+
+extern Mod_header *mod_header;
+extern Mod_info *module_infos;
+void init_modules_infos();
 
 template<typename T>
 inline T *l4_round_page(T *p) { return (T*)l4_round_page((l4_addr_t)p); }
@@ -71,6 +74,7 @@ struct Memory
 class Boot_modules
 {
 public:
+  enum { Num_base_modules = 3 };
 
   /// Main information for each module.
   struct Module
@@ -90,10 +94,20 @@ public:
   virtual unsigned num_modules() const = 0;
   virtual l4util_mb_info_t *construct_mbi(unsigned long mod_addr) = 0;
   virtual void move_module(unsigned index, void *dest) = 0;
+  virtual unsigned base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
   void move_modules(unsigned long modaddr);
   Region mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                     Region::Type type = Region::Boot);
   void merge_mod_regions();
+  static bool is_base_module(const Mod_info *mod)
+  {
+    unsigned v = mod->flags & Mod_info_flag_mod_mask;
+    return v > 0 && v <= Num_base_modules;
+  };
+
+  Module mod_kern() { return module(base_mod_idx(Mod_info_flag_mod_kernel)); }
+  Module mod_sigma0() { return module(base_mod_idx(Mod_info_flag_mod_sigma0)); }
+  Module mod_roottask() { return module(base_mod_idx(Mod_info_flag_mod_roottask)); }
 
 protected:
   void _move_module(unsigned index, void *dest, void const *src,
@@ -169,8 +183,6 @@ inline Platform_base::~Platform_base() {}
       static type * const __attribute__((section(".platformdata"),used)) type##_inst_p = &type##_inst
 
 
-#ifdef IMAGE_MODE
-
 /**
  * For image mode we have this utility that implements
  * handling of linked in modules.
@@ -183,9 +195,10 @@ public:
   unsigned num_modules() const;
   void move_module(unsigned index, void *dest);
   l4util_mb_info_t *construct_mbi(unsigned long mod_addr);
+  unsigned base_mod_idx(Mod_info_flags mod_info_module_flag);
 
 private:
-  void decompress_mods(unsigned mod_count, unsigned skip,
+  void decompress_mods(unsigned mod_count,
                        l4_addr_t total_size, l4_addr_t mod_addr);
 };
 
@@ -198,8 +211,6 @@ public:
   void setup_memory_map();
   virtual void post_memory_hook() {}
 };
-
-#endif
 
 extern Memory *mem_manager;
 

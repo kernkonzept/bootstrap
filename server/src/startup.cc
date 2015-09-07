@@ -76,12 +76,6 @@ static l4_addr_t _mod_addr;
 static const char *builtin_cmdline = CMDLINE;
 
 
-enum {
-  kernel_module,
-  sigma0_module,
-  roottask_module,
-};
-
 /// Info passed through our ELF interpreter code
 struct Elf_info
 {
@@ -717,12 +711,11 @@ startup(char const *cmdline)
 
   _mod_addr = l4_round_page(_mod_addr);
 
-
   Boot_modules *mods = plat->modules();
 
-  add_elf_regions(mods->module(kernel_module), Region::Kernel);
-  add_elf_regions(mods->module(sigma0_module), Region::Sigma0);
-  add_elf_regions(mods->module(roottask_module), Region::Root);
+  add_elf_regions(mods->mod_kern(), Region::Kernel);
+  add_elf_regions(mods->mod_sigma0(), Region::Sigma0);
+  add_elf_regions(mods->mod_roottask(), Region::Root);
 
   l4util_mb_info_t *mbi = plat->modules()->construct_mbi(_mod_addr);
 
@@ -737,22 +730,22 @@ startup(char const *cmdline)
   regions.optimize();
 
   /* setup kernel PART ONE */
-  boot_info.kernel_start = load_elf_module(mods->module(kernel_module), "[KERNEL]");
+  boot_info.kernel_start = load_elf_module(mods->mod_kern(), "[KERNEL]");
 
   /* setup sigma0 */
-  boot_info.sigma0_start = load_elf_module(mods->module(sigma0_module), "[SIGMA0]");
+  boot_info.sigma0_start = load_elf_module(mods->mod_sigma0(), "[SIGMA0]");
 
   /* setup roottask */
-  boot_info.roottask_start = load_elf_module(mods->module(roottask_module),
+  boot_info.roottask_start = load_elf_module(mods->mod_roottask(),
                                              "[ROOTTASK]");
 
   /* setup kernel PART TWO (special kernel initialization) */
-  void *l4i = find_kip(mods->module(kernel_module));
+  void *l4i = find_kip(mods->mod_kern());
 
   regions.optimize();
   regions.dump();
 
-  L4_kernel_options::Options *lko = find_kopts(mods->module(kernel_module), l4i);
+  L4_kernel_options::Options *lko = find_kopts(mods->mod_kern(), l4i);
 
   // Note: we have to ensure that the original ELF binaries are not modified
   // or overwritten up to this point. However, the memory regions for the
@@ -768,7 +761,7 @@ startup(char const *cmdline)
       fill_mem(fill_value);
     }
 
-  kcmdline_parse(L4_CONST_CHAR_PTR(mb_mod[kernel_module].cmdline), lko);
+  kcmdline_parse(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), lko);
   lko->uart   = kuart;
   lko->flags |= kuart_flags;
 
@@ -795,7 +788,7 @@ startup(char const *cmdline)
     }
 
   printf("  Starting kernel ");
-  print_module_name(L4_CONST_CHAR_PTR(mb_mod[kernel_module].cmdline),
+  print_module_name(L4_CONST_CHAR_PTR(mb_mod[0].cmdline),
 		    "[KERNEL]");
   printf(" at " l4_addr_fmt "\n", boot_info.kernel_start);
 

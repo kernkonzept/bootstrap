@@ -127,8 +127,10 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
   ctor_init();
   Platform_base::platform = &_x86_pc_platform;
   _x86_pc_platform.init();
-  _x86_pc_platform.setup_uart(_mbi_cmdline);
-  startup(_mbi_cmdline);
+  _x86_pc_platform.setup_uart(mod_info_mbi_cmdline(mod_header));
+
+  init_modules_infos();
+  startup(mod_info_mbi_cmdline(mod_header));
 
   return EFI_SUCCESS;
 }
