@@ -350,6 +350,127 @@ Platform_x86_multiboot _x86_pc_platform;
 #endif // !IMAGE_MODE
 }
 
+namespace /* usb_xhci_handoff */ {
+
+static int
+xhci_first_cap(L4::Io_register_block const *base)
+{
+  return ((base->read<l4_uint32_t>(0x10) >> 16) & 0xffff) << 2;
+}
+
+static int
+xhci_next_cap(L4::Io_register_block const *base, int cap)
+{
+  l4_uint32_t next = (base->read<l4_uint32_t>(cap) >> 8) & 0xff;
+
+  if (!next)
+    return 0;
+
+  return cap + (next << 2);
+}
+
+static void
+udelay(int usecs)
+{
+  // Assume that we have a 2GHz machine and it needs approximately
+  // two cycles per inner loop, this delay function should wait the
+  // given amount of micro seconds.
+  for (; usecs >= 0; --usecs)
+    for (unsigned long i = 1000; i > 0; --i)
+      asm volatile ("nop; pause" : : : "memory");
+}
+
+static void
+do_handoff_cap(L4::Io_register_block const *base, unsigned cap)
+{
+  enum : l4_uint32_t
+  {
+    HC_BIOS_OWNED_SEM = 1U << 16,
+    HC_OS_OWNED_SEM   = 1U << 24,
+    USBLEGCTLSTS      = 0x04,
+    DISABLE_SMI       = 0xfff1e011U,
+    SMI_EVENTS        = 0x7U << 29,
+  };
+
+  l4_uint32_t val = base->read<l4_uint32_t>(cap);
+
+  if (val & HC_BIOS_OWNED_SEM) // BIOS has the HC
+    {
+      base->write(cap, val | HC_OS_OWNED_SEM); // We want it
+
+      int to = 300; // wait some seconds for BIOS to release
+      while (--to > 0 && (base->read<l4_uint32_t>(cap) & HC_BIOS_OWNED_SEM))
+        udelay(10);
+
+      if (to == 0)
+        {
+          printf("Forcing ownership of XHCI controller from BIOS\n");
+          base->write(cap, val & ~HC_BIOS_OWNED_SEM);
+        }
+    }
+
+  // Disable any BIOS SMIs and clear all SMI events
+  base->modify<l4_uint32_t>(cap + USBLEGCTLSTS, DISABLE_SMI, SMI_EVENTS);
+}
+
+static void
+xhci_handoff(Pci_iterator const &dev)
+{
+  unsigned v = dev.pci_read(0x04, 32);
+
+  // no mmio enabled -> skip
+  if (!(v & 2))
+    return;
+
+  if (0)
+    // no bus-master -> skip
+    if (!(v & 4))
+      return;
+
+  // read BAR[0]
+  v = dev.pci_read(0x10, 32);
+
+  // invalid -> skip
+  if (!v)
+    return;
+
+  // BAR[0] is an IO BAR, not XHCI compliant -> skip
+  if (v & 1)
+    return;
+
+  L4::Io_register_block_mmio base(v & ~0xfUL);
+
+  // Find the Legacy Support Capability register
+  for (int cap = xhci_first_cap(&base); cap != 0;
+       cap = xhci_next_cap(&base, cap))
+    {
+      l4_uint32_t v = base.read<l4_uint32_t>(cap);
+      if ((v & 0xff) == 1)
+        {
+          do_handoff_cap(&base, cap);
+          break;
+        }
+    }
+}
+
+}
+
+enum
+{
+  PCI_CLASS_SERIAL_USB_XHCI = 0x0c0330,
+};
+
+static void
+pci_quirks()
+{
+  for (Pci_iterator i; i != Pci_iterator::end(); ++i)
+    {
+      unsigned cc = i.pci_class();
+      if (cc == PCI_CLASS_SERIAL_USB_XHCI)
+        xhci_handoff(i);
+    }
+}
+
 extern "C"
 void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
             ptab64_mem_info_t const *ptab64_info);
@@ -382,6 +503,7 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
   cmdline = (char const *)(l4_addr_t)mbi->cmdline;
 #endif
   _x86_pc_platform.setup_uart(cmdline);
+  pci_quirks();
 
   startup(cmdline);
 }

@@ -281,6 +281,7 @@ struct Pci_iterator
   unsigned classcode() const { return pci_read(0x0b, 8); }
   unsigned subclass()  const { return pci_read(0x0a, 8); }
   unsigned prog() const { return pci_read(9, 8); }
+  unsigned pci_class() const { return pci_read(0x08, 32) >> 8; }
 
   bool operator == (Pci_iterator const &o) const
   { return bus == o.bus && dev == o.dev && func == o.func; }
