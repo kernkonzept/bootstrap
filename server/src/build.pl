@@ -54,16 +54,10 @@ sub write_to_file
   close A;
 }
 
-sub first_word($)
-{
-  (split /\s+/, shift)[0]
-}
-
 # build object files from the modules
-sub build_obj($$$)
+sub build_obj
 {
-  my ($cmdline, $modname, $no_strip) = @_;
-  my $_file = first_word($cmdline);
+  my ($_file, $cmdline, $modname, $no_strip) = @_;
 
   my $file = L4::ModList::search_file($_file, $module_path)
     || die "Cannot find file $_file! Used search path: $module_path";
@@ -157,7 +151,7 @@ sub build_objects(@)
   build_mbi_modules_obj($entry{bootstrap}{cmdline}, @mods);
 
   for (my $i = 0; $i < @mods; $i++) {
-    build_obj($mods[$i]->{cmdline}, $mods[$i]->{modname},
+    build_obj($mods[$i]->{command}, $mods[$i]->{cmdline}, $mods[$i]->{modname},
 	      $mods[$i]->{type} =~ /.+-nostrip$/);
     $objs .= " $output_dir/$mods[$i]->{modname}.bin";
   }
@@ -173,8 +167,7 @@ sub build_objects(@)
 sub list_files(@)
 {
   my %entry = @_;
-  print join(' ', map { L4::ModList::search_file_or_die(first_word($_->{cmdline}),
-                                                                   $module_path) }
+  print join(' ', map { L4::ModList::search_file_or_die($_->{command}, $module_path) }
                       @{$entry{mods}}), "\n";
 }
 
