@@ -605,10 +605,30 @@ struct Pci_com_moschip : public Pci_com_drv
 
 };
 
+struct Pci_com_wch_chip : public Pci_com_drv
+{
+  bool setup(Pci_iterator const &dev, Serial_board *board) const
+  {
+    read_bars(dev, board);
+
+    board->port_offset = 8;
+    board->base_baud = L4::Uart_16550::Base_rate_x86;
+    board->base_bar = board->first_io_bar();
+    board->num_ports = 2;
+    board->base_offset = 0xc0;
+    board->flags = 0;
+    printf("   detected serial IO card: bar=%d ports=%d\n",
+           board->base_bar, board->num_ports);
+    dev.enable_io();
+    return true;
+  }
+};
+
 static Pci_com_drv_fallback _fallback_pci_com;
 static Pci_com_drv_default _default_pci_com;
 static Pci_com_drv_oxsemi _oxsemi_pci_com;
 static Pci_com_moschip _moschip;
+static Pci_com_wch_chip _wch_chip;
 
 #define PCI_DEVICE_ID(vendor, device) \
   (((unsigned)(device) << 16) | (unsigned)(vendor & 0xffff)), 0xffffffffU
@@ -626,6 +646,7 @@ Pci_com_dev _devs[] = {
   { PCI_DEVICE_ID(0x9710, 0x9835), &_moschip },
   { PCI_DEVICE_ID(0x9710, 0x9865), &_moschip },
   { PCI_DEVICE_ID(0x9710, 0x9922), &_moschip },
+  { PCI_DEVICE_ID(0x1c00, 0x3253), &_wch_chip }, // dual port card
   { PCI_DEVICE_ID(0x8086, 0x8c3d), &_default_pci_com },
   { PCI_ANY_DEVICE, &_fallback_pci_com },
 };
