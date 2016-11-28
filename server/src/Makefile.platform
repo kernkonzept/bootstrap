@@ -34,6 +34,10 @@ SUPPORT_CC_arm-parallella      := platform/zynq.cc
 SUPPORT_CC_arm-cubieboard2     := platform/sunxi.cc
 SUPPORT_CC_arm-armada38x       := platform/armada38x.cc
 
+# ARM64
+SUPPORT_CC_arm64-rv            := platform/rv.cc
+SUPPORT_CC_arm64-rv_vexpress_a15 := platform/rv_vexpress.cc
+
 # PPC
 SUPPORT_CC_ppc32-mpc5200       := platform/mpc5200.cc
 

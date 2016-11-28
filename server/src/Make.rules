@@ -18,6 +18,7 @@
 
 INTERNAL_CRT0       := y # the defualt is to use our internal crt0
 DEFAULT_RELOC_arm   := 0x01000000
+DEFAULT_RELOC_arm64 := 0x01000000
 DEFAULT_RELOC_x86   := 0x002d0000
 DEFAULT_RELOC_amd64 := 0x002d0000
 DEFAULT_RELOC_mips32:= 0x802d0000
@@ -82,8 +83,8 @@ BOOTSTRAP_ELF_NAME           ?= bootstrap.elf
 MKIMAGE                      ?= mkimage
 BOOTSTRAP_UIMAGE_COMPRESSION ?= none
 
-ifeq ($(BUILD_ARCH),$(filter $(BUILD_ARCH),arm ppc32 sparc mips))
-  # ARM/PPC/SPARC/MIPS always uses single image mode
+ifeq ($(BUILD_ARCH),$(filter $(BUILD_ARCH),arm arm64 ppc32 sparc mips))
+  # ARM/ARM64/PPC/SPARC/MIPS always uses single image mode
   # when no entry is given we build the useless auto-build target
   ifeq ($(E)$(ENTRY),)
     BOOTSTRAP_ELF_NAME := bootstrap.auto-build-useless.elf
@@ -123,6 +124,7 @@ SRC_CC_amd64	+= ARCH-x86/reboot.cc
 SRC_C_x86	+= base_critical.c
 SRC_C_amd64	+= base_critical.c
 SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc
+SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc
 SRC_CC_ppc32    += ARCH-ppc32/init_kip_v2-arch.cc \
@@ -243,7 +245,7 @@ $(od)bootstrap_$(ENTRY_FN).elf: $(od)$(BOOTSTRAP_LINK_SOURCE)
 $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
 	$(VERBOSE)$(LN) -f $< $@
 
- ifeq ($(ARCH),$(filter $(ARCH),arm ppc32 mips))
+ ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips))
    BID_POST_PROG_LINK_MSG_$(od)$(BOOTSTRAP_ELF_NAME) = echo -e "  ==> Post-processing $@"
    BID_POST_PROG_LINK_$(od)$(BOOTSTRAP_ELF_NAME)     = \
       $(VERBOSE)LANG=C $(NM) -C $@ | \

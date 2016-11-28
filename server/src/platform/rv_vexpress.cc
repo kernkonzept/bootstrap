@@ -26,11 +26,14 @@ class Platform_arm_rv_vexpress : public Platform_single_region_ram
   bool probe() { return true; }
   void init()
   {
-    unsigned long m;
     unsigned long uart_base = 0x10009000;
 
+#if defined ARCH_arm
+    unsigned long m;
     asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r" (m));
     if ((m & 0x00000070) == 0x70)
+      uart_base = 0x1c090000;
+#endif
       uart_base = 0x1c090000;
 
     static L4::Io_register_block_mmio r(uart_base);
