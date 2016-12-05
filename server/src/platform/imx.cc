@@ -95,6 +95,31 @@ class Platform_arm_imx : public Platform_single_region_ram
     _wdog_phys = 0x020bc000;
     static L4::Io_register_block_mmio r(kuart.base_address);
     static L4::Uart_imx6 _uart;
+#elif defined(PLATFORM_TYPE_imx7)
+    switch (PLATFORM_UART_NR) {
+      default:
+      case 1: kuart.base_address = 0x30860000;
+              kuart.irqno        = 32 + 26;
+              break;
+      case 2: kuart.base_address = 0x30870000;
+              kuart.irqno        = 32 + 27;
+              break;
+      case 3: kuart.base_address = 0x30880000;
+              kuart.irqno        = 32 + 28;
+              break;
+      case 4: kuart.base_address = 0x30a60000;
+              kuart.irqno        = 32 + 29;
+              break;
+      case 5: kuart.base_address = 0x30a70000;
+              kuart.irqno        = 32 + 30;
+              break;
+      case 6: kuart.base_address = 0x30a80000;
+              kuart.irqno        = 32 + 16;
+              break;
+    };
+    _wdog_phys = 0x30280000;
+    static L4::Io_register_block_mmio r(kuart.base_address);
+    static L4::Uart_imx7 _uart;
 #else
 #error Which platform type?
 #endif

@@ -22,6 +22,7 @@ SUPPORT_CC_arm-imx35           := platform/imx.cc
 SUPPORT_CC_arm-imx51           := platform/imx.cc
 SUPPORT_CC_arm-imx6            := platform/imx.cc
 SUPPORT_CC_arm-imx6ul          := platform/imx.cc
+SUPPORT_CC_arm-imx7            := platform/imx.cc
 SUPPORT_CC_arm-om              := platform/om.cc
 SUPPORT_CC_arm-kirkwood        := platform/kirkwood.cc
 SUPPORT_CC_arm-rpi_a           := platform/rpi.cc
