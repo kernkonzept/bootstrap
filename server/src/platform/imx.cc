@@ -28,6 +28,8 @@ class Platform_arm_imx : public Platform_single_region_ram
 
   void init()
   {
+    _wdog_phys = 0;
+
     // set defaults for reg_shift and baud_rate
     kuart.baud      = 115200;
     kuart.reg_shift = 0;
@@ -57,15 +59,18 @@ class Platform_arm_imx : public Platform_single_region_ram
               kuart.irqno        = 18;
               break;
     }
+    _wdog_phys = 0x53fdc000;
     static L4::Io_register_block_mmio r(kuart.base_address);
 #elif defined(PLATFORM_TYPE_imx51)
     kuart.base_address = 0x73fbc000;
     kuart.irqno = 31;
+    _wdog_phys = 0x73f98000;
     static L4::Io_register_block_mmio r(kuart.base_address);
     static L4::Uart_imx51 _uart;
 #elif defined(PLATFORM_TYPE_imx53)
     kuart.base_address = 0x53fbc000;
     kuart.irqno = 31;
+    _wdog_phys = 0x53f98000;
     static L4::Io_register_block_mmio r(kuart.base_address);
     static L4::Uart_imx51 _uart;
 #elif defined(PLATFORM_TYPE_imx6) || defined(PLATFORM_TYPE_imx6ul)
@@ -87,6 +92,7 @@ class Platform_arm_imx : public Platform_single_region_ram
               kuart.irqno        = 62;
               break;
     };
+    _wdog_phys = 0x020bc000;
     static L4::Io_register_block_mmio r(kuart.base_address);
     static L4::Uart_imx6 _uart;
 #else
@@ -95,6 +101,20 @@ class Platform_arm_imx : public Platform_single_region_ram
     _uart.startup(&r);
     set_stdio_uart(&_uart);
   }
+
+  void reboot()
+  {
+    if (_wdog_phys)
+      {
+        L4::Io_register_block_mmio r(_wdog_phys);
+        r.clear<unsigned short>(0, 1 << 4);
+      }
+
+    while (1)
+      ;
+  }
+private:
+  unsigned long _wdog_phys;
 };
 }
 
