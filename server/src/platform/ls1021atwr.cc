@@ -40,6 +40,15 @@ class Platform_arm_ls1021atwr : public Platform_single_region_ram
     static L4::Uart_16550 _uart(kuart.base_baud, 0, 0, 0, 0);
     setup_16550_mmio_uart(&_uart);
   }
+
+  void reboot()
+  {
+    L4::Io_register_block_mmio r(0x02ad0000);
+    r.write16(0x0, 1 << 2);
+
+    while (1)
+      ;
+  }
 };
 }
 
