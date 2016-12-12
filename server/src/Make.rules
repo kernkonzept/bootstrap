@@ -34,6 +34,8 @@ EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
 INCLUDE_MAKE_RULES   = $(SRC_DIR)/*/Make.rules
 BOOTSTRAP_LD_dep    := $(SRC_DIR)/ldscript.inc
 
+REQUIRES_LIBS_all_static :=
+
 ifneq ($(BOOTSTRAP_CHECK_MD5),)
   REQUIRES_LIBS       += libbsd-lite
   DEFINES             += -DDO_CHECK_MD5
@@ -99,7 +101,7 @@ PRIVATE_INCDIR	 = $(SRC_DIR) $(SRC_DIR)/ARCH-$(ARCH)
 
 TARGET		:= $(od)$(BOOTSTRAP_ELF_NAME)
 TARGET_BIN	 = $(od)$(BOOTSTRAP_ELF_NAME)
-MODE		 = lib
+MODE		 = sigma0
 
 include $(SRC_DIR)/Makefile.platform
 
@@ -157,11 +159,12 @@ ifeq ($(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE)),)
 endif
 endif
 
-BOOTSTRAP_L4_LIBS := -lcxx_base -lcxx_io -luc_c_minimal
+REQUIRES_LIBS   += libc_minimal cxx_base cxx_io
 DRV_LIBS-ppc32   = -ldrivers_of
 DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
 ifeq ($(INTERNAL_CRT0),y)
 CRT0		 =
+LDFLAGS += -static -nocrt
 endif
 LDSCRIPT	 = bootstrap.ld
 LDNMAGIC	 =
@@ -341,7 +344,7 @@ endif
 CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
 
 LIBS             =
-L4_LIBS          = $(DRV_LIBS) $(BOOTSTRAP_L4_LIBS)
+LIBS          = $(DRV_LIBS) $(BOOTSTRAP_L4_LIBS)
 L4_LIBS         += $(GCCLIB) $(EXTRA_LIBS)
 
 all:: $(BOOTSTRAP_RAW)
