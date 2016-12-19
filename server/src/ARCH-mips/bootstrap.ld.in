@@ -70,7 +70,7 @@ SECTIONS
 
     . = ALIGN(4);
     _module_info_start = .;
-    *(.module_info)
+    KEEP(*(.module_info))
     _module_info_end   = .;
 
   _gp = ALIGN(16) + 0x7ff0;

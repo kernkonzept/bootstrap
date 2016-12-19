@@ -67,7 +67,7 @@ SECTIONS
 
     . = ALIGN(4);
     _module_info_start = .;
-    *(.module_info)
+    KEEP(*(.module_info))
     _module_info_end   = .;
 
 #ifndef SINGLE_SECTION

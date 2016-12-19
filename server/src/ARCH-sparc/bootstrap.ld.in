@@ -32,7 +32,7 @@ SECTIONS
     PLATFORMS
 
     _module_info_start = .;
-    *(.module_info)
+    KEEP(*(.module_info))
     _module_info_end = .;
 
   } : common
