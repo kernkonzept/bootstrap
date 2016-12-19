@@ -42,7 +42,7 @@ SECTIONS
   .text :
   {
     _stext = .;
-    *(.text.init) 
+    *(.text.init)
     *(.init)
     *(.text .text.* .gnu.linkonce.t.*)
     *(.glue_7t) *(.glue_7)
@@ -67,7 +67,7 @@ SECTIONS
 
     . = ALIGN(4);
     _module_info_start = .;
-    *(.module_info)
+    KEEP(*(.module_info))
     _module_info_end   = .;
 
 #ifndef SINGLE_SECTION
