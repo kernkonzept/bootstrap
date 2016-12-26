@@ -9,6 +9,13 @@
  */
 /* -*- c -*- */
 
+.macro set_sctlr sctlr_reg, tmp
+	mrs	\tmp, \sctlr_reg
+	bic	\tmp, \tmp, #0x0004
+	bic	\tmp, \tmp, #0x1000
+	msr	\sctlr_reg, \tmp
+.endm
+
 .section .text.init,#alloc,#execinstr
 .type _start,#function
 .globl _start
@@ -24,11 +31,22 @@ _start:
 	b.eq	run		/* ... go to run */
 
 	/* Disable caches as we're moving code around */
-	ic iallu
-	mrs x0, SCTLR_EL1
-	bic x0, x0, #0x0004
-	bic x0, x0, #0x1000
-	msr SCTLR_EL1, x0
+	ic	iallu
+	mrs	x0, CurrentEL
+	ubfx	x0, x0, #2, #2
+	cmp	x0, #3
+	b.eq	.Lsctlr_el3
+	cmp	x0, #2
+	b.eq	.Lsctlr_el2
+
+	set_sctlr SCTLR_EL1, x0
+	b .Lsctlr_done
+.Lsctlr_el2:
+	set_sctlr SCTLR_EL2, x0
+	b .Lsctlr_done
+.Lsctlr_el3:
+	set_sctlr SCTLR_EL3, x0
+.Lsctlr_done:
 
 	/* Figure how to move */
         ldr     x7, .LCend_bin
