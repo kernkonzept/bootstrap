@@ -9,28 +9,10 @@
  */
 /* -*- c -*- */
 
-#define MIMIC_A_VMLINUZ
-
 .section .text.init,#alloc,#execinstr
 .type _start,#function
 .globl _start
 _start:
-/* Some bootloaders like it this way, for others it won't harm */
-#ifdef MIMIC_A_VMLINUZ
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	b 10f
-	.word 0x016f2818
-	.word _start
-	.word _module_data_end
-10:
-#endif
 	/*
 	 * It might be the case that we're not run at the position where we
 	 * have been linked to. If this is the case we copy ourselves to the
