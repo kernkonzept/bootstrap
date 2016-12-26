@@ -56,7 +56,7 @@ _start:
 	/* Copy before, copy forwards */
 	/* First, copy our copy loop to the very beginning to avoid code
 	 * overwrites */
-	mov	x9, x5			/* r9: run address */
+	mov	x9, x5			/* x9: run address */
 	ldr	x0, .LCstart_bin
 	ldr	x3, 3f
 	str	x3, [x0], #8
@@ -76,7 +76,7 @@ _start:
 
 	/* Copy behind, copy backwards */
 move_behind:
-	sub	x8, x7, x8	/* r8 points to the end of source image */
+	sub	x8, x7, x8	/* x8 points to the end of source image */
 3:	ldr	x6, [x8, #-8]!	/* Take bytes */
 	str	x6, [x7, #-8]!	/* Put bytes */
 	cmp	x5, x7
