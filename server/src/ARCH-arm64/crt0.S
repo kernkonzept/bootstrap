@@ -85,6 +85,7 @@ move_behind:
 	br	x10
 
 
+	.align 3
 .LCrun:       .8byte run
 .LCstart_bin: .8byte _start
 .LCend_bin:   .8byte _module_data_end
