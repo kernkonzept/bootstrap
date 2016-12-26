@@ -91,8 +91,6 @@ move_behind:
 
 run:
 do_bootstrap:
-	ldr	x3, .LCcrt0_tramppage      /* Load address of tramppage var */
-	str	x9, [x3]                   /* Store SP in variable          */
 	adr	x9, crt0_stack_high
 	mov	sp, x9
 
@@ -105,13 +103,7 @@ do_bootstrap:
 	bl	__main
 1:	b	1b
 
-.LCcrt0_tramppage:      .quad crt0_tramppage
-
 .section ".bss"
-
-	.global	crt0_tramppage
-crt0_tramppage:
-	.space 8
 
 	.global crt0_stack_low
 	.align 4
