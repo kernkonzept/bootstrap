@@ -41,7 +41,7 @@ class Platform_arm_omap : public Platform_single_region_ram
     set_stdio_uart(&_uart);
   }
 
-  void arm_switch_to_hyp()
+  bool arm_switch_to_hyp()
   {
     register l4_umword_t f asm("r12") = 0x102;
     asm volatile("push {fp}                 \n"
@@ -55,6 +55,8 @@ class Platform_arm_omap : public Platform_single_region_ram
                  : "r0", "r1", "r2", "r3", "r4",
                    "r5", "r6", "r7", "r8", "r9",
                    "r10", "memory");
+
+    return true;
   }
 };
 }

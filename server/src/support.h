@@ -124,7 +124,7 @@ public:
       ;
   }
 
-  virtual void arm_switch_to_hyp() {}
+  virtual bool arm_switch_to_hyp() { return false; }
 
   virtual void boot_kernel(unsigned long entry)
   {

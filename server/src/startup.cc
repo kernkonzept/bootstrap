@@ -589,7 +589,13 @@ setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
         if (!running_in_hyp_mode())
           {
             printf("  Detected HYP kernel, switching to HYP mode\n");
-            plat->arm_switch_to_hyp();
+
+            if (   ((ia->cpuinfo.MIDR & 0xf) >> 16) != 0xf // ARMv7
+                || (((ia->cpuinfo.ID_PFR[1] >> 12) & 0xf) == 0)) // No Virt Ext
+              panic("\nCPU does not support Virtualization Extensions\n");
+
+            if (!plat->arm_switch_to_hyp())
+              panic("\nNo switching functionality available on this platform.\n");
             if (!running_in_hyp_mode())
               panic("\nFailed to switch to HYP as required by Fiasco.OC.\n");
           }
