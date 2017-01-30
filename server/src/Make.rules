@@ -345,7 +345,6 @@ CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
 
 LIBS             =
 LIBS          = $(DRV_LIBS) $(BOOTSTRAP_L4_LIBS)
-L4_LIBS         += $(GCCLIB) $(EXTRA_LIBS)
 
 all:: $(BOOTSTRAP_RAW)
 
