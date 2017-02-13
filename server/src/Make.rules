@@ -111,10 +111,10 @@ endif
 
 INTERNAL_CRT0 := $(strip $(INTERNAL_CRT0))
 
-CXXFLAGS_amd64 += -mno-sse
-CXXFLAGS_x86   += -mno-sse
-CFLAGS_amd64 += -mno-sse
-CFLAGS_x86   += -mno-sse
+CXXFLAGS_amd64  += -mno-sse
+CXXFLAGS_x86    += -mno-sse
+CFLAGS_amd64    += -mno-sse
+CFLAGS_x86      += -mno-sse
 
 SRC_C		+= exec.c module.c
 SRC_CC		+= region.cc startup.cc init_kip_f.cc \
@@ -164,7 +164,7 @@ DRV_LIBS-ppc32   = -ldrivers_of
 DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
 ifeq ($(INTERNAL_CRT0),y)
 CRT0		 =
-LDFLAGS += -static -nocrt
+LDFLAGS         += -static -nocrt
 endif
 LDSCRIPT	 = bootstrap.ld
 LDNMAGIC	 =
@@ -184,7 +184,7 @@ BOOTSTRAP_L4_LIBS := $(patsubst -l%,-l%.p,$(BOOTSTRAP_L4_LIBS))
 CFLAGS            += -fpie
 CXXFLAGS          += -fpie
 DEFINES           += -D__PIC__
-LDFLAGS           = -znocombreloc -nostdlib -pie -Bsymbolic
+LDFLAGS            = -znocombreloc -nostdlib -pie -Bsymbolic
 endif
 
 ifneq ($(REALMODE_LOADING)$(RML),00)
@@ -344,7 +344,7 @@ endif
 CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
 
 LIBS             =
-LIBS          = $(DRV_LIBS) $(BOOTSTRAP_L4_LIBS)
+LIBS             = $(DRV_LIBS) $(BOOTSTRAP_L4_LIBS)
 
 all:: $(BOOTSTRAP_RAW)
 
