@@ -91,6 +91,21 @@ move_behind:
 .LCend_bin:   .8byte _module_data_end
 
 run:
+	mrs	x9, MPIDR_EL1              /* CPU ID */
+	and	x9, x9, #0xf               /* CPU id */
+	cmp	x9, #0                     /* CPU0 continues with bootstrap */
+	beq	do_bootstrap
+
+1:	ldr	x9, mp_launch_spin_addr
+	cmp	x9, #0
+	beq	2f                         /* Not yet */
+	ldr	x9, [x9]
+	cmp	x9, #0
+	beq	2f                         /* Still not set */
+	blr	x9
+2:	wfi
+	b	1b
+
 do_bootstrap:
 	adr	x9, crt0_stack_high
 	mov	sp, x9
@@ -112,3 +127,7 @@ crt0_stack_low:
 	.space	8192
 	.global crt0_stack_high
 crt0_stack_high:
+
+	.global mp_launch_spin_addr
+mp_launch_spin_addr:
+	.space 8
