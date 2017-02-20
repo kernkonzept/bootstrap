@@ -103,16 +103,14 @@ run:
 	cmp	r0, r9
 	beq	do_cpuid
 
-        mov     r3, #0xc00
-	orr 	r9, r3, #0x00f
+	mov	r3, #0xf00
+	and	r0, r3
+
+	mov	r9, #0xc00
 	cmp	r0, r9
 	beq	do_cpuid
 
-	orr 	r9, r3, #0x007
-	cmp	r0, r9
-	beq	do_cpuid
-
-	orr 	r9, r3, #0x009
+	mov	r9, #0xd00
 	cmp	r0, r9
 	bne	do_bootstrap               /* None matched, normal startup */
 
