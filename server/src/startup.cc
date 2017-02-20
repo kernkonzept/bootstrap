@@ -768,7 +768,6 @@ startup(char const *cmdline)
    * patch ourselves into the booter task addresses */
   unsigned long api_version = get_api_version(l4i);
   unsigned major = api_version >> 24;
-  printf("  API Version: (%x) %s\n", major, (major & 0x80)?"experimental":"");
   switch (major)
     {
     case 0x87: // Fiasco
