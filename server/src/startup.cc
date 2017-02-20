@@ -590,7 +590,7 @@ setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
           {
             printf("  Detected HYP kernel, switching to HYP mode\n");
 
-            if (   ((ia->cpuinfo.MIDR & 0xf) >> 16) != 0xf // ARMv7
+            if (   ((ia->cpuinfo.MIDR >> 16) & 0xf) != 0xf // ARMv7
                 || (((ia->cpuinfo.ID_PFR[1] >> 12) & 0xf) == 0)) // No Virt Ext
               panic("\nCPU does not support Virtualization Extensions\n");
 
