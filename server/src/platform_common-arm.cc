@@ -6,6 +6,8 @@
  */
 
 #include "platform-arm.h"
+#include "support.h"
+
 #include <l4/util/kip.h>
 #include <assert.h>
 
@@ -21,5 +23,11 @@ void Platform_arm::setup_kernel_config_arm_common(l4_kernel_info_t *kip)
       kernel_type = EL_Support::EL2;
       break;
     }
+
+  // Ensure later stages do not overwrite the CPU boot-up code
+  extern char cpu_bootup_code_start[], cpu_bootup_code_end[];
+  mem_manager->regions->add(Region::n(cpu_bootup_code_start,
+                                      cpu_bootup_code_end,
+                                      ".cpu_boot", Region::Root), true);
 }
 

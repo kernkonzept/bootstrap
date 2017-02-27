@@ -104,6 +104,8 @@ move_behind:
 .LCstart_bin: .8byte _start
 crt_end_bin:  .8byte _module_data_end
 
+	.global cpu_bootup_code_start
+cpu_bootup_code_start:
 run:
 	mrs	x9, MPIDR_EL1              /* CPU ID */
 	and	x9, x9, #0xf               /* CPU id */
@@ -119,6 +121,8 @@ run:
 	blr	x9
 2:	wfe
 	b	1b
+	.global cpu_bootup_code_end
+cpu_bootup_code_end:
 
 	.align 3
 	.global mp_launch_spin_addr

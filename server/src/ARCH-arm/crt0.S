@@ -91,6 +91,8 @@ move_behind:
 crt_end_bin:     .word 0
 crt_end_bin_lsb: .word _module_data_end;
 
+	.global cpu_bootup_code_start
+cpu_bootup_code_start:
 run:
 	mov	r5, #0x1000
 	sub	r5, r5, #1                 /* r5 == 0xfff */
@@ -200,6 +202,8 @@ do_cpuid:
 1:	.word 0xe320f003 /* wfi */
 	b	1b
 #endif
+	.global cpu_bootup_code_end
+cpu_bootup_code_end:
 
 do_bootstrap:
 #ifdef __ARM_FP
