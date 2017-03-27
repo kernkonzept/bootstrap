@@ -114,6 +114,9 @@ CXXFLAGS_x86    += -mno-sse
 CFLAGS_amd64    += -mno-sse
 CFLAGS_x86      += -mno-sse
 
+CFLAGS_arm64    += -mstrict-align
+CXXFLAGS_arm64  += -mstrict-align
+
 SRC_C		+= exec.c module.c
 SRC_CC		+= region.cc startup.cc init_kip_f.cc \
                    libc_support+.cc patch.cc koptions.cc \
