@@ -329,7 +329,12 @@ processing-of-module-list-failed:
 	@echo
 	@exit 1
 
-mod.make.inc $(od)mbi_modules.bin: $(GENERAL_D_LOC) $(shell $(call BUILD_MOD_CMD,list))
+entry_files := $(shell $(call BUILD_MOD_CMD,list))
+
+# Avoid that pattern rules match on module files
+$(entry_files):
+
+mod.make.inc $(od)mbi_modules.bin: $(GENERAL_D_LOC) $(entry_files)
 	@echo Building entry \""$(ENTRY)"\".
 	$(VERBOSE)$(call BUILD_MOD_CMD,build)
 
