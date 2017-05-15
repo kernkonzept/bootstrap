@@ -19,7 +19,8 @@
 #include "startup.h"
 
 namespace {
-class Platform_arm_rcar3 : public Platform_single_region_ram
+class Platform_arm_rcar3 : public Platform_base,
+                           public Boot_modules_image_mode
 {
   bool probe() { return true; }
 
@@ -34,6 +35,14 @@ class Platform_arm_rcar3 : public Platform_single_region_ram
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
+  }
+
+  Boot_modules *modules() { return this; }
+
+  void setup_memory_map()
+  {
+    mem_manager->ram->add(Region(0x048000000, 0x07fffffff, ".ram", Region::Ram));
+    mem_manager->ram->add(Region(0x600000000, 0x63fffffff, ".ram", Region::Ram));
   }
 };
 }
