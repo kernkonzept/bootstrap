@@ -182,6 +182,13 @@ sub list_files_unique
   print join(' ', keys %d), "\n";
 }
 
+sub fetch_files
+{
+  my %entry = @_;
+  L4::ModList::fetch_remote_file($_->{command})
+    foreach (@{$entry{mods}});
+}
+
 sub dump_entry(@)
 {
   my %entry = @_;
@@ -221,6 +228,11 @@ elsif ($ARGV[0] eq 'list')
   }
 elsif ($ARGV[0] eq 'list_unique')
   {
+    list_files_unique(%entry);
+  }
+elsif ($ARGV[0] eq 'fetch_files_and_list_unique')
+  {
+    fetch_files(%entry);
     list_files_unique(%entry);
   }
 elsif ($ARGV[0] eq 'dump')

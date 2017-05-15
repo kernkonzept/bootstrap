@@ -329,7 +329,8 @@ processing-of-module-list-failed:
 	@echo
 	@exit 1
 
-entry_files := $(shell $(call BUILD_MOD_CMD,list_unique))
+build_list_cmd := $(if $(MAKE_RESTARTS),list_unique,fetch_files_and_list_unique)
+entry_files    := $(shell $(call BUILD_MOD_CMD,$(build_list_cmd)))
 
 # Avoid that pattern rules match on module files
 $(entry_files): ;
