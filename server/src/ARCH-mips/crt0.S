@@ -74,7 +74,7 @@ _start:
 	.cpload $25
 	SETUP_GPX64($25, $0)
 
-#ifdef PLATFORM_TYPE_baikal_t
+#if defined(PLATFORM_TYPE_baikal_t) || defined(PLATFORM_TYPE_ci40)
 	// Fix invalid setting of CCA by boot loader
 	mfc0  $8, $16, 0
 	li    $9, 5

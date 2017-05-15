@@ -60,5 +60,6 @@ endif
 # MIPS
 SUPPORT_CC_mips-malta          := platform/malta.cc
 SUPPORT_CC_mips-ci20           := platform/ci20.cc
+SUPPORT_CC_mips-ci40           := platform/ci40.cc
 SUPPORT_CC_mips-sead3          := platform/sead3.cc
 SUPPORT_CC_mips-baikal_t       := platform/baikal.cc
