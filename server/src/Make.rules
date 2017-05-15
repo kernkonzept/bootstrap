@@ -16,7 +16,7 @@
 #                         images (and generated files), preferable some
 #                         tmpfs directory
 
-INTERNAL_CRT0       := y # the defualt is to use our internal crt0
+INTERNAL_CRT0       := y # the default is to use our internal crt0
 DEFAULT_RELOC_arm   := 0x01000000
 DEFAULT_RELOC_arm64 := 0x01000000
 DEFAULT_RELOC_x86   := 0x002d0000
