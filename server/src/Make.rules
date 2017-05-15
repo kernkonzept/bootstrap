@@ -103,8 +103,8 @@ MODE		 = sigma0
 
 include $(SRC_DIR)/Makefile.platform
 
-ifneq ($(DEFAULT_RELOC_arm-$(PLATFORM_TYPE)),)
-DEFAULT_RELOC_arm         := $(DEFAULT_RELOC_arm-$(PLATFORM_TYPE))
+ifneq ($(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE)),)
+DEFAULT_RELOC_$(ARCH) := $(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE))
 endif
 
 INTERNAL_CRT0 := $(strip $(INTERNAL_CRT0))
