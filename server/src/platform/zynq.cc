@@ -15,8 +15,9 @@
  * Please see the COPYING-GPL-2 file for details.
  */
 
-#include "support.h"
 #include <l4/drivers/uart_cadence.h>
+#include "startup.h"
+#include "support.h"
 
 namespace {
 class Platform_arm_zynq : public Platform_single_region_ram
@@ -26,15 +27,22 @@ class Platform_arm_zynq : public Platform_single_region_ram
   void init()
   {
     static L4::Uart_cadence _uart;
-    unsigned long uart_addr;
+
+    kuart.baud      = 115200;
+    kuart.reg_shift = 0;
+
+    kuart.base_baud = 5000000;
     switch (PLATFORM_UART_NR) {
-      case 0: uart_addr = 0xe0000000; // qemu
+      case 0: kuart.base_address = 0xe0000000; // qemu
+              kuart.irqno        = 59;
               break;
       default:
-      case 1: uart_addr = 0xe0001000; // zedboard
+      case 1: kuart.base_address = 0xe0001000; // zedboard
+              kuart.irqno        = 82;
               break;
     };
-    static L4::Io_register_block_mmio r(uart_addr);
+
+    static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
     _uart.change_mode(3, 115200);
     set_stdio_uart(&_uart);
