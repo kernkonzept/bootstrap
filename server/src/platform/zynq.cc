@@ -29,8 +29,10 @@ class Platform_arm_zynq : public Platform_single_region_ram
     unsigned long uart_addr;
     switch (PLATFORM_UART_NR) {
       case 0: uart_addr = 0xe0000000; // qemu
+              break;
       default:
       case 1: uart_addr = 0xe0001000; // zedboard
+              break;
     };
     static L4::Io_register_block_mmio r(uart_addr);
     _uart.startup(&r);
