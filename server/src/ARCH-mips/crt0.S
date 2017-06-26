@@ -103,6 +103,16 @@ _start:
 	mtc0  $8, $12, 0         // mtc0 t0, c0_status
 	ehb
 
+	mfc0  $8, $15, 1         // Get CPU ID
+	andi  $8, $8, 0x3ff
+	beqz  $8, 7f
+	nop
+6:	wait
+	b     6b
+	nop
+7:
+
+
 	PTR_LA $gp, _gp
 	PTR_LA    $29, crt0_stack_high
 	PTR_SUBU  $29, (NARGSAVE * SZREG)
