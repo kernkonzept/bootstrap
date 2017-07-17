@@ -41,6 +41,7 @@ SUPPORT_CC_arm64-rv            := platform/rv.cc
 SUPPORT_CC_arm64-rv_vexpress_a15 := platform/rv_vexpress.cc
 SUPPORT_CC_arm64-rcar3_m3      := platform/rcar3.cc
 DEFAULT_RELOC_arm64-rcar3_m3   := 0x09000000
+SUPPORT_CC_arm64-rpi_b         := platform/rpi.cc
 
 # PPC
 SUPPORT_CC_ppc32-mpc5200       := platform/mpc5200.cc
