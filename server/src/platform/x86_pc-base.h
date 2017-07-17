@@ -846,8 +846,47 @@ public:
     return 0;
   }
 
+  static unsigned cpuid_features()
+  {
+    unsigned ver, brand, ext_feat, feat;
+
+    asm("cpuid"
+	: "=a" (ver), "=b" (brand), "=c" (ext_feat), "=d" (feat)
+	: "a" (1));
+
+    return feat;
+  }
+
+  /* To use esp. library code in bootstrap, we enable the FPU
+   * so that FPU usage by those libs is possible */
   void init()
-  {};
+  {
+    unsigned long tmp;
+
+    /* Enable CR4_OSXSAVE if SSE2 is available */
+    if (cpuid_features() & (1 << 26))
+      asm volatile("mov %%cr4, %0      \n\t"
+                   "or  $(1 << 9), %0  \n\t"
+                   "mov %0, %%cr4      \n\t"
+                   : "=r" (tmp));
+  }
+
+  void boot_kernel(unsigned long entry)
+  {
+    unsigned long tmp;
+
+    /* Disable CR4_OSXSAVE if SSE2 is available */
+    if (cpuid_features() & (1 << 26))
+      asm volatile("mov %%cr4, %0      \n\t"
+                   "and $~(1 << 9), %0 \n\t"
+                   "mov %0, %%cr4      \n\t"
+                   : "=r" (tmp));
+
+
+    typedef void (*func)(void);
+    ((func)entry)();
+    exit(-100);
+  }
 
   void setup_uart(char const *cmdline)
   {
