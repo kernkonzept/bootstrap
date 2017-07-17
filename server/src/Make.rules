@@ -30,7 +30,8 @@ RELOC_PHYS          := y
 LDFLAGS              = -nostdlib -static -Bstatic
 EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
 		       $(wildcard $(L4DIR)/conf/Makeconf.boot $(OBJ_BASE)/conf/Makeconf.boot) \
-		       $(SRC_DIR)/build.pl $(BOOTSTRAP_MODULES_LIST)
+		       $(SRC_DIR)/build.pl $(BOOTSTRAP_MODULES_LIST) \
+		       $(SRC_DIR)/Makefile.platform
 INCLUDE_MAKE_RULES   = $(SRC_DIR)/*/Make.rules
 BOOTSTRAP_LD_dep    := $(SRC_DIR)/ldscript.inc
 
