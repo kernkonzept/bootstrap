@@ -11,5 +11,5 @@
 #ifdef __cplusplus
 extern "C"
 #endif
-void panic(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void panic(const char *fmt, ...) __attribute__((format(printf, 1, 2),noreturn));
 
