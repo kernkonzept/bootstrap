@@ -24,12 +24,33 @@ public:
 
   void init()
   {
-    unsigned long uart_base;
-
     kuart.base_baud    = 3000000;
-    kuart.base_address = 0x10034000; // UART4
     kuart.reg_shift    = 2;
-    kuart.irqno        = 34;
+
+    switch (PLATFORM_UART_NR)
+      {
+      case 0:
+        kuart.base_address = 0x10030000;
+        kuart.irqno        = 51;
+        break;
+      case 1:
+        kuart.base_address = 0x10031000;
+        kuart.irqno        = 50;
+        break;
+      case 2:
+        kuart.base_address = 0x10032000;
+        kuart.irqno        = 49;
+        break;
+      case 3:
+        kuart.base_address = 0x10033000;
+        kuart.irqno        = 48;
+        break;
+      default:
+      case 4:
+        kuart.base_address = 0x10034000;
+        kuart.irqno        = 34;
+        break;
+      }
 
     static L4::Uart_16550 _uart(kuart.base_baud, 0, 0, 0, 0x10 /* FCR UME */);
     static L4::Io_register_block_mmio r(kuart.base_address + Mips::KSEG1,
