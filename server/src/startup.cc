@@ -320,8 +320,8 @@ parse_memvalue(const char *s, unsigned long *val, char **ep)
 
   switch (**ep)
     {
-    case 'G': *val <<= 10;
-    case 'M': *val <<= 10;
+    case 'G': *val <<= 10; /* FALLTHRU */
+    case 'M': *val <<= 10; /* FALLTHRU */
     case 'k': case 'K': *val <<= 10; (*ep)++;
     };
 
