@@ -124,6 +124,7 @@ inn_printf:
       /* print a char or % */
       case 'c':
 	ch=(char)va_arg(arg_ptr,int);
+	/* FALLTHRU */
       case '%':
 	A_WRITE(fn,&ch,1); ++len;
 	break;
@@ -157,8 +158,10 @@ print_out:
 	if(sizeof(void*)>sizeof(long))
 	  ++flag_long;
 	ch='x';
+	/* FALLTHRU */
       case 'X':
 	flag_upcase=(ch=='X');
+	/* FALLTHRU */
       case 'x':
 	base=16;
 	sz=0;
@@ -171,6 +174,7 @@ print_out:
       case 'd':
       case 'i':
 	flag_in_sign=1;
+	/* FALLTHRU */
       case 'u':
 	base=10;
 	sz=0;
