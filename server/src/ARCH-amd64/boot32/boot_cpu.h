@@ -15,6 +15,6 @@
 void base_paging_init (l4_uint64_t);
 void base_cpu_setup (void);
 
-extern struct ptab64_mem_info_t ptab64_mem_info;
+extern struct boot32_info_t boot32_info;
 
 #endif

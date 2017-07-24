@@ -797,7 +797,7 @@ class Platform_x86 : public Platform_base
 {
 public:
 #ifdef ARCH_amd64
-  ptab64_mem_info_t const *ptab64_info;
+  boot32_info_t const *boot32_info;
 #endif
   bool probe() { return true; }
 

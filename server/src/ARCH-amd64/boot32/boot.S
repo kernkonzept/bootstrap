@@ -60,4 +60,5 @@ _stack_seg:
 
 	.bss
 	.space	8192
+.globl _stack
 _stack:

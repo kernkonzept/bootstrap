@@ -436,7 +436,7 @@ base_cpu_setup(void)
   base_tss_load();
 }
 
-struct ptab64_mem_info_t ptab64_mem_info;
+struct boot32_info_t boot32_info;
 
 static void
 ptab_alloc(l4_uint32_t *out_ptab_pa)
@@ -448,8 +448,8 @@ ptab_alloc(l4_uint32_t *out_ptab_pa)
   if (! initialized)
     {
       initialized = 1;
-      ptab64_mem_info.addr = (l4_uint32_t)pool;
-      ptab64_mem_info.size = sizeof(pool);
+      boot32_info.ptab64_addr = (l4_uint32_t)pool;
+      boot32_info.ptab64_size = sizeof(pool);
       memset(pool, 0, sizeof(pool));
       pdirs = ((l4_uint32_t)pool + PAGE_SIZE - 1) & ~PAGE_MASK;
     }

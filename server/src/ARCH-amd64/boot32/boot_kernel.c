@@ -19,6 +19,9 @@ extern void _exit(int rc);
 extern unsigned KERNEL_CS_64;
 extern char _binary_bootstrap64_bin_start;
 
+l4_uint32_t rsdp_start = 0;
+l4_uint32_t rsdp_end = 0;
+
 static l4_uint64_t find_upper_mem(l4util_mb_info_t *mbi)
 {
   l4_uint64_t max = 0;
@@ -86,6 +89,9 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   if (mem_upper > Max_initial_mem)
     mem_upper = Max_initial_mem;
 
+  boot32_info.rsdp_start = rsdp_start;
+  boot32_info.rsdp_end = rsdp_end;
+
   // now do base_paging_init(): sets up paging with one-to-one mapping
   base_paging_init(round_superpage(mem_upper));
 
@@ -97,6 +103,6 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
 
   asm volatile("ljmp *(%4)"
                 :: "D"(mbi), "S"(flag), "d"(rm_pointer),
-                   "c"(&ptab64_mem_info),
+                   "c"(&boot32_info),
                    "r"(&far_ptr), "m"(far_ptr));
 }

@@ -5,6 +5,7 @@ SECTIONS
   _image_start = .;
   .text :
   {
+    KEEP(*(.multiboot2))
     *(.text .text.*)
     *(.rodata .rodata.*)
   } =0x9090

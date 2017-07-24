@@ -26,6 +26,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+static char rsdp_tmp_buf[36];
+l4_uint32_t rsdp_start;
+l4_uint32_t rsdp_end;
+
 enum { Verbose_mbi = 1 };
 
 namespace {
@@ -87,9 +91,25 @@ struct Platform_x86_1 : Platform_x86
 
 #ifdef ARCH_amd64
     // add the page-table on which we're running in 64bit mode
-    regions->add(Region::n(ptab64_info->addr, ptab64_info->addr + ptab64_info->size,
-                 ".bootstrap-ptab64", Region::Boot));
+    regions->add(Region::n(boot32_info->ptab64_addr,
+                           boot32_info->ptab64_addr + boot32_info->ptab64_size,
+                           ".bootstrap-ptab64", Region::Boot));
 #endif
+
+#ifdef ARCH_amd64
+    rsdp_start = boot32_info->rsdp_start;
+    rsdp_end = boot32_info->rsdp_end;
+#endif
+
+   // if we were passed the RSDP structure, save it aside
+   if ((rsdp_end - rsdp_start) <= sizeof(rsdp_tmp_buf))
+     memcpy(rsdp_tmp_buf, (void *)(l4_addr_t)rsdp_start, rsdp_end - rsdp_start);
+   else
+     {
+       rsdp_start = 0;
+       rsdp_end = 0;
+     }
+
    if (!(mbi->flags & L4UTIL_MB_MEM_MAP))
       {
         assert(mbi->flags & L4UTIL_MB_MEMORY);
@@ -341,6 +361,30 @@ public:
       }
 
     move_modules(mod_addr);
+
+    // Our aim here is to allocate an aligned chunk of memory for our copy of
+    // RSDP and create a region out of it.
+    //
+    // XXX: For now, we are piggybacking on this callback because there is
+    // currently no better one that is called this late.
+    if (rsdp_start)
+      {
+        enum {
+          // XXX: need a single definition of this
+          Info_acpi_rsdp = 0
+        };
+        char *rsdp_buf =
+          (char *)mem_manager->find_free_ram(sizeof(rsdp_tmp_buf));
+        if (!rsdp_buf)
+          panic("fatal: could not allocate memory for RSDP\n");
+        memcpy(rsdp_buf, rsdp_tmp_buf, sizeof(rsdp_tmp_buf));
+
+        mem_manager->regions->add(
+          Region::n((l4_addr_t)rsdp_buf,
+                    (l4_addr_t)rsdp_buf + sizeof(rsdp_tmp_buf), ".ACPI",
+                    Region::Info, Info_acpi_rsdp));
+      }
+
     return mbi;
   }
 };
@@ -473,19 +517,19 @@ pci_quirks()
 
 extern "C"
 void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
-            ptab64_mem_info_t const *ptab64_info);
+            boot32_info_t const *boot32_info);
 
 void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
-            ptab64_mem_info_t const *ptab64_info)
+            boot32_info_t const *boot32_info)
 {
   ctor_init();
   Platform_base::platform = &_x86_pc_platform;
   _x86_pc_platform.init();
 #ifdef ARCH_amd64
   // remember this info to reserve the memory in setup_memory_map later
-  _x86_pc_platform.ptab64_info = ptab64_info;
+  _x86_pc_platform.boot32_info = boot32_info;
 #else
-  (void)ptab64_info;
+  (void)boot32_info;
 #endif
   char const *cmdline;
 #if defined(REALMODE_LOADING)

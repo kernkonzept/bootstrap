@@ -18,11 +18,14 @@
 
 typedef char __mb_mod_name_str[MOD_NAME_MAX];
 
-// info where the page table is, for 64bit mode only
-struct ptab64_mem_info_t
+// Structure with essential information the boot32 part needs to pass to the
+// 64-bit part, for 64bit mode only
+struct boot32_info_t
 {
-  l4_uint32_t addr;
-  l4_uint32_t size;
+  l4_uint32_t rsdp_start;
+  l4_uint32_t rsdp_end;
+  l4_uint32_t ptab64_addr;
+  l4_uint32_t ptab64_size;
 };
 
 #endif /* ! __TYPES_H__ */

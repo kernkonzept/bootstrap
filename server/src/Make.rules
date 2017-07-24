@@ -124,7 +124,7 @@ SRC_CC		+= region.cc startup.cc init_kip_f.cc \
                    libc_support+.cc patch.cc koptions.cc \
                    platform_common.cc memory.cc boot_modules.cc
 
-SRC_CC_x86	+= ARCH-x86/reboot.cc
+SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc
 SRC_C_x86	+= base_critical.c
 SRC_C_amd64	+= base_critical.c
@@ -138,6 +138,7 @@ SRC_CC_sparc	+= ARCH-sparc/reboot.cc ARCH-sparc/head.cc
 SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE))
 
 SRC_S-$(INTERNAL_CRT0) += ARCH-$(ARCH)/crt0.S
+SRC_S_x86	+= ARCH-x86/mb2.S
 
 OPTS		 = -g -Os $(CARCHFLAGS_$(ARCH)) $(CARCHFLAGS_$(ARCH)_$(CPU)) \
 		   $(GCCNOFPU_$(ARCH))
@@ -467,10 +468,13 @@ vpath %.S             $(SRC_DIR)/ARCH-amd64/boot32
 vpath bootstrap.ld.in $(SRC_DIR)/ARCH-x86
 
 SRC32_C		 = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c
-SRC32_S		 = boot.S boot_idt.S
-OBJ32		 = $(SRC32_S:.S=.o32) $(SRC32_C:.c=.o32)
+SRC32_CC	 = multiboot2.cc
+SRC32_S		 = boot.S boot_idt.S ARCH-x86/mb2.S
+OBJ32		 = $(SRC32_S:.S=.o32) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32)
 CC32		 = $(filter-out -m64, $(CC)) -m32
+CXX32		 = $(filter-out -m64, $(CXX)) -m32
 CFLAGS32	 = $(filter-out -m64, $(CFLAGS) $(CFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
+CXXFLAGS32	 = $(filter-out -m64, $(CXXFLAGS) $(CXXFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
 
 $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(ARCH)_$(CPU)/libc32.a: FORCE
 	$(VERBOSE)$(MAKE) O=$(OBJ_BASE) -C $(SRC_DIR)/ARCH-amd64/libc32
@@ -494,6 +498,11 @@ bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
 	@$(COMP_MESSAGE)
 	$(VERBOSE)$(CC32) -o $@ -c $(DEPEND_FLAG) \
 	  $(CPPFLAGS) $(CFLAGS32) $(call absfilename,$<)
+
+%.o32: %.cc $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
+	@$(COMP_MESSAGE)
+	$(VERBOSE)$(CXX32) -o $@ -c $(DEPEND_FLAG) \
+	  $(CPPFLAGS) $(CXXFLAGS32) $(call absfilename,$<)
 
 %.o32: %.S $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
 	@$(COMP_MESSAGE)
