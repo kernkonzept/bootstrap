@@ -7,6 +7,7 @@
 # - BOOTSTRAP_MODULES_LIST
 # - BOOTSTRAP_DO_RAW_IMAGE
 # - BOOTSTRAP_DO_UIMAGE
+# - BOOTSTRAP_DO_ITB
 # - BOOTSTRAP_DO_UEFI if set an image which is bootable by UEFI is built
 # - BOOTSTRAP_NO_STRIP if set no stripping of image
 # - BOOTSTRAP_UIMAGE_COMPRESSION: set to none, gzip, or bzip2
@@ -263,15 +264,20 @@ $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
                  fi ) || exit 1; \
       $(if $(BOOTSTRAP_NO_STRIP),,$(STRIP) $@)
 
-   ifneq ($(BOOTSTRAP_DO_RAW_IMAGE)$(BOOTSTRAP_DO_UIMAGE),)
+   ifneq ($(BOOTSTRAP_DO_RAW_IMAGE)$(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
      BOOTSTRAP_RAW      := $(od)bootstrap.raw
      INSTALL_FILES      += bootstrap.raw bootstrap_$(ENTRY_FN).raw
-     ifneq ($(BOOTSTRAP_DO_UIMAGE),)
+     ifneq ($(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
        ifneq ($(shell command -v $(MKIMAGE)),)
-         BOOTSTRAP_UIMAGE := $(od)bootstrap.uimage
-         INSTALL_FILES    += bootstrap.uimage bootstrap_$(ENTRY_FN).uimage
+         ifneq ($(BOOTSTRAP_DO_UIMAGE),)
+           BOOTSTRAP_UIMAGE := $(od)bootstrap.uimage
+           INSTALL_FILES    += bootstrap.uimage bootstrap_$(ENTRY_FN).uimage
+         else
+           BOOTSTRAP_ITB    := $(od)bootstrap.itb
+           INSTALL_FILES    += bootstrap.itb bootstrap_$(ENTRY_FN).itb
+         endif
        else
-         $(error mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage)
+         $(error mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage/itb)
        endif
      endif
    endif
@@ -280,7 +286,7 @@ $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
 ifneq ($(ENTRY),auto-build-entry)
 all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 	$(VERBOSE)echo "  Image size(s) in bytes:"
-	$(VERBOSE)for f in $(filter bootstrap_$(ENTRY_FN).elf bootstrap.raw bootstrap.uimage, $(INSTALL_FILES)); do \
+	$(VERBOSE)for f in $(filter bootstrap_$(ENTRY_FN).elf bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
 	  find $(if $(od),$(od),.) -name $$f -printf " %30f:  %s\n"; \
 	done
 	$(if $(LDFLAGS_$(od)bootstrap.elf),$(VERBOSE)echo "  Start address: $(patsubst --defsym=__executable_start=%,%,$(LDFLAGS_$(od)bootstrap.elf))")
@@ -395,12 +401,22 @@ $(BOOTSTRAP_RAW): $(TARGET_BIN)
 
 MKIMAGE_ARCH = $(if $(filter ppc32,$(ARCH)),ppc,$(ARCH))
 
-# u-boot image, based on raw-version
+# u-boot images, based on raw-version
 $(BOOTSTRAP_UIMAGE): $(BOOTSTRAP_RAW).$(BOOTSTRAP_UIMAGE_COMPRESSION)
 	@$(GEN_MESSAGE)
 	@# mkimage writes the same file which does not play well with hardlinks
 	$(VERBOSE)$(RM) -f $@
 	$(VERBOSE)$(MKIMAGE) -e $(call default_reloc,$(ARCH)) \
+	   -a $(call default_reloc,$(ARCH)) -A $(MKIMAGE_ARCH)  \
+	   -C $(BOOTSTRAP_UIMAGE_COMPRESSION) \
+	   -n "L4 Image #$$(cat .build_nr)" \
+	   -d $^ $@
+
+$(BOOTSTRAP_ITB): $(BOOTSTRAP_RAW)
+	@$(GEN_MESSAGE)
+	@# mkimage writes the same file which does not play well with hardlinks
+	$(VERBOSE)$(RM) -f $@
+	$(VERBOSE)$(MKIMAGE) -f auto -e $(call default_reloc,$(ARCH)) \
 	   -a $(call default_reloc,$(ARCH)) -A $(MKIMAGE_ARCH)  \
 	   -C $(BOOTSTRAP_UIMAGE_COMPRESSION) \
 	   -n "L4 Image #$$(cat .build_nr)" \
