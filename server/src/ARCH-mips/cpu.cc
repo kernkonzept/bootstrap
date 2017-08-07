@@ -150,7 +150,8 @@ void print_cpu_info()
   };
   char const *const features3_2[] = {
     "VZ", "PW (HW Page Walk)", "SC (Segment Control)", "BadInstr",
-    "BadInstrP", "MASP (SIMD)", "CMGCR (Coherency Manager MM)"
+    "BadInstrP", "MASP (SIMD)", "CMGCR (Coherency Manager MM)",
+    "BPG (Big Pages)",
   };
 
   printf("  MIPS:");
@@ -158,7 +159,7 @@ void print_cpu_info()
     if (v & (1UL << i))
       printf(" %s", features3[i]);
 
-  for (unsigned i = 23; i < 30; ++i)
+  for (unsigned i = 23; i < 31; ++i)
     if (v & (1UL << i))
       printf(" %s", features3_2[i - 23]);
   printf("\n");
