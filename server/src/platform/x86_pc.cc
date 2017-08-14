@@ -97,6 +97,21 @@ struct Platform_x86_1 : Platform_x86
                            Region::Ram));
         ram->add(Region::n(0x100000, (mbi->mem_upper + 1024) << 10, ".ram",
                            Region::Ram));
+
+        // Fix EBDA in conventional memory
+        unsigned long p = *(l4_uint16_t *)0x40e << 4;
+
+        if (p > 0x400)
+          {
+            unsigned long e = p + 1024;
+            Region *r = ram->find(Region(p, e - 1));
+            if (r)
+              {
+                if (e - 1 < r->end())
+                  ram->add(Region::n(e, r->end(), ".ram", Region::Ram), true);
+                r->end(p);
+              }
+          }
       }
     else
       {
@@ -126,24 +141,6 @@ struct Platform_x86_1 : Platform_x86
       }
 
     regions->add(Region::n(0, 0x1000, ".BIOS", Region::Arch, 0));
-
-
-    // Quirks
-
-    // Fix EBDA in conventional memory
-    unsigned long p = *(l4_uint16_t *)0x40e << 4;
-
-    if (p > 0x400)
-      {
-        unsigned long e = p + 1024;
-        Region *r = ram->find(Region(p, e - 1));
-        if (r)
-          {
-            if (e - 1 < r->end())
-              ram->add(Region::n(e, r->end(), ".ram", Region::Ram), true);
-            r->end(p);
-          }
-      }
   }
 };
 
