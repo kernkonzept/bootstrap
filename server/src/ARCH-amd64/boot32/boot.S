@@ -24,7 +24,7 @@ _start:
 	/* We have the following problem: Our image is loaded at 0x00100000
 	 * by the boot loader but we don't want to get into conflict with
 	 * the AMD64 executable. Therefore we move ourself out of the way.
-	 * We are linked to 0x01000000 (see ARCH-amd64/boot32/bootstrap.ld) */
+	 * We are linked to 0x01000000 (see ARCH-amd64/boot32/bootstrap32.ld) */
 	mov	%esi, %ebx
 	mov	$0x00100000, %esi
 	mov	$0x01000000, %edi
