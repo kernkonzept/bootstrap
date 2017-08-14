@@ -134,6 +134,9 @@ struct Platform_x86_1 : Platform_x86
               case 5:
                 regions->add(Region::n(start, end, ".BIOS", Region::No_mem));
                 break;
+              case 20:
+                regions->add(Region::n(start, end, ".BIOS", Region::Arch, mmap->type));
+                break;
               default:
                 break;
               }
