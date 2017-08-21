@@ -26,8 +26,6 @@ class Platform_arm_zynq : public Platform_single_region_ram
 
   void init()
   {
-    static L4::Uart_cadence _uart;
-
     kuart.baud      = 115200;
     kuart.reg_shift = 0;
 
@@ -42,6 +40,7 @@ class Platform_arm_zynq : public Platform_single_region_ram
               break;
     };
 
+    static L4::Uart_cadence _uart(kuart.base_baud);
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
     _uart.change_mode(3, 115200);
