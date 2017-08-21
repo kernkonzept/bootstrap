@@ -13,19 +13,7 @@
 
 	.globl	_start
 _start:
-#ifdef REALMODE_LOADING
-	cld
-	cli
-	mov	$(3 * 8), %eax
-	mov	%eax, %ds
-	mov	%eax, %es
-	mov	%eax, %fs
-	mov	%eax, %gs
-	mov	%eax, %ss
-	lss	_stack_seg, %esp
-#else
 	leal	_stack, %esp
-#endif
 	pushl   $0
 	pushl   %esi	/* Pointer to real mode or Xen start_info pointer */
 	pushl	%eax
@@ -186,12 +174,6 @@ _idt_selector:
 	.byte	0xee
 _idt_offset_high:
 	.word	0
-#endif
-
-#ifdef REALMODE_LOADING
-_stack_seg:
-	.long	_stack
-	.long	(3 * 8)
 #endif
 
 	.bss

@@ -34,52 +34,6 @@ enum { Verbose_mbi = 1 };
 
 namespace {
 
-#ifdef REALMODE_LOADING
-struct Platform_x86_1 : Platform_x86
-{
-  char const *realmode_pointer;
-
-  void setup_memory_map()
-  {
-    Region_list *ram = mem_manager->ram;
-    Region_list *regions = mem_manager->regions;
-
-    unsigned long m = *(l4_uint32_t*)(realmode_pointer + 0x1e0);
-    printf("Detected memory size: %ldKB\n", m);
-    ram->add(Region::n(0, 0x9fc00, ".ram", Region::Ram));
-    ram->add(Region::n(0x100000, (m + 1024) << 10, ".ram", Region::Ram));
-    regions->add(Region::n(0, 0x1000, ".BIOS", Region::Arch, 0));
-    // Quirks
-
-    // Fix EBDA in conventional memory
-    unsigned long p = *(l4_uint16_t *)0x40e << 4;
-
-    if (p > 0x400)
-      {
-        unsigned long e = p + 1024;
-        Region *r = ram->find(Region(p, e - 1));
-        if (r)
-          {
-            if (e - 1 < r->end())
-              ram->add(Region::n(e, r->end(), ".ram", Region::Ram), true);
-            r->end(p);
-          }
-      }
-  }
-
-  char const *cmdline() const
-  {
-    return 0;
-    l4_uint32_t p = *(l4_uint32_t*)(realmode_pointer + 0x228);
-    if (!p)
-      return 0;
-
-    return (char const *)p;
-  }
-};
-
-#else // REALMODE_LOADING
-
 struct Platform_x86_1 : Platform_x86
 {
   l4util_mb_info_t *mbi;
@@ -166,9 +120,6 @@ struct Platform_x86_1 : Platform_x86
     regions->add(Region::n(0, 0x1000, ".BIOS", Region::Arch, 0));
   }
 };
-
-#endif // !REALMODE_LOADING
-
 
 #ifdef IMAGE_MODE
 
@@ -532,20 +483,10 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
   (void)boot32_info;
 #endif
   char const *cmdline;
-#if defined(REALMODE_LOADING)
-  /* create synthetic multi boot info, if loaded from realmode */
-  (void)mbi;
-  (void)p2;
-  _x86_pc_platform.realmode_pointer = realmode_si;
-  cmdline = _x86_pc_platform.cmdline();
-  if (!cmdline)
-    cmdline = _mbi_cmdline;
-#else
   (void)realmode_si;
   assert(p2 == L4UTIL_MB_VALID); /* we need to be multiboot-booted */
   _x86_pc_platform.mbi = mbi;
   cmdline = (char const *)(l4_addr_t)mbi->cmdline;
-#endif
   _x86_pc_platform.setup_uart(cmdline);
   pci_quirks();
 

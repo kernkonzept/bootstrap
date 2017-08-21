@@ -14,22 +14,10 @@
 
 	.globl	_start
 _start:
-#if defined(REALMODE_LOADING) && !defined(IMAGE_MODE)
-	cld
-	cli
-	mov	$(3 * 8), %eax
-	mov	%eax, %ds
-	mov	%eax, %es
-	mov	%eax, %fs
-	mov	%eax, %gs
-
-	lss	_stack_seg, %esp
-#else
 #ifdef __PIC__
 	lea	_stack(%rip),%esp
 #else
 	lea	_stack,%esp
-#endif
 #endif
 
 #ifdef __PIC__
@@ -48,12 +36,6 @@ _mb_header:
         .long   0x1BADB002		/* magic */
         .long   0			/* flags: AOUT_KLUDGE */
         .long   0 - 0x1BADB002
-
-#if defined(REALMODE_LOADING) && !defined(IMAGE_MODE)
-_stack_seg:
-	.long	_stack
-	.word	(3 * 8)
-#endif
 
 	.bss
 
