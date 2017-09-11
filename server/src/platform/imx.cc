@@ -132,7 +132,7 @@ class Platform_arm_imx : public Platform_single_region_ram
     if (_wdog_phys)
       {
         L4::Io_register_block_mmio r(_wdog_phys);
-        r.clear<unsigned short>(0, 1 << 4);
+        r.modify<unsigned short>(0, 0xff00, 1 << 2);
       }
 
     while (1)
