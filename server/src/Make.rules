@@ -48,14 +48,6 @@ include $(L4DIR)/mk/Makeconf
 
 SRC_CC_IS_CXX11    := y
 
-# Checks added Nov 2010:
-ifneq ($(wildcard $(L4DIR)/conf/Makeconf.bootstrap),)
-$(error $(L4DIR)/conf/Makeconf.bootstrap not used anymore. Please use $(L4DIR)/conf/Makeconf.boot now)
-endif
-ifneq ($(wildcard $(OBJ_BASE)/Makeconf.bootstrap),)
-$(error $(OBJ_BASE)/Makeconf.bootstrap not used anymore. Please use $(OBJ_BASE)/conf/Makeconf.boot now)
-endif
-
 ifeq ($(BOOTSTRAP_DO_UEFI),y)
   # link to 0x0
   DEFAULT_RELOC_x86   := 0x0
