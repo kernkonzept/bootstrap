@@ -46,24 +46,28 @@ class Platform_arm_rpi : public Platform_single_region_ram
     switch (rpi_ver)
       {
       case 1:
-        kuart.base_address = 0x20201000;
+        _base = 0x20000000;
+        kuart.base_address = _base + 0x00201000;
         break;
       case 2:
-        kuart.base_address = 0x3f201000;
+        _base = 0x3f000000;
+        kuart.base_address = _base + 0x00201000;
         break;
       case 3:
-        kuart.base_address = 0x3f215040;
+        _base = 0x3f000000;
+        kuart.base_address = _base + 0x00215040;
         break;
       };
 
-    kuart.baud         = 115200;
+    kuart.baud = 115200;
 
     if (rpi_ver == 1 || rpi_ver == 2)
       {
+        kuart.base_baud    = 0;
         kuart.irqno        = 57;
 
         static L4::Io_register_block_mmio r(kuart.base_address);
-        static L4::Uart_pl011 _uart(3000000);
+        static L4::Uart_pl011 _uart(kuart.base_baud);
         _uart.startup(&r);
         set_stdio_uart(&_uart);
       }
@@ -77,6 +81,22 @@ class Platform_arm_rpi : public Platform_single_region_ram
         setup_16550_mmio_uart(&_uart);
       }
   }
+
+  void reboot()
+  {
+    enum { Rstc = 0x1c, Wdog = 0x24 };
+
+    L4::Io_register_block_mmio r(_base + 0x00100000);
+
+    l4_uint32_t pw = 0x5a << 24;
+    r.write(Wdog, pw | 8);
+    r.write(Rstc, (r.read<l4_uint32_t>(Rstc) & ~0x30) | pw | 0x20);
+
+    while (1)
+      ;
+  }
+private:
+  l4_addr_t _base;
 };
 }
 
