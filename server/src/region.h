@@ -78,7 +78,7 @@ public:
   /**
    * Create a region (using start and end pointers)
    * @param begin start address
-   * @param end the address of the last byte in the region
+   * @param end The address of the first byte after the region.
    * @param name The name of the region
    * @param t the type of the region
    * @param sub the subtype of the region
