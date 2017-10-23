@@ -752,13 +752,22 @@ startup(char const *cmdline)
   regions.optimize();
   regions.dump();
 
+  L4_kernel_options::Options *lko = find_kopts(mods->module(kernel_module), l4i);
+
+  // Note: we have to ensure that the original ELF binaries are not modified
+  // or overwritten up to this point. However, the memory regions for the
+  // original ELF binaries are freed during load_elf_module() but might be
+  // used up to here.
+  // ------------------------------------------------------------------------
+
+  // The ELF binaries for the kernel, sigma0, and roottask must no
+  // longer be used from here on.
   if (char const *c = check_arg(cmdline, "-presetmem="))
     {
       unsigned fill_value = strtoul(c + 11, NULL, 0);
       fill_mem(fill_value);
     }
 
-  L4_kernel_options::Options *lko = find_kopts(mods->module(kernel_module), l4i);
   kcmdline_parse(L4_CONST_CHAR_PTR(mb_mod[kernel_module].cmdline), lko);
   lko->uart   = kuart;
   lko->flags |= kuart_flags;
