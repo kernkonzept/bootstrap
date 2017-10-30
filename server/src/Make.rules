@@ -332,7 +332,7 @@ processing-of-module-list-failed:
 entry_files := $(shell $(call BUILD_MOD_CMD,list))
 
 # Avoid that pattern rules match on module files
-$(entry_files):
+$(entry_files): ;
 
 mod.make.inc $(od)mbi_modules.bin: $(GENERAL_D_LOC) $(entry_files)
 	@echo Building entry \""$(ENTRY)"\".
