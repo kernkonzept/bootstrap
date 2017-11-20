@@ -33,9 +33,18 @@ class Platform_arm_ls1021atwr : public Platform_single_region_ram
         kuart.base_address = 0x21c0600;
         break;
       };
+
+#if defined(PLATFORM_TYPE_ls1021atwr)
     kuart.base_baud    = 9375000;
-    kuart.baud         = 115200;
     kuart.irqno        = 118;
+#elif defined (PLATFORM_TYPE_ls1012afrdm)
+    kuart.base_baud    = 7812500;
+    kuart.irqno        = 86;
+#else
+#error "Unknown NXP/Freescale Layerscape platform"
+#endif
+
+    kuart.baud         = 115200;
     kuart.reg_shift    = 0;
     static L4::Uart_16550 _uart(kuart.base_baud, 0, 0, 0, 0);
     setup_16550_mmio_uart(&_uart);
