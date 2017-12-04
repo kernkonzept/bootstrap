@@ -607,6 +607,10 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
   assert(p2 == L4UTIL_MB_VALID); /* we need to be multiboot-booted */
   _x86_pc_platform.mbi = mbi;
   cmdline = (char const *)(l4_addr_t)mbi->cmdline;
+#if defined (IMAGE_MODE)
+  if (!cmdline)
+    cmdline = _mbi_cmdline;
+#endif
   _x86_pc_platform.setup_uart(cmdline);
 
   startup(cmdline);
