@@ -333,7 +333,7 @@ build_list_cmd := $(if $(MAKE_RESTARTS),list_unique,fetch_files_and_list_unique)
 entry_files    := $(shell $(call BUILD_MOD_CMD,$(build_list_cmd)))
 
 # Avoid that pattern rules match on module files
-$(entry_files): ;
+$(filter-out processing-of-module-list-failed,$(entry_files)): ;
 
 mod.make.inc $(od)mbi_modules.bin: $(GENERAL_D_LOC) $(entry_files)
 	@echo Building entry \""$(ENTRY)"\".
