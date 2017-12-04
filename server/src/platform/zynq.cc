@@ -29,16 +29,29 @@ class Platform_arm_zynq : public Platform_single_region_ram
     kuart.baud      = 115200;
     kuart.reg_shift = 0;
 
+#ifdef PLATFORM_TYPE_zynqmp
+    kuart.base_baud = 99648000;
+    switch (PLATFORM_UART_NR) {
+      default:
+      case 0: kuart.base_address = 0xff000000;
+              kuart.irqno        = 32 + 21;
+              break;
+      case 1: kuart.base_address = 0xff010000;
+              kuart.irqno        = 32 + 22;
+              break;
+    };
+#else
     kuart.base_baud = 5000000;
     switch (PLATFORM_UART_NR) {
-      case 0: kuart.base_address = 0xe0000000; // qemu
+      case 0: kuart.base_address = 0xe0000000; // QEMU
               kuart.irqno        = 59;
               break;
       default:
-      case 1: kuart.base_address = 0xe0001000; // zedboard
+      case 1: kuart.base_address = 0xe0001000; // Zedboard
               kuart.irqno        = 82;
               break;
     };
+#endif
 
     static L4::Uart_cadence _uart(kuart.base_baud);
     static L4::Io_register_block_mmio r(kuart.base_address);
