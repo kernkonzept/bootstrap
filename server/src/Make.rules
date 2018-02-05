@@ -46,8 +46,6 @@ include $(L4DIR)/mk/Makeconf
 -include $(L4DIR)/conf/Makeconf.boot
 -include $(OBJ_BASE)/conf/Makeconf.boot
 
-SRC_CC_IS_CXX11    := y
-
 ifeq ($(BOOTSTRAP_DO_UEFI),y)
   # link to 0x0
   DEFAULT_RELOC_x86   := 0x0
