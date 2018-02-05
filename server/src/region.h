@@ -152,6 +152,8 @@ public:
   void name(char const *name) { _name = name; }
   /** Get the type of the region. */
   Type type() const { return (Type)(_t); }
+  /** Set the type of the region. */
+  void type(Type t) { _t = t; }
   /** Get the subtype of the region. */
   short sub_type() const { return _s; }
   /** Set the subtype of the region. */
