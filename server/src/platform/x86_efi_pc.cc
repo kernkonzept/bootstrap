@@ -57,7 +57,7 @@ public:
         exit_status = LibGetSystemConfigurationTable(&AcpiTableGuid, &table);
 
     if (exit_status != EFI_SUCCESS)
-      printf("No RDSP found in EFI system table\n");
+      printf("No RSDP found in EFI system table\n");
 
     exit_status = (EFI_STATUS)uefi_call_wrapper((void*)(BS->ExitBootServices), 2, efi_image, key);
     if (exit_status != EFI_SUCCESS)
@@ -71,7 +71,7 @@ public:
 
     enum
     {
-      Acpi_rdsp = 0,
+      Acpi_rsdp = 0,
       Acpi      = 3,
       Nvs       = 4,
     };
@@ -106,7 +106,7 @@ public:
     // add region for ACPI tables
     regions->add(Region::n(l4_trunc_page((l4_addr_t)table),
                            l4_trunc_page((l4_addr_t)table) + L4_PAGESIZE,
-                           ".ACPI", Region::Info, Acpi_rdsp), true);
+                           ".ACPI", Region::Info, Acpi_rsdp), true);
 
     // merge adjacent regions
     ram->optimize();
