@@ -26,7 +26,7 @@
 
 static void *filestart;
 
-enum { lin_alloc_buffer_size = 12 << 10 };
+enum { lin_alloc_buffer_size = 32 << 10 };
 unsigned long lin_alloc_buffer[(lin_alloc_buffer_size + sizeof(unsigned long) - 1)/ sizeof(unsigned long)];
 
 /*
@@ -77,7 +77,7 @@ grub_read(unsigned char *buf, int len)
      there is an error */
   if (filepos + len > fsmax)
     {
-      printf("Filesize error %d + %d > %d\n", filepos, len, fsmax);
+      printf("Filesize error %ld + %d > %ld\n", filepos, len, fsmax);
       return 0;
     }
 

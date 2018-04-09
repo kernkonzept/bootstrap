@@ -131,9 +131,9 @@
 
 #include "gunzip.h"
 
-unsigned int filepos;
-unsigned int filemax;
-unsigned int fsmax;     /* max size of fs/readable media */
+unsigned long filepos;
+unsigned long filemax;
+unsigned long fsmax;     /* max size of fs/readable media */
 
 grub_error_t errnum;
 
@@ -147,11 +147,11 @@ int no_decompression = 0;
 unsigned int compressed_file;
 
 /* internal variables only */
-static unsigned int gzip_data_offset;
-static int gzip_filepos;
-static int gzip_filemax;
-static int gzip_fsmax;
-static int saved_filepos;
+static unsigned long gzip_data_offset;
+static unsigned long gzip_filepos;
+static unsigned long gzip_filemax;
+static unsigned long gzip_fsmax;
+static unsigned long saved_filepos;
 static unsigned long gzip_crc;
 
 /* internal extra variables for use of inflate code */
@@ -166,10 +166,16 @@ static void initialize_tables (void);
 
 static void show_progress(int done, int len)
 {
-  int r = printf("%lld%%", ((unsigned long long)done * 100) / len);
-  while (r-- > 0)
-    putchar('\b');
-  fflush(NULL);
+  static unsigned old_percent;
+  unsigned percent = (unsigned)(((unsigned long long)done * 100) / len);
+  if (percent != old_percent)
+    {
+      int r = printf("%u%%", percent);
+      while (r-- > 0)
+        putchar('\b');
+      fflush(NULL);
+      old_percent = percent;
+    }
 }
 
 /*
@@ -183,7 +189,7 @@ linalloc (int size)
 {
   extern void *lin_alloc_buffer;
   unsigned long newaddr = (linalloc_topaddr - size) & ~3;
-  if (newaddr < (unsigned long)lin_alloc_buffer)
+  if (newaddr < (unsigned long)&lin_alloc_buffer)
     panic("Out of memory while uncompressing");
   linalloc_topaddr = newaddr;
   return (void *) linalloc_topaddr;
@@ -200,7 +206,7 @@ reset_linalloc (void)
 static void
 gunzip_swap_values (void)
 {
-  register int itmp;
+  register long itmp;
 
   /* swap filepos */
   itmp = filepos;
@@ -654,7 +660,7 @@ huft_build (unsigned *b,	/* code lengths in bits (all assumed <= BMAX) */
 	      w += l;		/* previous table always l bits */
 
 	      /* compute minimum size table less than or equal to l bits */
-	      z = (z = g - w) > (unsigned) l ? l : z;	/* upper limit on table size */
+	      z = (z = g - w) > (unsigned) l ? (unsigned) l : z; /* upper limit on table size */
 	      if ((f = 1 << (j = k - w)) > a + 1)	/* try a k-w bit table */
 		{		/* too few codes for k-w bit table */
 		  f -= a + 1;	/* deduct codes from patterns left */

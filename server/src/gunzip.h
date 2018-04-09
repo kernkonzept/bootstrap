@@ -18,9 +18,9 @@ l4_addr_t gunzip_upper_mem_linalloc(void);
 #define RAW_ADDR(x) (x)
 #define RAW_SEG(x) (x)
 
-extern unsigned int filepos;
-extern unsigned int filemax;
-extern unsigned int fsmax;     /* max size of fs/readable media */
+extern unsigned long filepos;
+extern unsigned long filemax;
+extern unsigned long fsmax;     /* max size of fs/readable media */
 extern unsigned int compressed_file;
 extern grub_error_t errnum;
 
