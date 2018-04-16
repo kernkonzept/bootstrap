@@ -355,7 +355,10 @@ $(BOOTSTRAP_RAW): $(TARGET_BIN)
 %.none: %
 	ln -sf $^ $@
 
-MKIMAGE_ARCH = $(if $(filter ppc32,$(ARCH)),ppc,$(ARCH))
+MKIMAGE_ARCH-$(ARCH) = $(ARCH)
+MKIMAGE_ARCH-ppc32   = ppc
+
+MKIMAGE_ARCH = $(MKIMAGE_ARCH-$(ARCH))
 
 # u-boot images, based on raw-version
 $(BOOTSTRAP_UIMAGE): $(BOOTSTRAP_RAW).$(BOOTSTRAP_UIMAGE_COMPRESSION)
