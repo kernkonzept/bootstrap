@@ -579,7 +579,7 @@ base_paging_init(l4_uint64_t phys_mem_max)
   paging_enable(base_pml4_pa);
 }
 
-void trap_dump_panic(const struct trap_state *st);
+void trap_dump_panic(const struct trap_state *st) L4_NORETURN;
 void trap_dump_panic(const struct trap_state *st)
 {
   int from_user = st->cs & 3;
