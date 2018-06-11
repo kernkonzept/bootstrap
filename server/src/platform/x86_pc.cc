@@ -193,8 +193,18 @@ public:
                              ".mbi", Region::Boot));
 
     for (unsigned i = 0; i < mbi->mods_count; ++i)
-      regions->add(mod_region(i, mb_mod[i].mod_start,
-                              mb_mod[i].mod_end - mb_mod[i].mod_start));
+      {
+        /*
+         * Avoid overflow on size calculation of empty modules,
+         * i.e. mod_start == mod_end. Grub generates MBI entries
+         * with start == end == 0 for empty files loaded as modules.
+         */
+        if (mb_mod[i].mod_start >= mb_mod[i].mod_end)
+          panic("Found a module with unplausible size (%s). Abort.\n",
+                (char const*)(l4_addr_t)mb_mod[i].cmdline);
+        regions->add(mod_region(i, mb_mod[i].mod_start,
+                                mb_mod[i].mod_end - mb_mod[i].mod_start));
+      }
   }
 
   void move_module(unsigned index, void *dest,
