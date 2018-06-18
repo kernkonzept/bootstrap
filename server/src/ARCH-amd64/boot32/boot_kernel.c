@@ -59,7 +59,7 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   struct
   {
     l4_uint32_t start;
-    l4_uint16_t cs __attribute__((packed));
+    l4_uint16_t cs;
   } far_ptr;
   l4_uint64_t mem_upper;
 
