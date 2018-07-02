@@ -620,6 +620,28 @@ setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
 }
 #endif /* arm */
 
+#ifdef ARCH_arm64
+static inline unsigned current_el()
+{
+  l4_umword_t current_el;
+  asm ("mrs %0, CurrentEL" : "=r" (current_el));
+  return (current_el >> 2) & 3;
+}
+
+static void
+setup_and_check_kernel_config(Platform_base *, l4_kernel_info_t *kip)
+{
+  const char *s = l4_kip_version_string(kip);
+  if (!s)
+    return;
+
+  l4util_kip_for_each_feature(s)
+    if (!strcmp(s, "arm:hyp"))
+      if (current_el() < 2)
+        panic("Kernel requires EL2 (virtualization) but running in EL1.");
+}
+#endif /* arm64 */
+
 #ifdef ARCH_mips
 extern "C" void syncICache(unsigned long start, unsigned long size);
 #endif
@@ -806,6 +828,9 @@ startup(char const *cmdline)
 #if defined(ARCH_arm)
   if (major == 0x87)
     setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
+#endif
+#if defined(ARCH_arm64)
+  setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
 #endif
 #if defined(ARCH_mips)
   {
