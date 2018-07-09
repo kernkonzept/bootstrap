@@ -72,6 +72,13 @@ class Platform_arm_rcar3 : public Platform_base,
     else
       printf("Configured for R-Car Gen3 but found unknown product (prr=0x%08x)\n", prr);
   }
+
+  void reboot()
+  {
+    // Call PSCI-SYSTEM_RESET
+    register unsigned long r0 asm("r0") = 0x84000009;
+    asm volatile("smc #0" : : "r" (r0));
+  }
 };
 }
 
