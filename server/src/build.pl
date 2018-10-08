@@ -151,7 +151,7 @@ sub build_objects(@)
   build_mbi_modules_obj($entry{bootstrap}{cmdline}, @mods);
 
   for (my $i = 0; $i < @mods; $i++) {
-    build_obj($mods[$i]->{command}, $mods[$i]->{cmdline}, $mods[$i]->{modname},
+    build_obj($mods[$i]->{command}, $mods[$i]->{cmdline_quoted}, $mods[$i]->{modname},
 	      $mods[$i]->{type} =~ /.+-nostrip$/);
     $objs .= " $output_dir/$mods[$i]->{modname}.bin";
   }
