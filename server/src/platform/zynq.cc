@@ -62,8 +62,14 @@ class Platform_arm_zynq : public Platform_single_region_ram
 
   void reboot()
   {
-    L4::Io_register_block_mmio r(0xf8000200);
-    r.write<unsigned>(1, 0);
+    enum
+    {
+      SLCR_UNLOCK  = 0x008,
+      PSS_RST_CTRL = 0x200
+    };
+    L4::Io_register_block_mmio r(0xf8000000);
+    r.write<unsigned>(SLCR_UNLOCK, 0xdf0d);
+    r.write<unsigned>(PSS_RST_CTRL, 1);
   }
 };
 }
