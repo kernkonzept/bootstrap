@@ -41,7 +41,7 @@ class Platform_arm_zynq : public Platform_single_region_ram
               break;
     };
 #else
-    kuart.base_baud = 5000000;
+    kuart.base_baud = 49536000;
     switch (PLATFORM_UART_NR) {
       case 0: kuart.base_address = 0xe0000000; // QEMU
               kuart.irqno        = 59;
