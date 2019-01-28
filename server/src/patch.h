@@ -16,8 +16,6 @@
 EXTERN_C_BEGIN
 void
 patch_module(const char **str, l4util_mb_info_t *mbi);
-char *
-get_arg_module(char *cmdline, const char *name, unsigned *size);
 EXTERN_C_END
 
 #endif

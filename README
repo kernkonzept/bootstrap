@@ -20,12 +20,6 @@ Command line parameters (in alphabetical order):
       <text> is replaced by <replacement>. <replacement> can also be quoted
       text. Otherwise no spaces are allowed.
 
-  -arg=<modname>,<replacement>
-      <modname> is compared with the path name of each module to decide which
-      module arguments should be replaced. If the module was found, the module
-      arguments, that is all text of the module command line after the first
-      ' ' is replaced by <replacement>. <replacement> can also be quoted text.
-
   -roottask
       No effect -- Provided for compatibility with RMGR.
 

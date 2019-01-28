@@ -1,7 +1,7 @@
 /**
  * \file	bootstrap/server/src/patch.c
  * \brief	Patching of boot modules
- * 
+ *
  * \date	09/2005
  * \author	Frank Mehnert <fm3@os.inf.tu-dresden.de> */
 
@@ -143,56 +143,4 @@ patch_module(const char **str, l4util_mb_info_t *mbi)
     }
 
   mod->mod_end = (l4_addr_t)mod_end;
-}
-
-
-/**
- * Handle -arg=<module_name>,blah parameter. Replace old command line
- * parameters of <module_name> by blah. Useful for changing the boot
- * configuration of a bootstrap image.
- *
- * Get a pointer to new argument and return the size.
- */
-char *
-get_arg_module(char *cmdline, const char *name, unsigned *size)
-{
-  char *val_beg = NULL, *val_end;
-  char *s = cmdline;
-
-  if (!s)
-    return 0;
-
-  while (!val_beg && (s = strstr(s, " -arg=")))
-    {
-      char *a, *name_end;
-
-      s += 6;
-      name_end = strchr(s, ',');
-      if (!name_end)
-	panic("comma missing after modname in -arg=");
-      *name_end = 0;
-
-      for (a = s; *a; a++)
-	if (isspace(*a))
-	  panic("Invalid '-arg=modname,text' parameter");
-
-      // we do a fuzzy name-match here
-      if (strstr(name, s))
-	val_beg = name_end+1;
-      *name_end = ',';
-    }
-  if (!val_beg)
-    return 0;
-
-  // consider quotes
-  unsigned char quote = 0;
-  if (*val_beg == '"' || *val_beg == '\'')
-    quote = *val_beg++;
-  val_end = val_beg;
-
-  while (*val_end && ((!quote && !isspace(*val_end)) || *val_end!=quote))
-    val_end++;
-
-  *size = val_end - val_beg;
-  return val_beg;
 }
