@@ -664,7 +664,10 @@ startup(char const *cmdline)
     cmdline = builtin_cmdline;
 
   if (check_arg(cmdline, "-noserial"))
-    set_stdio_uart(NULL);
+    {
+      set_stdio_uart(NULL);
+      kuart_flags |= L4_kernel_options::F_noserial;
+    }
 
   if (!Platform_base::platform)
     {

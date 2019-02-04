@@ -972,7 +972,5 @@ public:
             printf("UART init failed\n");
           }
       }
-    else
-      kuart_flags |= L4_kernel_options::F_noserial;
   }
 };
