@@ -79,7 +79,7 @@ patch_module(const char **str, l4util_mb_info_t *mbi)
   l4util_mb_mod_t *mod;
 
   /* nam_beg ... nam_end */
-  nam_beg = *str+8;
+  nam_beg = *str+7; /* skip '-patch=' */
   nam_end = strchr(nam_beg, ',');
   if (!nam_end || strpbrk(nam_beg, "\011 =*")-1 < nam_end)
     panic("-patch: bad module name");
