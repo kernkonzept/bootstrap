@@ -713,17 +713,6 @@ startup(char const *cmdline)
   init_regions();
   plat->modules()->reserve();
 
-  /* modules to load by bootstrap */
-  bool sigma0 = true;   /* we need sigma0 */
-  bool roottask = true; /* we need a roottask */
-
-  /* check command line */
-  if (check_arg(cmdline, "-no-sigma0"))
-    sigma0 = 0;
-
-  if (check_arg(cmdline, "-no-roottask"))
-    roottask = 0;
-
   if (const char *s = check_arg(cmdline, "-modaddr"))
     _mod_addr = RAM_BASE + strtoul(s + 9, 0, 0);
 
@@ -733,12 +722,8 @@ startup(char const *cmdline)
   Boot_modules *mods = plat->modules();
 
   add_elf_regions(mods->module(kernel_module), Region::Kernel);
-
-  if (sigma0)
-    add_elf_regions(mods->module(sigma0_module), Region::Sigma0);
-
-  if (roottask)
-    add_elf_regions(mods->module(roottask_module), Region::Root);
+  add_elf_regions(mods->module(sigma0_module), Region::Sigma0);
+  add_elf_regions(mods->module(roottask_module), Region::Root);
 
   l4util_mb_info_t *mbi = plat->modules()->construct_mbi(_mod_addr);
 
@@ -763,13 +748,11 @@ startup(char const *cmdline)
   boot_info.kernel_start = load_elf_module(mods->module(kernel_module), "[KERNEL]");
 
   /* setup sigma0 */
-  if (sigma0)
-    boot_info.sigma0_start = load_elf_module(mods->module(sigma0_module), "[SIGMA0]");
+  boot_info.sigma0_start = load_elf_module(mods->module(sigma0_module), "[SIGMA0]");
 
   /* setup roottask */
-  if (roottask)
-    boot_info.roottask_start = load_elf_module(mods->module(roottask_module),
-                                               "[ROOTTASK]");
+  boot_info.roottask_start = load_elf_module(mods->module(roottask_module),
+                                             "[ROOTTASK]");
 
   /* setup kernel PART TWO (special kernel initialization) */
   void *l4i = find_kip(mods->module(kernel_module));
