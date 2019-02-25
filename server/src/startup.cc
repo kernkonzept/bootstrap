@@ -249,12 +249,6 @@ check_arg_str(char const *cmdline, const char *arg)
   return NULL;
 }
 
-static char *
-check_arg_str(char *cmdline, const char *arg)
-{
-  return const_cast<char *>(check_arg_str(const_cast<char const *>(cmdline), arg));
-}
-
 /**
  * Scan the command line for the given argument.
  *
@@ -375,7 +369,7 @@ setup_memory_map(char const *cmdline)
 
   if (s)
     {
-      while ((s = check_arg_str((char *)s, "-mem=")))
+      while ((s = check_arg_str(s, "-mem=")))
         {
           s += 5;
           unsigned long sz, offset = 0;
@@ -736,7 +730,7 @@ startup(char const *cmdline)
   if (const char *s = cmdline)
     {
       /* patch modules with content given at command line */
-      while ((s = check_arg_str((char *)s, "-patch=")))
+      while ((s = check_arg_str(s, "-patch=")))
 	patch_module(&s, mbi);
     }
 
