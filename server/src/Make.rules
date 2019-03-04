@@ -111,7 +111,7 @@ CXXFLAGS_arm64  += -mstrict-align
 
 SRC_C		+= exec.c module.c
 SRC_CC		+= region.cc startup.cc init_kip_f.cc \
-                   libc_support+.cc patch.cc koptions.cc \
+                   libc_support+.cc koptions.cc \
                    platform_common.cc memory.cc boot_modules.cc
 
 SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc

@@ -14,12 +14,6 @@ Command line parameters (in alphabetical order):
   -maxmem=<size in MB>
       Set the mem_upper field of the multiboot info structure.
 
-  -patch=<modname>,<text>=<replacement>,...
-      <modname> is compared with the path name of each module to decide which
-      module should be patched. If the module was found, each occurrence of
-      <text> is replaced by <replacement>. <replacement> can also be quoted
-      text. Otherwise no spaces are allowed.
-
   -roottask
       No effect -- Provided for compatibility with RMGR.
 

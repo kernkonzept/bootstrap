@@ -44,7 +44,6 @@
 #include "startup.h"
 #include "support.h"
 #include "init_kip.h"
-#include "patch.h"
 #include "koptions.h"
 
 #undef getchar
@@ -726,13 +725,6 @@ startup(char const *cmdline)
   /* We have at least the L4 kernel and the first user task */
   assert(mbi->mods_count >= 2);
   assert(mbi->mods_count <= MODS_MAX);
-
-  if (const char *s = cmdline)
-    {
-      /* patch modules with content given at command line */
-      while ((s = check_arg_str(s, "-patch=")))
-	patch_module(&s, mbi);
-    }
 
   boot_info_t boot_info;
   l4util_mb_mod_t *mb_mod = (l4util_mb_mod_t *)(unsigned long)mbi->mods_addr;
