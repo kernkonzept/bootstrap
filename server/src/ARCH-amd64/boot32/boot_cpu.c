@@ -291,7 +291,7 @@ paging_enable(l4_uint32_t pml4)
   asm volatile("movl  %0,%%cr0 ; jmp  1f ; 1:" : : "r" (get_cr0() | CR0_PG));
 }
 
-static void
+static void L4_NORETURN
 panic(const char *str)
 {
   printf("PANIC: %s\n", str);
