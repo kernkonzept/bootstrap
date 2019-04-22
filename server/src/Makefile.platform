@@ -24,6 +24,8 @@ SUPPORT_CC_arm-imx51           := platform/imx.cc
 SUPPORT_CC_arm-imx6            := platform/imx.cc
 SUPPORT_CC_arm-imx6ul          := platform/imx.cc
 SUPPORT_CC_arm-imx7            := platform/imx.cc
+SUPPORT_CC_arm-imx8m           := platform/imx.cc
+SUPPORT_CC_arm-imx8x           := platform/imx.cc
 SUPPORT_CC_arm-om              := platform/om.cc
 SUPPORT_CC_arm-kirkwood        := platform/kirkwood.cc
 SUPPORT_CC_arm-rpi             := platform/rpi.cc
@@ -49,6 +51,8 @@ SUPPORT_CC_arm64-rpi           := platform/rpi.cc
 SUPPORT_CC_arm64-ls1012afrdm   := platform/layerscape.cc
 SUPPORT_CC_arm64-zynqmp        := platform/zynq.cc
 SUPPORT_CC_arm64-arm_virt      := platform/arm_virt.cc
+SUPPORT_CC_arm64-imx8m         := platform/imx.cc
+SUPPORT_CC_arm64-imx8x         := platform/imx.cc
 
 # PPC
 SUPPORT_CC_ppc32-mpc5200       := platform/mpc5200.cc
