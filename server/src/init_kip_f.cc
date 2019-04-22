@@ -48,24 +48,24 @@ init_kip_f(void *_l4i, boot_info_t *bi, l4util_mb_info_t *mbi,
       Mem_desc::Mem_type type = Mem_desc::Reserved;
       unsigned char sub_type = 0;
       switch (c->type())
-	{
-	case Region::No_mem:
-	case Region::Ram:
-	case Region::Boot:
-	  continue;
-	case Region::Kernel:
-	  type = Mem_desc::Reserved;
-	  break;
-	case Region::Sigma0:
-	  type = Mem_desc::Dedicated;
-	  break;
-	case Region::Root:
-	  type = Mem_desc::Bootloader;
-	  break;
-	case Region::Arch:
-	  type = Mem_desc::Arch;
-	  sub_type = c->sub_type();
-	  break;
+        {
+        case Region::No_mem:
+        case Region::Ram:
+        case Region::Boot:
+          continue;
+        case Region::Kernel:
+          type = Mem_desc::Reserved;
+          break;
+        case Region::Sigma0:
+          type = Mem_desc::Dedicated;
+          break;
+        case Region::Root:
+          type = Mem_desc::Bootloader;
+          break;
+        case Region::Arch:
+          type = Mem_desc::Arch;
+          sub_type = c->sub_type();
+          break;
         case Region::Info:
           type = Mem_desc::Info;
           sub_type = c->sub_type();
