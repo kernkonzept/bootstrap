@@ -23,7 +23,7 @@ public:
   enum Type { No_mem, Kernel, Sigma0, Boot, Root, Arch, Ram, Info };
 
   /** Basic noop constructor, to be able to have array without ini code */
-  Region() {}
+  Region() = default;
 
   /** Create an invalid region. */
   Region(Type) : _begin(0), _end(0) {}
