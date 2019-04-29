@@ -900,9 +900,17 @@ l4_exec_add_region(void *handle,
   if (! (section_type & (EXEC_SECTYPE_ALLOC|EXEC_SECTYPE_LOAD)))
     return 0;
 
+  unsigned short rights = L4_FPAGE_RO;
+  if (section_type & EXEC_SECTYPE_WRITE)
+    rights |= L4_FPAGE_W;
+  if (section_type & EXEC_SECTYPE_EXECUTE)
+    rights |= L4_FPAGE_X;
+
+  // The subtype is used only for Root regions. For other types set subtype to 0
+  // in order to allow merging regions with the same subtype.
   Region n = Region::n(mem_addr, mem_addr + mem_size,
                        info->mod.cmdline ? info->mod.cmdline : ".[Unknown]",
-                       info->type, 0);
+                       info->type, info->type == Region::Root ? rights : 0);
 
   for (Region *r = regions.begin(); r != regions.end(); ++r)
     if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg)

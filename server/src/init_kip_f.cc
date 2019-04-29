@@ -61,6 +61,7 @@ init_kip_f(void *_l4i, boot_info_t *bi, l4util_mb_info_t *mbi,
           break;
         case Region::Root:
           type = Mem_desc::Bootloader;
+          sub_type = c->sub_type();
           break;
         case Region::Arch:
           type = Mem_desc::Arch;

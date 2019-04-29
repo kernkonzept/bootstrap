@@ -6,6 +6,8 @@
 #include "uncompress.h"
 #endif
 
+#include <l4/sys/types.h>
+
 static char const Mod_reg[] = ".Module";
 char const *const Boot_modules::Mod_reg = ::Mod_reg;
 
@@ -32,7 +34,7 @@ Boot_modules::merge_mod_regions()
   for (Region *r = regions->begin(); r != regions->end(); ++r)
     {
       if (r->name() == ::Mod_reg)
-        r->sub_type(0);
+        r->sub_type(L4_FPAGE_RWX);
     }
 
   regions->optimize();
@@ -638,7 +640,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
   Region_list *regions = mem_manager->regions;
   regions->add(Region::start_size((l4_addr_t)mbi, mbi_size, ".mbi_rt",
-                                  Region::Root));
+                                  Region::Root, L4_FPAGE_RWX));
   memset(mbi, 0, mbi_size);
 
   l4util_mb_mod_t *mods = reinterpret_cast<l4util_mb_mod_t *>(mbi + 1);

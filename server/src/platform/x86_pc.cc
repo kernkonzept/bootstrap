@@ -259,7 +259,7 @@ public:
 
     // mark the region as reserved
     mem_manager->regions->add(Region::start_size((l4_addr_t)_mb, total_size, ".mbi_rt",
-                                                 Region::Root));
+                                                 Region::Root, L4_FPAGE_RWX));
     if (Verbose_mbi)
       printf("  reserved %ld bytes at %p\n", total_size, _mb);
 
