@@ -71,7 +71,6 @@ public:
 
     enum
     {
-      Acpi_rsdp = 0,
       Acpi      = 3,
       Nvs       = 4,
     };
@@ -106,7 +105,8 @@ public:
     // add region for ACPI tables
     regions->add(Region::n(l4_trunc_page((l4_addr_t)table),
                            l4_trunc_page((l4_addr_t)table) + L4_PAGESIZE,
-                           ".ACPI", Region::Info, Acpi_rsdp), true);
+                           ".ACPI", Region::Info, Region::Info_acpi_rsdp),
+                 true);
 
     // merge adjacent regions
     ram->optimize();

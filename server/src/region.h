@@ -22,6 +22,11 @@ class Region
 public:
   enum Type { No_mem, Kernel, Sigma0, Boot, Root, Arch, Ram, Info };
 
+  enum Subtype_info
+  {
+    Info_acpi_rsdp = 0,
+  };
+
   /** Basic noop constructor, to be able to have array without ini code */
   Region() = default;
 

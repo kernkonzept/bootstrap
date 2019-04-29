@@ -330,10 +330,6 @@ public:
     // currently no better one that is called this late.
     if (rsdp_start)
       {
-        enum {
-          // XXX: need a single definition of this
-          Info_acpi_rsdp = 0
-        };
         char *rsdp_buf =
           (char *)mem_manager->find_free_ram(sizeof(rsdp_tmp_buf));
         if (!rsdp_buf)
@@ -343,7 +339,7 @@ public:
         mem_manager->regions->add(
           Region::n((l4_addr_t)rsdp_buf,
                     (l4_addr_t)rsdp_buf + sizeof(rsdp_tmp_buf), ".ACPI",
-                    Region::Info, Info_acpi_rsdp));
+                    Region::Info, Region::Info_acpi_rsdp));
       }
 
     return mbi;
