@@ -652,6 +652,9 @@ load_elf_module(Boot_modules::Module const &mod, char const *n)
 void
 startup(char const *cmdline)
 {
+  unsigned presetmem_value = 0;
+  bool presetmem = false;
+
   if (!cmdline || !*cmdline)
     cmdline = builtin_cmdline;
 
@@ -715,6 +718,12 @@ startup(char const *cmdline)
 
   _mod_addr = l4_round_page(_mod_addr);
 
+  if (char const *s = check_arg(cmdline, "-presetmem="))
+    {
+      presetmem_value = strtoul(s + 11, NULL, 0);
+      presetmem = true;
+    }
+
   Boot_modules *mods = plat->modules();
 
   add_elf_regions(mods->mod_kern(), Region::Kernel);
@@ -722,6 +731,8 @@ startup(char const *cmdline)
   add_elf_regions(mods->mod_roottask(), Region::Root);
 
   l4util_mb_info_t *mbi = plat->modules()->construct_mbi(_mod_addr);
+  // cmdline no longer valid after this point (at least on x86)
+  cmdline = nullptr;
 
   /* We need at least two boot modules */
   assert(mbi->flags & L4UTIL_MB_MODS);
@@ -759,11 +770,8 @@ startup(char const *cmdline)
 
   // The ELF binaries for the kernel, sigma0, and roottask must no
   // longer be used from here on.
-  if (char const *c = check_arg(cmdline, "-presetmem="))
-    {
-      unsigned fill_value = strtoul(c + 11, NULL, 0);
-      fill_mem(fill_value);
-    }
+  if (presetmem)
+    fill_mem(presetmem_value);
 
   kcmdline_parse(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), lko);
   lko->uart   = kuart;
