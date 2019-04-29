@@ -909,9 +909,7 @@ l4_exec_add_region(void *handle,
         panic("region overlap");
       }
 
-  regions.add(Region::n(mem_addr, mem_addr + mem_size,
-              info->mod.cmdline ? info->mod.cmdline : ".[Unknown]",
-              info->type, mem_addr == v_addr ? 1 : 0), true);
+  regions.add(n, true);
   return 0;
 }
 
