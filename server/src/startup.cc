@@ -879,7 +879,7 @@ l4_exec_read_exec(void * handle,
 static int
 l4_exec_add_region(void *handle,
 		  l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
-		  l4_addr_t mem_addr, l4_addr_t v_addr,
+		  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
 		  l4_size_t mem_size,
 		  exec_sectype_t section_type)
 {
@@ -896,7 +896,7 @@ l4_exec_add_region(void *handle,
 
   Region n = Region::n(mem_addr, mem_addr + mem_size,
                        info->mod.cmdline ? info->mod.cmdline : ".[Unknown]",
-                       info->type, mem_addr == v_addr ? 1 : 0);
+                       info->type, 0);
 
   for (Region *r = regions.begin(); r != regions.end(); ++r)
     if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg)
