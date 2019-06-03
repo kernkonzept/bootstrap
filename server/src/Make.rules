@@ -453,19 +453,19 @@ bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
 
 %.o32: %.c $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
 	@$(COMP_MESSAGE)
-	$(eval $(call BID_MAKE_RULE_CREATE_SUBDIR))
+	$(VERBOSE)$(call create_dir,$(@D))
 	$(VERBOSE)$(CC32) -o $@ -c $(DEPEND_FLAG) \
 	  $(CPPFLAGS) $(CFLAGS32) $(call absfilename,$<)
 
 %.o32: %.cc $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
 	@$(COMP_MESSAGE)
-	$(eval $(call BID_MAKE_RULE_CREATE_SUBDIR))
+	$(VERBOSE)$(call create_dir,$(@D))
 	$(VERBOSE)$(CXX32) -o $@ -c $(DEPEND_FLAG) \
 	  $(CPPFLAGS) $(CXXFLAGS32) $(call absfilename,$<)
 
 %.o32: %.S $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
 	@$(COMP_MESSAGE)
-	$(eval $(call BID_MAKE_RULE_CREATE_SUBDIR))
+	$(VERBOSE)$(call create_dir,$(@D))
 	$(VERBOSE)$(CC32) -o $@ -c $(DEPEND_FLAG) \
 	  $(CPPFLAGS) $(CFLAGS32) $(call absfilename,$<)
 
