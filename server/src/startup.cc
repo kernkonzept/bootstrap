@@ -28,6 +28,7 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
+#include <limits.h>
 
 /* L4 stuff */
 #include <l4/sys/compiler.h>
@@ -707,7 +708,12 @@ startup(char const *cmdline)
   plat->modules()->reserve();
 
   if (const char *s = check_arg(cmdline, "-modaddr"))
-    _mod_addr = RAM_BASE + strtoul(s + 9, 0, 0);
+    {
+      l4_addr_t addr = strtoul(s + 9, 0, 0);
+      if (addr >= ULONG_MAX - RAM_BASE)
+        panic("Bogus '-modaddr 0x%lx' parameter\n", addr);
+      _mod_addr = RAM_BASE + addr;
+    }
 
   _mod_addr = l4_round_page(_mod_addr);
 
