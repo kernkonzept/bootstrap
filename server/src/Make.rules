@@ -439,7 +439,7 @@ $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(ARCH)_$(CPU)/libc32.a: FORCE
 bootstrap32.elf: $(OBJ32) bootstrap32.bin $(SRC_DIR)/ARCH-amd64/boot32/bootstrap32.ld $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(ARCH)_$(CPU)/libc32.a
 	@$(LINK_MESSAGE)
 	$(VERBOSE)$(CC32) -o $@ -nostdlib -static \
-	  -Wl,-T,$(SRC_DIR)/ARCH-amd64/boot32/bootstrap32.ld,--gc-sections $^ -lgcc
+	  -Wl,-T,$(SRC_DIR)/ARCH-amd64/boot32/bootstrap32.ld,--gc-sections $(filter-out %/bootstrap32.ld,$^) -lgcc
 	$(VERBOSE)chmod 755 $@
 
 bootstrap: bootstrap32.elf
