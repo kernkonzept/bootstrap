@@ -784,18 +784,14 @@ startup(char const *cmdline)
       break;
     case 0x02:
       panic("cannot boot V.2 API kernels: %lx\n", api_version);
-      break;
     case 0x03:
       panic("cannot boot X.0 and X.1 API kernels: %lx\n", api_version);
-      break;
     case 0x84:
       panic("cannot boot Fiasco V.4 API kernels: %lx\n", api_version);
-      break;
     case 0x04:
       panic("cannot boot V.4 API kernels: %lx\n", api_version);
     default:
       panic("cannot boot a kernel with unknown api version %lx\n", api_version);
-      break;
     }
 
   printf("  Starting kernel ");
