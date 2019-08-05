@@ -238,7 +238,7 @@ $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
    BID_POST_PROG_LINK_MSG_$(od)$(BOOTSTRAP_ELF_NAME) = echo -e "  ==> Post-processing $@"
    BID_POST_PROG_LINK_$(od)$(BOOTSTRAP_ELF_NAME)     = \
       $(VERBOSE)LC_ALL=C $(NM) -C $@ | \
-        LC_ALL=C $(GREP) -E ' D __PLATFORMS_(BEGIN|END)$$' | \
+        LC_ALL=C $(GREP) -E ' . __PLATFORMS_(BEGIN|END)$$' | \
                 (read a i; read b i; \
                  if [ "$$a" = "$$b" ]; then \
                    echo -e "\nERROR: Missing at least one platform instantiation.\n"; \
