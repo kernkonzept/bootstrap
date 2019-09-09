@@ -357,6 +357,7 @@ $(BOOTSTRAP_RAW): $(TARGET_BIN)
 
 MKIMAGE_ARCH-$(ARCH) = $(ARCH)
 MKIMAGE_ARCH-ppc32   = ppc
+MKIMAGE_ARCH-mips    = $(if $(filter "64",$(CONFIG_CPU_ABI)),mips64,mips)
 
 MKIMAGE_ARCH = $(MKIMAGE_ARCH-$(ARCH))
 
