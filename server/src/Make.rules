@@ -41,10 +41,10 @@ ifneq ($(BOOTSTRAP_CHECK_MD5),)
   DEFINES             += -DDO_CHECK_MD5
 endif
 
+INCLUDE_BOOT_CONFIG := required
+
 include $(L4DIR)/mk/Makeconf
 -include $(OBJ_DIR)/Makeconf.local
--include $(L4DIR)/conf/Makeconf.boot
--include $(OBJ_BASE)/conf/Makeconf.boot
 
 ifeq ($(BOOTSTRAP_DO_UEFI),y)
   # link to 0x0
