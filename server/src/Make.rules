@@ -8,7 +8,7 @@
 # - BOOTSTRAP_DO_RAW_IMAGE
 # - BOOTSTRAP_DO_UIMAGE
 # - BOOTSTRAP_DO_ITB
-# - BOOTSTRAP_DO_UEFI if set an image which is bootable by UEFI is built
+# - BOOTSTRAP_DO_UEFI if set to y an image which is bootable by UEFI is built
 # - BOOTSTRAP_NO_STRIP if set no stripping of image
 # - BOOTSTRAP_UIMAGE_COMPRESSION: set to none, gzip, or bzip2
 # - BOOTSTRAP_CMDLINE: compiled-in command line, only used if no cmdline
@@ -221,9 +221,7 @@ else
 BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
 endif
 
-ifeq ($(BOOTSTRAP_DO_UEFI),y)
-INSTALL_FILES += bootstrap_$(ENTRY_FN).efi bootstrap.efi
-endif
+INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(ENTRY_FN).efi bootstrap.efi
 
 $(od)bootstrap_$(ENTRY_FN): $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
@@ -266,6 +264,7 @@ $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
    endif
  endif
 
+INSTALL_FILES += $(INSTALL_FILES-y)
 ifneq ($(ENTRY),auto-build-entry)
 all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 	$(VERBOSE)echo "  Image size(s) in bytes:"
