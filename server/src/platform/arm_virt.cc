@@ -33,10 +33,13 @@ class Platform_arm_virt : public Platform_single_region_ram
 
   void reboot()
   {
-    printf("ARM Virtual Platform reboot not implemented\n");
-
-    while (1)
-      ;
+    // Call PSCI-SYSTEM_RESET
+    register unsigned long r0 asm("r0") = 0x84000009;
+    asm volatile(
+#ifdef ARCH_arm
+                 ".arch_extension sec\n"
+#endif
+                 "smc #0" : : "r" (r0));
   }
 };
 }
