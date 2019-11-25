@@ -15,7 +15,6 @@ void __main()
 
   asm volatile("mrc p15, 0, %0, c1, c0, 0" : "=r" (r) : : "memory");
   r &= ~1UL;
-  r |= 2; // alignment check on
   asm volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (r) : "memory");
 
   clear_bss();
