@@ -124,6 +124,18 @@ public:
       ;
   }
 
+#if defined(ARCH_arm) || defined(ARCH_arm64)
+  void reboot_psci()
+  {
+    register unsigned long r0 asm("r0") = 0x84000009;
+    asm volatile(
+#ifdef ARCH_arm
+                 ".arch_extension sec\n"
+#endif
+                 "smc #0" : : "r" (r0));
+  }
+#endif
+
   virtual bool arm_switch_to_hyp() { return false; }
 
   virtual void boot_kernel(unsigned long entry)

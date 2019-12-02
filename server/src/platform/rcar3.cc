@@ -75,9 +75,7 @@ class Platform_arm_rcar3 : public Platform_base,
 
   void reboot()
   {
-    // Call PSCI-SYSTEM_RESET
-    register unsigned long r0 asm("r0") = 0x84000009;
-    asm volatile("smc #0" : : "r" (r0));
+    reboot_psci();
   }
 };
 }
