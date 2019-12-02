@@ -1,4 +1,4 @@
-#! /usr/bin/perl -W
+#! /usr/bin/env perl
 #
 # (c) 2008-2009 Technische Universität Dresden
 # This file is part of TUD:OS and distributed under the terms of the
@@ -9,6 +9,7 @@
 #
 
 use strict;
+use warnings;
 
 BEGIN { unshift @INC, $ENV{L4DIR}.'/tool/lib'
            if $ENV{L4DIR} && -d $ENV{L4DIR}.'/tool/lib/L4';}
