@@ -1,4 +1,4 @@
-// vim: set ft=c; : -*- mode: C; -*-
+// vim: set ft=c: -*- mode: C; -*-
 /**
  * \page bootstrap Bootstrap, the L4 kernel bootstrapper
  *
