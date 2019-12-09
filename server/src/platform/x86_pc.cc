@@ -207,13 +207,11 @@ public:
       }
   }
 
-  void move_module(unsigned index, void *dest,
-                   bool overlap_check)
+  void move_module(unsigned index, void *dest)
   {
     l4util_mb_mod_t *mod = (l4util_mb_mod_t*)(unsigned long)mbi->mods_addr + index;
     unsigned long size = mod->mod_end - mod->mod_start;
-    _move_module(index, dest, (char const *)(l4_addr_t)mod->mod_start,
-                 size, overlap_check);
+    _move_module(index, dest, (char const *)(l4_addr_t)mod->mod_start, size);
 
     assert ((l4_addr_t)dest < 0xfffffff0);
     assert ((l4_addr_t)dest < 0xfffffff0 - size);

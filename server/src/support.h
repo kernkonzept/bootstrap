@@ -89,8 +89,7 @@ public:
   virtual Module module(unsigned index, bool uncompress = true) const = 0;
   virtual unsigned num_modules() const = 0;
   virtual l4util_mb_info_t *construct_mbi(unsigned long mod_addr) = 0;
-  virtual void move_module(unsigned index, void *dest,
-                           bool overlap_check = true) = 0;
+  virtual void move_module(unsigned index, void *dest) = 0;
   void move_modules(unsigned long modaddr);
   Region mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                     Region::Type type = Region::Boot);
@@ -98,7 +97,7 @@ public:
 
 protected:
   void _move_module(unsigned index, void *dest, void const *src,
-                    unsigned long size, bool overlap_check);
+                    unsigned long size);
 };
 
 inline Boot_modules::~Boot_modules() {}
@@ -182,8 +181,7 @@ public:
   void reserve();
   Module module(unsigned index, bool uncompress) const;
   unsigned num_modules() const;
-  void move_module(unsigned index, void *dest,
-                   bool overlap_check = true);
+  void move_module(unsigned index, void *dest);
   l4util_mb_info_t *construct_mbi(unsigned long mod_addr);
 
 private:

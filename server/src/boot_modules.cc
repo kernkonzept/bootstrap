@@ -47,17 +47,16 @@ Boot_modules::merge_mod_regions()
  * \param dest The destination address
  * \param src  The source address
  * \param size The size of the module in bytes
- * \param overlap_check if true check for overlapping regions at
- *                      the destination.
  *
  * The src and dest buffers may overlap, at the destination set size is
  * rounded to the next page boundary.
  */
 void
 Boot_modules::_move_module(unsigned i, void *_dest,
-                           void const *_src, unsigned long size,
-                           bool overlap_check)
+                           void const *_src, unsigned long size)
 {
+ // Check for overlapping regions at the destination.
+  enum { Overlap_check = 1 };
   char *dest = (char *)_dest;
   char const *src = (char const *)_src;
 
@@ -96,7 +95,7 @@ Boot_modules::_move_module(unsigned i, void *_dest,
   if (!mem_manager->ram->contains(dest))
     panic("Panic: Would move outside of RAM");
 
-  if (overlap_check)
+  if (Overlap_check)
     {
       Region *overlap = mem_manager->regions->find(dest);
       if (overlap)
@@ -694,12 +693,11 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
 
 void
-Boot_modules_image_mode::move_module(unsigned index, void *dest,
-                                     bool overlap_check)
+Boot_modules_image_mode::move_module(unsigned index, void *dest)
 {
   Mod_info *mod = &_module_info_start[index];
   unsigned long size = mod->size;
-  _move_module(index, dest, mod_start(mod), size, overlap_check);
+  _move_module(index, dest, mod_start(mod), size);
   mod->start = (char *)dest;
 }
 
