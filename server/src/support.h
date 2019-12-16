@@ -196,6 +196,7 @@ class Platform_single_region_ram : public Platform_base,
 public:
   Boot_modules *modules() { return this; }
   void setup_memory_map();
+  virtual void post_memory_hook() {}
 };
 
 #endif
