@@ -28,19 +28,23 @@ class Platform_arm_rpi : public Platform_single_region_ram
   void init()
   {
     unsigned rpi_ver;
+    unsigned long m;
 
 #ifdef ARCH_arm
-    unsigned long m;
     asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r" (m));
     switch ((m >> 4) & 0xf00)
       {
       case 0xc00: rpi_ver = 2; break;
-      case 0xd00: rpi_ver = 3; break;
+      case 0xd00: rpi_ver = ((m >> 4) & 0xf) == 3 ? 3 : 4; break;
       default: rpi_ver = 1; break;
       }
 #endif
 #ifdef ARCH_arm64
-    rpi_ver = 3;
+    asm volatile("mrs %0, midr_el1" : "=r" (m));
+    if ((m & 0xff0ffff0) == 0x410fd030)
+      rpi_ver = 3;
+    else
+      rpi_ver = 4;
 #endif
 
     switch (rpi_ver)
@@ -56,6 +60,14 @@ class Platform_arm_rpi : public Platform_single_region_ram
       case 3:
         _base = 0x3f000000;
         kuart.base_address = _base + 0x00215040;
+        kuart.irqno        = 29;
+        kuart.base_baud    = 31250000;
+        break;
+      case 4:
+        _base = 0xfe000000;
+        kuart.base_address = _base + 0x00215040;
+        kuart.irqno        = 32 + 93; // GIC
+        kuart.base_baud    = 62500000;
         break;
       };
 
@@ -63,8 +75,8 @@ class Platform_arm_rpi : public Platform_single_region_ram
 
     if (rpi_ver == 1 || rpi_ver == 2)
       {
-        kuart.base_baud    = 0;
-        kuart.irqno        = 57;
+        kuart.base_baud  = 0;
+        kuart.irqno      = 57;
 
         static L4::Io_register_block_mmio r(kuart.base_address);
         static L4::Uart_pl011 _uart(kuart.base_baud);
@@ -73,13 +85,16 @@ class Platform_arm_rpi : public Platform_single_region_ram
       }
     else
       {
-        kuart.base_baud    = 31250000;
-        kuart.irqno        = 29;
-        kuart.reg_shift    = 2;
-
+        kuart.reg_shift = 2;
         static L4::Uart_16550 _uart(kuart.base_baud, 0, 8);
         setup_16550_mmio_uart(&_uart);
       }
+  }
+
+  void post_memory_hook()
+  {
+    mem_manager->regions->add(Region::n(0x0, 0x1000, ".mpspin",
+                                        Region::Arch, 0));
   }
 
   void reboot()
