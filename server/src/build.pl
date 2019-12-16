@@ -211,7 +211,7 @@ sub build_objects(@)
     $flags = 3 if $i == 2; # roottask
     $flags |= 1 << 4;
     $img{mods}[$i] =
-      { build_obj($mods[$i]->{command}, $mods[$i]->{cmdline},
+      { build_obj($mods[$i]->{file}, $mods[$i]->{cmdline},
                   $mods[$i]->{modname}, $flags,
                   $mods[$i]->{opts}) };
   }
@@ -289,7 +289,7 @@ sub build_objects(@)
 sub get_files
 {
   my %entry = @_;
-  map { L4::ModList::search_file_or_die($_->{command}, $module_path) }
+  map { L4::ModList::search_file_or_die($_->{file}, $module_path) }
       @{$entry{mods}};
 }
 
@@ -308,7 +308,7 @@ sub list_files_unique
 sub fetch_files
 {
   my %entry = @_;
-  L4::ModList::fetch_remote_file($_->{command})
+  L4::ModList::fetch_remote_file($_->{file})
     foreach (@{$entry{mods}});
 }
 
@@ -316,10 +316,10 @@ sub dump_entry(@)
 {
   my %entry = @_;
   print "modaddr=$entry{modaddr}\n" if defined $entry{modaddr};
-  print "$entry{bootstrap}{command}\n";
+  print "$entry{bootstrap}{file}\n";
   print "$entry{bootstrap}{cmdline}\n";
   print join("\n", map { $_->{cmdline} } @{$entry{mods}}), "\n";
-  print join(' ', map { $_ } @{$entry{files}}), "\n";
+  print join(' ', map { $_->{file} } @{$entry{mods}}), "\n";
 }
 
 sub postprocess
