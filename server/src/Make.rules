@@ -84,7 +84,7 @@ ifeq ($(BUILD_ARCH),$(filter $(BUILD_ARCH),arm arm64 ppc32 sparc mips))
   ENTRY := auto-build-entry
 endif
 
-od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(if $(wildcard $(BOOTSTRAP_OUTPUT_DIR)),,$(shell mkdir $(BOOTSTRAP_OUTPUT_DIR))))
+od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(if $(wildcard $(BOOTSTRAP_OUTPUT_DIR)),,$(shell mkdir -p $(BOOTSTRAP_OUTPUT_DIR))))
 od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(BOOTSTRAP_OUTPUT_DIR)/)
 
 PRIVATE_INCDIR	 = $(SRC_DIR) $(SRC_DIR)/ARCH-$(ARCH)
