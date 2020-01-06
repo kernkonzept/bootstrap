@@ -307,7 +307,7 @@ ifneq ($(BUILD_MOD_CMD),)
 
 processing-of-module-list-failed:
 	@echo
-	@echo "  Processing of $(BOOTSTRAP_MODULES_LIST) failed!"
+	@echo "  Processing of entry $(ENTRY) in $(BOOTSTRAP_MODULES_LIST) failed!"
 	@echo
 	@exit 1
 
