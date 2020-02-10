@@ -12,9 +12,6 @@
 #include <string.h>
 
 #include <l4/util/port_io.h>
-#include <l4/util/reboot.h>
-
-//#include "version.h"
 
 static void direct_cons_putchar(unsigned char c);
 static int  direct_cons_try_getchar(void);
