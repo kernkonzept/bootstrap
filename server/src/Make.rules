@@ -28,7 +28,7 @@ DEFAULT_RELOC_mips   = $(DEFAULT_RELOC_mips$(CPU_ABI))
 DEFAULT_RELOC_ppc32 := 0x002d0000
 DEFAULT_RELOC_sparc := 0x00800000
 RELOC_PHYS          := y
-LDFLAGS              = -nostdlib -static -Bstatic
+LDFLAGS              = -nostdlib -nocrt
 EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
 		       $(wildcard $(L4DIR)/conf/Makeconf.boot $(OBJ_BASE)/conf/Makeconf.boot) \
 		       $(SRC_DIR)/build.pl $(BOOTSTRAP_MODULES_LIST) \
@@ -67,6 +67,8 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
   EXTRA_LIBS           = -L$(OBJ_BASE)/lib/$(SYSTEM) -lefi -lgnuefi
   CXXFLAGS            += -fshort-wchar
   CFLAGS              += -fshort-wchar
+  DEFINES             += -DGNU_EFI_USE_MS_ABI
+  LDFLAGS             += --no-gc-sections
 endif
 
 BOOTSTRAP_SEARCH_PATH        ?= $(OBJ_DIR)
@@ -152,7 +154,6 @@ DRV_LIBS-ppc32   = -ldrivers_of
 DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
 ifeq ($(INTERNAL_CRT0),y)
 CRT0		 =
-LDFLAGS         += -static -nocrt
 endif
 LDSCRIPT	 = bootstrap.ld
 LDNMAGIC	 =
@@ -168,8 +169,9 @@ DRV_LIBS          := $(patsubst -l%,-l%.p,$(DRV_LIBS))
 BOOTSTRAP_L4_LIBS := $(patsubst -l%,-l%.p,$(BOOTSTRAP_L4_LIBS))
 CFLAGS            += -fpie
 CXXFLAGS          += -fpie
-DEFINES           += -D__PIC__
-LDFLAGS            = -znocombreloc -nostdlib -pie -Bsymbolic
+LDFLAGS           += -pie -Bsymbolic
+else
+LDFLAGS           += -static -Bstatic
 endif
 
 ifeq ($(ARCH),arm)
@@ -417,7 +419,7 @@ cleanall::
 bootstrap.efi: bootstrap.elf
 	$(OBJCOPY) -S -j .text -j .rodata -j .reloc -j .dynsym -j .dynstr -j .rel.dyn \
 	           -j .data \
-	           -j .data.module_info -j .dynamic -j .rela.dyn -j .rela.plt -j .reloc \
+	           -j .data.m -j .dynamic -j .rela.dyn -j .rela.plt -j .reloc \
 	           -j .bss -j .module_data \
 	           --target=$(EFI_BIN_FMT) $< $@
 
