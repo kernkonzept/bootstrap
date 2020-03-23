@@ -337,20 +337,32 @@ sub postprocess
   chomp $count;
   error("Multiple or no image info headers found -- must not be") if $count != 1;
 
-  my $fn_nm = dirname($fn).'/.debug/'.basename($fn).'.debug';
-  $fn_nm = $fn unless -e $fn_nm;
-  open(my $nm, "LANG=C $prog_nm $fn_nm |") || error("Cannot get symbols from '$fn_nm'");
-
+  my $fn_nm = $fn;
   my ($_start, $_end, $_module_data_start, $bin_addr_end_bin);
-  while (<$nm>)
+  my $restart_nm;
+  do
     {
-      chomp;
-      $_start             = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+T\s+_start$/i;
-      $_end               = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+B\s+_end$/i;
-      $_module_data_start = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTN]\s+_module_data_start$/i;
-      $bin_addr_end_bin   = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+t\s+crt_end_bin$/i;
+      $restart_nm = 0;
+      open(my $nm, "LANG=C $prog_nm $fn_nm |") || error("Cannot get symbols from '$fn_nm'");
+      while (<$nm>)
+        {
+          chomp;
+          if (/: no symbols/ && $fn eq $fn_nm)
+            {
+              $fn_nm = dirname($fn).'/.debug/'.basename($fn).'.debug';
+              error("No file with symbols found for '$fn'") unless -e $fn_nm;
+              $restart_nm = 1;
+              last;
+            }
+          $_start             = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+T\s+_start$/i;
+          $_end               = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+B\s+_end$/i;
+          $_module_data_start = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTN]\s+_module_data_start$/i;
+          $bin_addr_end_bin   = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+t\s+crt_end_bin$/i;
+        }
+      close $nm;
     }
-  close $nm;
+  while ($restart_nm);
+
 
   $bin_addr_end_bin = Math::BigInt->new() unless defined $bin_addr_end_bin;
 
