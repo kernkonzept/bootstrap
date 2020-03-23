@@ -56,6 +56,10 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
 
   # lib gnu-efi requirements
   REQUIRES_LIBS       += gnu-efi
+  EFI_IMAGE-amd64     := bootx64.efi
+  EFI_IMAGE-x86       := bootia32.efi
+  EFI_IMAGE-arm64     := bootaa64.efi
+  EFI_IMAGE           := $(EFI_IMAGE-$(ARCH))
   EFI_ARCH-amd64      := x86_64
   EFI_ARCH-x86        := ia32
   EFI_ARCH            := $(EFI_ARCH-$(ARCH))
@@ -113,14 +117,16 @@ SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc base_critical.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc
 SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc
 SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc
+SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/efi.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc
 SRC_CC_ppc32    += ARCH-ppc32/init_kip_v2-arch.cc \
 		   ARCH-ppc32/reboot.cc ARCH-ppc32/head.cc
 SRC_CC_sparc	+= ARCH-sparc/reboot.cc ARCH-sparc/head.cc
-SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE))
+SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE)) $(SRC_CC_$(ARCH)-y)
 
 SRC_S-$(INTERNAL_CRT0) += ARCH-$(ARCH)/crt0.S
+SRC_S_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/cache.S
 SRC_S_x86-$(INTERNAL_CRT0) += ARCH-x86/mb2.S
 
 OPTS		 = -g -Os $(CARCHFLAGS_$(ARCH)) $(CARCHFLAGS_$(ARCH)_$(CPU)) \
@@ -152,10 +158,14 @@ DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
 ifeq ($(INTERNAL_CRT0),y)
 CRT0		 =
 endif
+ifeq ($(BOOTSTRAP_DO_UEFI)-$(ARCH),y-arm64)
+LDSCRIPT	 = bootstrap.efi.ld
+else
 LDSCRIPT	 = bootstrap.ld
+endif
 LDNMAGIC	 =
 
-vpath bootstrap.ld.in $(SRC_DIR)/ARCH-$(ARCH)
+vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-$(ARCH)
 
 # can be overwritten by Makeconf.local
 COMPRESS	?= 0
@@ -166,7 +176,10 @@ DRV_LIBS          := $(patsubst -l%,-l%.p,$(DRV_LIBS))
 BOOTSTRAP_L4_LIBS := $(patsubst -l%,-l%.p,$(BOOTSTRAP_L4_LIBS))
 CFLAGS            += -fpie
 CXXFLAGS          += -fpie
-LDFLAGS           += -pie -Bsymbolic
+LDFLAGS_arm64     += -shared -Bsymbolic --defsym=EFI_SUBSYSTEM=0xa
+LDFLAGS_amd64     += -pie -Bsymbolic
+LDFLAGS_x86       += -pie -Bsymbolic
+LDFLAGS		  += $(LDFLAGS_$(ARCH))
 else
 LDFLAGS           += -static -Bstatic
 endif
@@ -222,12 +235,15 @@ else
 BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
 endif
 
-INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(ENTRY_FN).efi bootstrap.efi
+INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(ENTRY_FN).efi $(EFI_IMAGE)
 
 $(od)bootstrap_$(ENTRY_FN): $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
 
 $(od)bootstrap_$(ENTRY_FN).elf: $(od)$(BOOTSTRAP_LINK_SOURCE)
+	$(VERBOSE)$(LN) -f $< $@
+
+$(od)bootstrap_$(ENTRY_FN).efi: $(od)$(EFI_IMAGE)
 	$(VERBOSE)$(LN) -f $< $@
 
 $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
@@ -414,7 +430,12 @@ clean::
 cleanall::
 	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.*
 
-bootstrap.efi: bootstrap.elf
+bootaa64.efi: bootstrap.elf
+	$(OBJCOPY) -S -j .text -j .data -j .dynamic -j .dynsym -j .rela.* \
+	           -j .data.m \
+	           -O binary $< $@
+
+boot%.efi: bootstrap.elf
 	$(OBJCOPY) -S -j .text -j .rodata -j .reloc -j .dynsym -j .dynstr -j .rel.dyn \
 	           -j .data \
 	           -j .data.m -j .dynamic -j .rela.dyn -j .rela.plt -j .reloc \
@@ -423,11 +444,11 @@ bootstrap.efi: bootstrap.elf
 
 ifeq ($(ARCH),amd64)
 
-vpath %.c             $(SRC_DIR)/ARCH-amd64
-vpath %.S             $(SRC_DIR)/ARCH-amd64
-vpath %.c             $(SRC_DIR)/ARCH-amd64/boot32
-vpath %.S             $(SRC_DIR)/ARCH-amd64/boot32
-vpath bootstrap.ld.in $(SRC_DIR)/ARCH-x86
+vpath %.c              $(SRC_DIR)/ARCH-amd64
+vpath %.S              $(SRC_DIR)/ARCH-amd64
+vpath %.c              $(SRC_DIR)/ARCH-amd64/boot32
+vpath %.S              $(SRC_DIR)/ARCH-amd64/boot32
+vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-x86
 
 SRC32_C		 = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c support.c
 SRC32_CC	 = multiboot2.cc

@@ -362,7 +362,7 @@ sub postprocess
               last;
             }
           $_start             = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+T\s+_start$/i;
-          $_end               = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+B\s+_end$/i;
+          $_end               = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BD]\s+_end$/i;
           $_module_data_start = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTNR]\s+_module_data_start$/i;
           $bin_addr_end_bin   = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+t\s+crt_end_bin$/i;
         }
