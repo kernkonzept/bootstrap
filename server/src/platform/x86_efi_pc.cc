@@ -9,8 +9,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+extern "C" {
 #include <efi.h>
 #include <efilib.h>
+}
 #include <l4/util/irq.h> // l4util_cli
 
 namespace {
