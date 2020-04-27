@@ -250,6 +250,12 @@ struct Pci_iterator
 
   enum { Max_bus = 20 };
 
+  // offsets in PCI config space
+  enum { Cmd = 0x4 };
+
+  // bits in the Command register
+  enum Cmd_reg { Bus_master  = 1 << 2 };
+
   Pci_iterator() : bus(0), dev(0), func(0) {}
   explicit Pci_iterator(unsigned bus, unsigned dev = 0, unsigned func = 0)
   : bus(bus), dev(dev), func(func) {}
@@ -272,6 +278,13 @@ struct Pci_iterator
   {
     unsigned cmd = pci_read(4, 16);
     pci_write(4, cmd | 2, 16);
+  }
+
+  void disable_bus_master() const
+  {
+    unsigned cmd = pci_read(Cmd, 16);
+    cmd &= ~Cmd_reg::Bus_master;
+    pci_write(Cmd, cmd, 16);
   }
 
   unsigned vendor() const { return vd & 0xffff; }
@@ -977,5 +990,12 @@ public:
             printf("UART init failed\n");
           }
       }
+  }
+
+  // disable bus mastering for every found PCI device
+  void disable_pci_bus_master()
+  {
+    for (Pci_iterator i; i != Pci_iterator::end(); ++i)
+      i.disable_bus_master();
   }
 };

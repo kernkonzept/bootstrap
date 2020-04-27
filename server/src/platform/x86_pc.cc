@@ -612,6 +612,7 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
     cmdline = _mbi_cmdline;
 #endif
   _x86_pc_platform.setup_uart(cmdline);
+  _x86_pc_platform.disable_pci_bus_master();
 
   startup(cmdline);
 }

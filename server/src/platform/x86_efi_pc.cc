@@ -375,6 +375,9 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
   _x86_pc_platform.setup_uart(efi_cmdline);
 
   init_modules_infos();
+
+  _x86_pc_platform.disable_pci_bus_master();
+
   startup(mod_info_mbi_cmdline(mod_header));
 
   return EFI_SUCCESS;
