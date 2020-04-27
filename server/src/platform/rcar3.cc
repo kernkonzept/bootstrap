@@ -31,6 +31,10 @@ class Platform_arm_rcar3 : public Platform_base,
     kuart.base_baud    = 14745600;
     kuart.baud         = 115200;
     kuart.irqno        = 196;
+    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+    kuart_flags       |=   L4_kernel_options::F_uart_base
+                         | L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_irq;
     static L4::Uart_sh _uart;
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
