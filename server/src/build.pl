@@ -235,6 +235,8 @@ sub build_objects(@)
   $img{attrs}{"l4i:license"} = $ENV{L4IMAGE_LICENSE}
     if $ENV{L4IMAGE_LICENSE};
 
+  $img{attrs}{"l4i:loadaddr"} = $ENV{BOOTSTRAP_LINKADDR};
+
   my $volatile_data = 1;
 
   if ($volatile_data)
