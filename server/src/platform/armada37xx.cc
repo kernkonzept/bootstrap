@@ -31,6 +31,10 @@ class Platform_arm_armada37xx : public Platform_base,
     kuart.base_baud    = 25804800;
     kuart.baud         = 115200;
     kuart.irqno        = 43;
+    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+    kuart_flags       |=   L4_kernel_options::F_uart_base
+                         | L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_irq;
     static L4::Uart_mvebu _uart(kuart.base_baud);
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
