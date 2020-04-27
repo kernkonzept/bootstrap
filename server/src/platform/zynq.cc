@@ -53,6 +53,10 @@ class Platform_arm_zynq : public Platform_single_region_ram
     };
 #endif
 
+    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+    kuart_flags       |=   L4_kernel_options::F_uart_base
+                         | L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_irq;
     static L4::Uart_cadence _uart(kuart.base_baud);
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
