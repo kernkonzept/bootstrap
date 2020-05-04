@@ -461,25 +461,26 @@ bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
 %.o32: %.c $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
 	@$(COMP_MESSAGE)
 	$(VERBOSE)$(call create_dir,$(@D))
-	$(VERBOSE)$(CC32) -o $@ -c $(DEPEND_FLAG) \
+	$(VERBOSE)$(CC32) -o $@ -c $(DEPFLAGS) \
 	  $(CPPFLAGS) $(CFLAGS32) $(call absfilename,$<)
 
 %.o32: %.cc $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
 	@$(COMP_MESSAGE)
 	$(VERBOSE)$(call create_dir,$(@D))
-	$(VERBOSE)$(CXX32) -o $@ -c $(DEPEND_FLAG) \
+	$(VERBOSE)$(CXX32) -o $@ -c $(DEPFLAGS) \
 	  $(CPPFLAGS) $(CXXFLAGS32) $(call absfilename,$<)
 
 %.o32: %.S $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
 	@$(COMP_MESSAGE)
 	$(VERBOSE)$(call create_dir,$(@D))
-	$(VERBOSE)$(CC32) -o $@ -c $(DEPEND_FLAG) \
+	$(VERBOSE)$(CC32) -o $@ -c $(DEPFLAGS) \
 	  $(CPPFLAGS) $(CFLAGS32) $(call absfilename,$<)
 
 clean cleanall::
 	$(VERBOSE)PWD=$(call absfilename,$(SRC_DIR)/ARCH-amd64/libc32) \
 	  $(MAKE) -C $(SRC_DIR)/ARCH-amd64/libc32 $@
 
+-include $(foreach file,$(OBJ32), $(dir $(file)).$(notdir $(file)).d)
 else
 bootstrap: $(BOOTSTRAP_ELF_NAME)
 	$(VERBOSE)$(LN) -f $^ $@
