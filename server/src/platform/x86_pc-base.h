@@ -589,6 +589,10 @@ struct Pci_com_moschip : public Pci_com_drv
 {
   bool setup(Pci_iterator const &dev, Serial_board *board) const
   {
+    // only subclass 0x0 is the serial port, subclass 0x1 is the parallel port
+    if (dev.subclass() != 0x00)
+      return false;
+
     read_bars(dev, board);
 
     int first_port = board->first_io_bar();
