@@ -301,7 +301,7 @@ struct Pci_iterator
             else
               ++dev;
           }
-        else if (func < 8)
+        else if (func < 7)
           ++func;
         else
           {
