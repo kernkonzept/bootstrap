@@ -594,16 +594,26 @@ setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
   if (!is_hyp_kernel && running_in_hyp_mode())
     {
       printf("  Non-HYP kernel detected but running in HYP mode, switching back.\n");
-      asm volatile("mcr p15, 0, sp, c13, c0, 2    \n"
+      asm volatile("sub sp, sp, #4 \n"
+                   "str lr, [sp]\n"
+                   "mcr p15, 0, sp, c13, c0, 2    \n"
                    "mrs r0, cpsr                  \n"
                    "bic r0, #0x1f                 \n"
                    "orr r0, #0x13                 \n"
-                   ".inst 0xe169f000              \n"  // msr SPSR, r0
-                   "adr r0, 1f                    \n"
-                   ".inst 0xe12ef300              \n"  // msr elr_hyp, r0
-                   ".inst 0xe160006e              \n"  // eret
+                   "orr r0, #0x100                \n"
+                   "adr r1, 1f                    \n"
+                   ".arch armv7ve                 \n"
+                   "msr spsr_cfsx, r0             \n"
+                   "msr elr_hyp, r1               \n"
+                   "eret                          \n"
+                   ".arch armv5te                 \n"
+                   "nop                           \n"
                    "1: mrc p15, 0, sp, c13, c0, 2 \n"
-                   : : : "r0", "memory");
+                   "ldr lr, [sp] \n"
+                   "add sp, sp, #4\n"
+                   :
+                   :
+                   : "r0", "r1" , "lr", "memory");
     }
 }
 #endif /* arm */
