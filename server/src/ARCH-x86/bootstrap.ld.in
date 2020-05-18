@@ -1,4 +1,8 @@
-
+/* SPDX-License-Identifier: GPL-2.0-only or License-Ref-kk-custom */
+/*
+ * Copyright (C) 2005-2011 Technische Universität Dresden.
+ * Copyright (C) 2014-2015 Kernkonzept GmbH.
+ */
 #include "ldscript.inc"
 
 ENTRY(_start)
