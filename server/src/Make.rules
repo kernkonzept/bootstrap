@@ -19,6 +19,8 @@
 # - BOOTSTRAP_OUTPUT_DIR: Optional alternative output directory for all
 #                         images (and generated files), preferable some
 #                         tmpfs directory
+# - BOOTSTRAP_IMAGE_SUFFIX: Optional string to suffix to image names
+
 INTERNAL_CRT0       := y # the default is to use our internal crt0
 DEFAULT_RELOC_arm   := 0x01000000
 DEFAULT_RELOC_arm64 := 0x01000000
@@ -209,6 +211,7 @@ ENTRY		:= $(E)
 endif
 
 ENTRY_FN := $(shell echo "$(ENTRY)" | tr '[ ]' '[_]' )
+SUFFIX := $(if $(BOOTSTRAP_IMAGE_SUFFIX),$(ENTRY_FN)_$(BOOTSTRAP_IMAGE_SUFFIX),$(ENTRY_FN))
 
 BOOTSTRAP_LINKADDR = $(patsubst -Ttext-segment=%,%,$(filter -Ttext-segment=%,$(LDFLAGS_$(od)bootstrap.elf)))
 
@@ -245,7 +248,7 @@ endif
 
 ifneq ($(ENTRY),)
 
-INSTALL_FILES  = $(BOOTSTRAP_ELF_NAME) bootstrap_$(ENTRY_FN) bootstrap_$(ENTRY_FN).elf
+INSTALL_FILES  = $(BOOTSTRAP_ELF_NAME) bootstrap_$(SUFFIX) bootstrap_$(SUFFIX).elf
 ifeq ($(ARCH)$(BOOTSTRAP_DO_UEFI),amd64)
 INSTALL_FILES += bootstrap32.elf bootstrap_$(ENTRY_FN).elf32
 BOOTSTRAP_LINK_SOURCE = bootstrap32.elf
@@ -253,21 +256,21 @@ else
 BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
 endif
 
-INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(ENTRY_FN).efi $(EFI_IMAGE)
+INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(SUFFIX).efi $(EFI_IMAGE)
 
-$(od)bootstrap_$(ENTRY_FN): $(od)$(BOOTSTRAP_LINK_SOURCE)
+$(od)bootstrap_$(SUFFIX): $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
 
-$(od)bootstrap_$(ENTRY_FN).elf: $(od)$(BOOTSTRAP_LINK_SOURCE)
+$(od)bootstrap_$(SUFFIX).elf: $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
 
-$(od)bootstrap_$(ENTRY_FN).elf32: $(od)$(BOOTSTRAP_LINK_SOURCE)
+$(od)bootstrap_$(SUFFIX).elf32: $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
 
-$(od)bootstrap_$(ENTRY_FN).efi: $(od)$(EFI_IMAGE)
+$(od)bootstrap_$(SUFFIX).efi: $(od)$(EFI_IMAGE)
 	$(VERBOSE)$(LN) -f $< $@
 
-$(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
+$(od)bootstrap_$(SUFFIX).%: $(od)bootstrap.%
 	$(VERBOSE)$(LN) -f $< $@
 
  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips riscv))
@@ -284,13 +287,13 @@ $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
       $(if $(BOOTSTRAP_NO_STRIP),,$(STRIP) $@)
 
    ifneq ($(BOOTSTRAP_DO_RAW_IMAGE)$(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
-     INSTALL_FILES      += bootstrap.raw bootstrap_$(ENTRY_FN).raw
+     INSTALL_FILES      += bootstrap.raw bootstrap_$(SUFFIX).raw
      ifneq ($(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
        ifeq ($(MKIMAGE_PRESENT),y)
          ifneq ($(BOOTSTRAP_DO_UIMAGE),)
-           INSTALL_FILES    += bootstrap.uimage bootstrap_$(ENTRY_FN).uimage
+           INSTALL_FILES    += bootstrap.uimage bootstrap_$(SUFFIX).uimage
          else
-           INSTALL_FILES    += bootstrap.itb bootstrap_$(ENTRY_FN).itb
+           INSTALL_FILES    += bootstrap.itb bootstrap_$(SUFFIX).itb
          endif
        else
          $(error mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage/itb)
@@ -303,7 +306,7 @@ INSTALL_FILES += $(INSTALL_FILES-y)
 
 all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 	$(VERBOSE)echo "  Image size(s) in bytes:"
-	$(VERBOSE)for f in $(filter bootstrap_$(ENTRY_FN).elf bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
+	$(VERBOSE)for f in $(filter bootstrap_$(SUFFIX).elf bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
 	  find $(if $(od),$(od),.) -name $$f -printf " %30f:  %s\n"; \
 	done
 	$(if $(LDFLAGS_$(od)bootstrap.elf),$(VERBOSE)echo "  Start address: $(BOOTSTRAP_LINKADDR)")
