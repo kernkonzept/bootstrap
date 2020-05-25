@@ -14,6 +14,7 @@
 #include "support.h"
 #include "types.h"
 #include <l4/util/mb_info.h>
+#include <l4/sys/compiler.h>
 
 typedef int exec_sectype_t;
 

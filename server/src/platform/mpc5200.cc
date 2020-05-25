@@ -31,7 +31,7 @@ class Platform_ppc_mpc52000 :
 
   void boot_kernel(unsigned long entry)
   {
-    typedef void (*func)(l4util_mb_info_t *, unsigned long);
+    typedef void (*func)(void *, unsigned long);
     L4_drivers::Of_if of_if;
     of_if.boot_finish();
     ((func)entry)(0, of_if.get_prom());

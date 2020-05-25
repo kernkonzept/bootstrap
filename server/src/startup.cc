@@ -712,18 +712,16 @@ startup(char const *cmdline)
   add_elf_regions(mods->mod_sigma0(), Region::Sigma0);
   add_elf_regions(mods->mod_roottask(), Region::Root);
 
-  l4util_mb_info_t *mbi = plat->modules()->construct_mbi(_mod_addr);
-  // cmdline no longer valid after this point (at least on x86)
+  l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr);
   cmdline = nullptr;
 
   /* We need at least two boot modules */
-  assert(mbi->flags & L4UTIL_MB_MODS);
   /* We have at least the L4 kernel and the first user task */
   assert(mbi->mods_count >= 2);
   assert(mbi->mods_count <= MODS_MAX);
 
   boot_info_t boot_info;
-  l4util_mb_mod_t *mb_mod = (l4util_mb_mod_t *)(unsigned long)mbi->mods_addr;
+  l4util_l4mod_mod *mb_mod = (l4util_l4mod_mod *)(unsigned long)mbi->mods_addr;
   regions.optimize();
 
   /* setup kernel PART ONE */

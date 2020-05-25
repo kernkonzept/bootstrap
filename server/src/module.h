@@ -8,9 +8,6 @@
  * GNU General Public License 2.
  * Please see the COPYING-GPL-2 file for details.
  */
-#ifndef MODULE_H
-#define MODULE_H
+#pragma once
 
 void print_module_name(const char *name, const char *alt_name);
-
-#endif

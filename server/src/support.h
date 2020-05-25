@@ -18,7 +18,7 @@
 #define __BOOTSTRAP__SUPPORT_H__
 
 #include <l4/drivers/uart_base.h>
-#include <l4/util/mb_info.h>
+#include <l4/util/l4mod.h>
 #include "mod_info.h"
 #include "region.h"
 
@@ -99,7 +99,7 @@ public:
   virtual void reserve() = 0;
   virtual Module module(unsigned index, bool uncompress = true) const = 0;
   virtual unsigned num_modules() const = 0;
-  virtual l4util_mb_info_t *construct_mbi(unsigned long mod_addr) = 0;
+  virtual l4util_l4mod_info *construct_mbi(unsigned long mod_addr) = 0;
   virtual void move_module(unsigned index, void *dest) = 0;
   virtual unsigned base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
   void move_modules(unsigned long modaddr);
@@ -201,7 +201,7 @@ public:
   Module module(unsigned index, bool uncompress) const;
   unsigned num_modules() const;
   void move_module(unsigned index, void *dest);
-  l4util_mb_info_t *construct_mbi(unsigned long mod_addr);
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr);
   unsigned base_mod_idx(Mod_info_flags mod_info_module_flag);
 
 private:

@@ -794,19 +794,19 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
 /**
  * Create the basic multi-boot structure in IMAGE_MODE
  */
-l4util_mb_info_t *
+l4util_l4mod_info *
 Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 {
   unsigned long mod_count = mod_header->num_mods;
-  unsigned long mbi_size = sizeof(l4util_mb_info_t);
-  mbi_size += sizeof(l4util_mb_mod_t) * mod_count;
+  unsigned long mbi_size = sizeof(l4util_l4mod_info);
+  mbi_size += sizeof(l4util_l4mod_mod) * mod_count;
 
   assert(mod_count >= Num_base_modules);
 
   for (Mod_info *mod = module_infos; mod != mod_end_iter(); ++mod)
     mbi_size += round_wordsize(strlen(mod_cmdline(mod)) + 1);
 
-  l4util_mb_info_t *mbi = (l4util_mb_info_t *)mem_manager->find_free_ram(mbi_size);
+  l4util_l4mod_info *mbi = (l4util_l4mod_info *)mem_manager->find_free_ram(mbi_size);
   if (!mbi)
     panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size);
 
@@ -815,11 +815,10 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
                                   Region::Root, L4_FPAGE_RWX));
   memset(mbi, 0, mbi_size);
 
-  l4util_mb_mod_t *mods = reinterpret_cast<l4util_mb_mod_t *>(mbi + 1);
+  l4util_l4mod_mod *mods = reinterpret_cast<l4util_l4mod_mod *>(mbi + 1);
   char *mbi_strs = (char *)(mods + mod_count);
 
   mbi->mods_count  = mod_count;
-  mbi->flags      |= L4UTIL_MB_MODS;
   mbi->mods_addr   = (l4_addr_t)mods;
 
   unsigned long total_size = 0;
@@ -863,6 +862,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
         mods[cnt].mod_start = (l4_addr_t)mod_start(mod);
         mods[cnt].mod_end   = (l4_addr_t)mod_start(mod) + mod->size;
+        mods[cnt].flags     = mod->flags & Mod_info_flag_mod_mask;
         cnt++;
       }
 

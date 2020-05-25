@@ -29,7 +29,7 @@ using L4::Kip::Mem_desc;
  * setup Kernel Info Page
  */
 void
-init_kip_f(void *_l4i, boot_info_t *bi, l4util_mb_info_t *mbi,
+init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
            Region_list *ram, Region_list *regions)
 {
   l4_kernel_info_t *l4i = (l4_kernel_info_t *)_l4i;
