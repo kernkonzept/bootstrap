@@ -218,13 +218,13 @@ struct Mbi_mod_cmp
 
 /// calculate the total size of all modules (rounded to the next p2align)
 static unsigned long
-calc_modules_size(Boot_modules *mbi, unsigned p2align,
+calc_modules_size(Boot_modules *bm, unsigned p2align,
                   unsigned min = 0, unsigned max = ~0U)
 {
   unsigned long s = 0;
-  unsigned cnt = mbi->num_modules();
+  unsigned cnt = bm->num_modules();
   for (unsigned i = min; i < max && i < cnt; ++i)
-    s += l4_round_size(mbi->module(i).size(), p2align);
+    s += l4_round_size(bm->module(i).size(), p2align);
 
   return s;
 }
