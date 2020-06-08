@@ -201,8 +201,24 @@ do_cpuid:
 #endif
 
 do_bootstrap:
-	ldr	sp, .LCstack
+#ifdef __ARM_FP
+	/* Prevent triggering 'undefined instruction' exceptions by enabling
+         * the FPU. Newer gcc versions implicitly generate FP instructions. */
+	mrc	p15, 0, r0, c1, c0, 2     /* read CPACR */
+	orr	r0, #(0xf << 20)          /* cp10 + cp11 (FPU) */
+	mcr	p15, 0, r0, c1, c0, 2     /* try to enable */
+	mrc	p15, 0, r0, c1, c0, 2     /* read CPACR */
+	and	r0, #(0xf << 20)
+	cmp	r0, #(0xf << 20)          /* verify enabled */
+	bne	no_fpu
+	vmrs	r0, fpexc
+	orr	r0, r0, #(0x1 << 30)      /* enable FP unit */
+	vmsr	fpexc, r0
 
+no_fpu:
+#endif
+
+	ldr	sp, .LCstack
 	mov	r0, r2                     /* ATAG pointer */
 	bl	__main
 1:	b	1b
