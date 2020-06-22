@@ -328,8 +328,8 @@ static void mod_translate_addresses_to_absolute()
 {
   if (!(mod_header->flags & Mod_header_flag_direct_addressing))
     {
-      mod_header->mbi_cmdline = (unsigned long long)mod_info_mbi_cmdline(mod_header);
-      mod_header->mods = (unsigned long long)mod_info_mods(mod_header);
+      mod_header->mbi_cmdline = (l4_addr_t)mod_info_mbi_cmdline(mod_header);
+      mod_header->mods = (l4_addr_t)mod_info_mods(mod_header);
       mod_header->flags |= Mod_header_flag_direct_addressing;
     }
 
@@ -372,7 +372,7 @@ static void modinfo_gen_payload_size()
 static inline unsigned long long modinfo_payload_size()
 {
   // include mod_info_size
-  return modinfo_max_payload_addr - (unsigned long long)mod_header;
+  return modinfo_max_payload_addr - (l4_addr_t)mod_header;
 }
 
 void init_modules_infos()
@@ -540,7 +540,7 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 
   drop_mod_region(mod);
 
-  mod->start = (unsigned long long)dest;
+  mod->start = dest;
   mod->size = mod->size_uncompressed;
   mem_manager->regions->add(mod_region(mod, true, type));
 }
@@ -550,8 +550,8 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 void
 Boot_modules_image_mode::reserve()
 {
-  mem_manager->regions->add(Region((unsigned long)mod_header,
-                                   (unsigned long)mod_header + modinfo_payload_size() - 1,
+  mem_manager->regions->add(Region((l4_addr_t)mod_header,
+                                   (l4_addr_t)mod_header + modinfo_payload_size() - 3,
                                    ".modinfo", Region::Boot));
 
   for (Mod_info *m = module_infos; m != mod_end_iter(); ++m)
@@ -626,7 +626,7 @@ decomp_move_mod(Mod_info *mod, char *destbuf)
             dest_size -  mod->size_uncompressed);
 #endif
       drop_mod_region(mod);
-      mod->start = (unsigned long long)destbuf;
+      mod->start = (l4_addr_t)destbuf;
       mem_manager->regions->add(mod_region(mod, true, Region::Root));
     }
   print_mod(mod);
@@ -877,5 +877,5 @@ Boot_modules_image_mode::move_module(unsigned index, void *dest)
   Mod_info *mod = &module_infos[index];
   unsigned long size = mod->size;
   _move_module(index, dest, mod_start(mod), size);
-  mod->start = (unsigned long long)dest;
+  mod->start = (l4_addr_t)dest;
 }
