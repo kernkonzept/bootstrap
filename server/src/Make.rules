@@ -284,9 +284,9 @@ else
 endif # ENTRY
 
 ifneq ($(COMPRESS),0)
-SRC_CC		 += uncompress.cc gunzip.cc
-CFLAGS_gunzip.cc := -fno-strict-aliasing
-CPPFLAGS	 += -DCOMPRESS
+SRC_CC             += uncompress.cc gunzip.cc
+CXXFLAGS_gunzip.cc := -fno-strict-aliasing
+CPPFLAGS           += -DCOMPRESS
 endif
 
 ifneq ($(RAM_SIZE_MB),)
