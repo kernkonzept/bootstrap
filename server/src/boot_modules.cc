@@ -356,16 +356,21 @@ static inline void max_payload_addr(unsigned long long v)
     modinfo_max_payload_addr = v;
 }
 
+static inline void max_payload_addr_str(unsigned long long v)
+{
+  max_payload_addr(v + strlen((char *)v) + 1);
+}
+
 static void modinfo_gen_payload_size()
 {
-  max_payload_addr(mod_header->mbi_cmdline);
+  max_payload_addr_str(mod_header->mbi_cmdline);
 
   for (Mod_info *m = module_infos; m != mod_end_iter(); ++m)
     {
-      max_payload_addr(m->name);
-      max_payload_addr(m->cmdline);
-      max_payload_addr(m->md5sum_compr);
-      max_payload_addr(m->md5sum_uncompr);
+      max_payload_addr_str(m->name);
+      max_payload_addr_str(m->cmdline);
+      max_payload_addr_str(m->md5sum_compr);
+      max_payload_addr_str(m->md5sum_uncompr);
     }
 }
 
