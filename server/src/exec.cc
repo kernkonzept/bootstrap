@@ -1,7 +1,7 @@
 /**
- * \file	bootstrap/server/src/exec.c
+ * \file	bootstrap/server/src/exec.cc
  * \brief	ELF loader
- * 
+ *
  * \date	2004
  * \author	Frank Mehnert <fm3@os.inf.tu-dresden.de>,
  *		Torsten Frenzel <frenzel@os.inf.tu-dresden.de> */
@@ -17,8 +17,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <alloca.h>
 
 #include <l4/util/elf.h>
 
@@ -29,10 +27,8 @@ exec_load_elf(exec_handler_func_t *handler,
               void *handle, const char **error_msg,
               l4_addr_t *entry)
 {
-  void **t = handle;
-  ElfW(Ehdr) *x = *t;
-  ElfW(Phdr) *phdr, *ph;
-  int i;
+  ElfW(Ehdr) **t = reinterpret_cast<ElfW(Ehdr) **>(handle);
+  auto *x = *t;
 
   /* Read the ELF header.  */
 
@@ -44,13 +40,13 @@ exec_load_elf(exec_handler_func_t *handler,
     return *error_msg="wrong ELF architecture", -1;
 
   if (entry)
-    *entry = (l4_addr_t) x->e_entry;
+    *entry = x->e_entry;
 
-  phdr   = l4util_elf_phdr(x);
+  l4_addr_t phdr = reinterpret_cast<l4_addr_t>(l4util_elf_phdr(x));
 
-  for (i = 0; i < x->e_phnum; i++)
+  for (int i = 0; i < x->e_phnum; i++)
     {
-      ph = (ElfW(Phdr)*)((l4_addr_t)phdr + i * x->e_phentsize);
+      auto *ph = reinterpret_cast<ElfW(Phdr)*>(phdr + i * x->e_phentsize);
       if (ph->p_type == 0)
         continue;
 

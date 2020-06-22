@@ -1,5 +1,5 @@
 /**
- * \file	bootstrap/server/src/uncompress.c
+ * \file	bootstrap/server/src/uncompress.cc
  * \brief	Support for on-the-fly uncompressing of boot modules
  * 
  * \date	2004
@@ -107,10 +107,10 @@ decompress(const char *name, void *start, void *destbuf,
 	100*(unsigned long long)size_uncompressed/size - 100);
 
   // Add 10 to detect too short given size
-  if ((read_size = grub_read(destbuf, size_uncompressed + 10))
+  if ((read_size = grub_read((unsigned char*)destbuf, size_uncompressed + 10))
       != size_uncompressed)
     {
-      printf("Uncorrect decompression: should be %d bytes but got %d bytes. Errnum = %d\n",
+      printf("Incorrect decompression: should be %d bytes but got %d bytes. Errnum = %d\n",
              size_uncompressed, read_size, errnum);
       return NULL;
     }
