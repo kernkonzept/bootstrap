@@ -47,7 +47,7 @@ clear_bss()
 {
   extern char _bss_start[], _bss_end[];
   extern char crt0_stack_low[], crt0_stack_high[];
-  memset(_bss_start, 0, (char *)&crt0_stack_low - _bss_start);
+  memset(_bss_start, 0, crt0_stack_low - _bss_start);
   memset(crt0_stack_high, 0, _bss_end - crt0_stack_high);
 }
 
