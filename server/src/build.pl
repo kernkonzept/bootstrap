@@ -100,27 +100,29 @@ my %output_formatter = (
 # build object files from the modules
 sub build_obj
 {
-  my ($file, $cmdline, $modname, $flags, $no_strip) = @_;
+  my ($file, $cmdline, $modname, $flags, $opts) = @_;
   my %d;
   my %imgmod;
 
   $d{path} = L4::ModList::search_file($file, $module_path)
     || die "Cannot find file $file! Used search path: $module_path";
 
-  # make sure that the file isn't already compressed
-  system("$prog_gzip -dc $d{path} > $modname.ugz 2> /dev/null");
-  if ($?)
+  if (exists $opts->{uncompress})
     {
-      unlink("$modname.ugz");
-    }
-  else
-    {
-      $d{path} = "$modname.ugz";
+      system("$prog_gzip -dc $d{path} > $modname.ugz 2> /dev/null");
+      if ($?)
+        {
+          unlink("$modname.ugz");
+        }
+      else
+        {
+          $d{path} = "$modname.ugz";
+        }
     }
   $d{size_orig} = -s $d{path};
 
   my $take_orig = 1;
-  if ($strip and not $no_strip)
+  if ($strip and not exists $opts->{nostrip})
     {
       system("$prog_objcopy -S $d{path} $modname.obj 2> /dev/null");
       $take_orig = $?;
@@ -140,10 +142,11 @@ sub build_obj
   $c_unc->addfile(*M);
   close M;
 
-  if ($compress)
+  if ($compress and
+      not L4::ModList::is_gzipped_file("$modname.obj"))
     {
-      system("$prog_gzip -9f $modname.obj && mv $modname.obj.gz $modname.obj");
-      $d{size_compressed} = -s "$modname.obj";
+       system("$prog_gzip -9f $modname.obj && mv $modname.obj.gz $modname.obj");
+       $d{size_compressed} = -s "$modname.obj";
     }
 
   $d{modname} = $modname;
@@ -209,7 +212,7 @@ sub build_objects(@)
     $img{mods}[$i] =
       { build_obj($mods[$i]->{command}, $mods[$i]->{cmdline},
                   $mods[$i]->{modname}, $flags,
-                  $mods[$i]->{type} =~ /.+-nostrip$/) };
+                  $mods[$i]->{opts}) };
   }
 
   &{$output_formatter{end}}();
