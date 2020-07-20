@@ -1,6 +1,6 @@
 #include "support.h"
 #include <l4/cxx/minmax>
-#include <cassert>
+#include <assert.h>
 
 #ifdef RAM_SIZE_MB
 

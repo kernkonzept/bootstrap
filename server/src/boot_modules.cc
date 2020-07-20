@@ -1,6 +1,6 @@
 #include "support.h"
 #include "panic.h"
-#include <cassert>
+#include <assert.h>
 #include "mod_info.h"
 #ifdef COMPRESS
 #include "uncompress.h"

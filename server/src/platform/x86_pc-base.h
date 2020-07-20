@@ -12,8 +12,8 @@
 #include <l4/util/port_io.h>
 #include <l4/cxx/static_container>
 
-#include <cassert>
-#include <cstdio>
+#include <assert.h>
+#include <stdio.h>
 
 /** VGA console output */
 

@@ -23,8 +23,8 @@
 #include "region.h"
 
 #include <stdio.h>
-#include <cstring>
-#include <cstdlib>
+#include <string.h>
+#include <stdlib.h>
 
 L4::Uart *uart();
 void set_stdio_uart(L4::Uart *uart);
