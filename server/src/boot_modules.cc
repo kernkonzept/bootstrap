@@ -834,6 +834,18 @@ void
 Boot_modules_image_mode::move_module(unsigned index, void *dest)
 {
   Mod_info *mod = mod_header->mods()[index];
+  if (dest != mod->start())
+    {
+      static bool show_once = true;
+      if (show_once)
+        {
+          extern int _stext;
+          show_once = false;
+          printf("  Using 'modaddr %#llx' in modules.list might prevent moving modules.\n",
+                 reinterpret_cast<l4_uint64_t>(&_stext) - RAM_BASE);
+        }
+    }
+
   _move_module(index, dest, mod->start(), mod->size());
   mod->start(reinterpret_cast<char const *>(dest));
 }
