@@ -68,7 +68,7 @@ unsigned int kuart_flags;
  * big binary.
  */
 #ifdef IMAGE_MODE
-static l4_addr_t _mod_addr = RAM_BASE + MODADDR;
+static l4_addr_t _mod_addr = (l4_addr_t)RAM_BASE + MODADDR;
 #else
 static l4_addr_t _mod_addr;
 #endif
