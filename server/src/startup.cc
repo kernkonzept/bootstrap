@@ -42,6 +42,7 @@
 #include "exec.h"
 #include "macros.h"
 #include "region.h"
+#include "memcpy_aligned.h"
 #include "module.h"
 #include "startup.h"
 #include "support.h"
@@ -895,10 +896,14 @@ l4_exec_read_exec(Elf_handle *handle,
       panic("Binary outside memory");
     }
 
-  memcpy((void *) mem_addr, m.start + file_ofs, file_size);
+  auto *src = (char const *)m.start + file_ofs;
+  auto *dst = (char *)mem_addr;
+  if ((unsigned long)src % 8 || (unsigned long)dst % 8)
+    memcpy(dst, src, file_size);
+  else
+    memcpy_aligned(dst, src, file_size);
   if (file_size < mem_size)
-    memset((void *) (mem_addr + file_size), 0, mem_size - file_size);
-
+    memset(dst + file_size, 0, mem_size - file_size);
 
   Region *f = regions.find(mem_addr);
   if (!f)

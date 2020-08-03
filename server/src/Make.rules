@@ -109,6 +109,9 @@ CXXFLAGS_arm64  += -mstrict-align
 CFLAGS_arm      += -mno-unaligned-access
 CXXFLAGS_arm    += -mno-unaligned-access
 
+SRC_C           += memcpy_aligned.c
+CFLAGS_memcpy_aligned.c = -ffreestanding
+
 SRC_CC		+= exec.cc module.cc region.cc startup.cc init_kip_f.cc \
 		   libc_support+.cc koptions.cc \
 		   platform_common.cc memory.cc boot_modules.cc
