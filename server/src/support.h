@@ -26,6 +26,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+struct boot_args
+{
+  unsigned long r[4];
+};
+
+extern struct boot_args boot_args;
+
 L4::Uart *uart();
 void set_stdio_uart(L4::Uart *uart);
 void ctor_init();

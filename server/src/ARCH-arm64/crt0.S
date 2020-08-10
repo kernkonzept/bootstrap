@@ -32,20 +32,20 @@ _start:
 
 	/* Disable caches as we're moving code around */
 	ic	iallu
-	mrs	x2, CurrentEL
-	ubfx	x2, x2, #2, #2
-	cmp	x2, #3
+	mrs	x12, CurrentEL
+	ubfx	x12, x12, #2, #2
+	cmp	x12, #3
 	b.eq	.Lsctlr_el3
-	cmp	x2, #2
+	cmp	x12, #2
 	b.eq	.Lsctlr_el2
 
-	set_sctlr SCTLR_EL1, x2
+	set_sctlr SCTLR_EL1, x12
 	b .Lsctlr_done
 .Lsctlr_el2:
-	set_sctlr SCTLR_EL2, x2
+	set_sctlr SCTLR_EL2, x12
 	b .Lsctlr_done
 .Lsctlr_el3:
-	set_sctlr SCTLR_EL3, x2
+	set_sctlr SCTLR_EL3, x12
 .Lsctlr_done:
 
 	/* Figure how to move */
@@ -57,13 +57,13 @@ _start:
 	/* First, copy our copy loop to the very beginning to avoid code
 	 * overwrites */
 	mov	x9, x5			/* x9: run address */
-	ldr	x2, .LCstart_bin
-	ldr	x3, 3f
-	str	x3, [x2], #8
-	ldr	x3, 33f
-	str	x3, [x2], #8
-	ldr	x3, 35f
-	str	x3, [x2], #8
+	ldr	x12, .LCstart_bin
+	ldr	x13, 3f
+	str	x13, [x12], #8
+	ldr	x13, 33f
+	str	x13, [x12], #8
+	ldr	x13, 35f
+	str	x13, [x12], #8
 	ldr	x10, .LCstart_bin
 	br	x10
 
