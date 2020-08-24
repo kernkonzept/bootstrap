@@ -346,10 +346,8 @@ all:: $(BOOTSTRAP_RAW)
 # raw version without ELF, primarily useful for ARM
 $(BOOTSTRAP_RAW): $(TARGET_BIN)
 	@$(GEN_MESSAGE)
-	$(VERBOSE)cp $< $@.tmp
-	$(VERBOSE)$(OBJCOPY) -O binary $@.tmp $@
+	$(VERBOSE)$(OBJCOPY) -O binary $< $@
 	$(VERBOSE)chmod -x $@
-	$(VERBOSE)$(RM) $@.tmp
 
 %.gzip: %
 	gzip -c9 $^ > $@
