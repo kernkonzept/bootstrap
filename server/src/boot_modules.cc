@@ -12,7 +12,8 @@ static char const Mod_reg[] = ".Module";
 char const *const Boot_modules::Mod_reg = ::Mod_reg;
 
 /* */
-enum {
+enum
+{
   Image_info_flag_arch_width_offset = 0,
   Image_info_flag_arch_width_mask   = 1 << Image_info_flag_arch_width_offset,
   Image_info_flag_arch_width_32bit  = 0 << Image_info_flag_arch_width_offset,
@@ -70,7 +71,7 @@ struct Image_info
   l4_uint64_t attrs             = 0;
 } __attribute__((packed)) image_info;
 
-// get c if it is printable '.' else
+// Get 'c' if it is printable, '.' else.
 static char
 get_printable(int c)
 {
@@ -78,12 +79,12 @@ get_printable(int c)
     return '.';
   return c;
 }
+
 Region
 Boot_modules::mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                          Region::Type type)
 {
-  return Region::start_size(start, size, ::Mod_reg,
-                            type, index);
+  return Region::start_size(start, size, ::Mod_reg, type, index);
 }
 
 void
@@ -247,7 +248,7 @@ Boot_modules::move_modules(unsigned long modaddr)
   // NOTE: we must be sure that we do not need to allocate any memory from here
   // to move_modules()
   for (Region *i = mem_manager->regions->begin();
-      i < mem_manager->regions->end();)
+       i < mem_manager->regions->end();)
     if (i->name() == ::Mod_reg)
       i = mem_manager->regions->remove(i);
     else
@@ -265,7 +266,7 @@ Boot_modules::move_modules(unsigned long modaddr)
              "       need %lx bytes above %lx\n", req_size, modaddr);
       mem_manager->ram->dump();
       mem_manager->regions->dump();
-      exit (5);
+      exit(5);
     }
 
   // sort the modules according to the start address
@@ -807,8 +808,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
   assert(mod_count >= Num_base_modules);
 
-  for (Mod_info *mod = module_infos; mod != mod_end_iter();
-       ++mod)
+  for (Mod_info *mod = module_infos; mod != mod_end_iter(); ++mod)
     mbi_size += round_wordsize(strlen(mod_cmdline(mod)) + 1);
 
   l4util_mb_info_t *mbi = (l4util_mb_info_t *)mem_manager->find_free_ram(mbi_size);
@@ -828,9 +828,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
   mbi->mods_addr   = (l4_addr_t)mods;
 
   unsigned long total_size = 0;
-  for (Mod_info *mod = module_infos;
-       mod < mod_end_iter();
-       ++mod)
+  for (Mod_info *mod = module_infos; mod < mod_end_iter(); ++mod)
     if (!is_base_module(mod))
       {
         total_size += l4_round_page(mod->size_uncompressed);
@@ -853,8 +851,8 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
       {
         Mod_info *mod = &module_infos[i];
 
-        if ((run == 0 && !is_base_module(mod)) ||
-            (run == 1 &&  is_base_module(mod)))
+        if (   (run == 0 && !is_base_module(mod))
+            || (run == 1 &&  is_base_module(mod)))
           continue;
 
         check_md5(mod_name(mod), (u_int8_t *)mod_start(mod),
