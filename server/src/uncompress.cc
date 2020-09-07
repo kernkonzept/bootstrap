@@ -24,7 +24,7 @@
 #include "gunzip.h"
 #include "uncompress.h"
 
-static void *filestart;
+static void const *filestart;
 
 enum { lin_alloc_buffer_size = 32 << 10 };
 unsigned long lin_alloc_buffer[(lin_alloc_buffer_size + sizeof(unsigned long) - 1)/ sizeof(unsigned long)];
@@ -42,7 +42,7 @@ gunzip_upper_mem_linalloc(void)
  * Returns true if file is compressed, false if not
  */
 static void
-file_open(void *start,  int size)
+file_open(void const *start, int size)
 {
   filepos = 0;
   filestart = start;
@@ -87,8 +87,8 @@ grub_read(unsigned char *buf, int len)
   return module_read(buf, len);
 }
 
-void*
-decompress(const char *name, void *start, void *destbuf,
+void *
+decompress(const char *name, void const *start, void *destbuf,
            int size, int size_uncompressed)
 {
   int read_size;
@@ -100,7 +100,7 @@ decompress(const char *name, void *start, void *destbuf,
 
   // don't move data around if the data isn't compressed
   if (!compressed_file)
-    return start;
+    return (void*)start;
 
   printf("  Uncompressing %s from %p to %p (%d to %d bytes, %+lld%%).\n",
         name, start, destbuf, size, size_uncompressed,

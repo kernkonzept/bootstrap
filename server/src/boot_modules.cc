@@ -112,17 +112,15 @@ Boot_modules::merge_mod_regions()
  * rounded to the next page boundary.
  */
 void
-Boot_modules::_move_module(unsigned i, void *_dest,
-                           void const *_src, unsigned long size)
+Boot_modules::_move_module(unsigned i, void *dest,
+                           void const *src, unsigned long size)
 {
  // Check for overlapping regions at the destination.
   enum { Overlap_check = 1 };
-  char *dest = (char *)_dest;
-  char const *src = (char const *)_src;
 
   if (src == dest)
     {
-      mem_manager->regions->add(Region::n(dest, dest + size,
+      mem_manager->regions->add(Region::n(dest, (char*)dest + size,
                                           ::Mod_reg, Region::Root, i));
       return;
     }
@@ -161,7 +159,7 @@ Boot_modules::_move_module(unsigned i, void *_dest,
       if (overlap)
         {
           printf("ERROR: module target [%p-%p) overlaps\n",
-                 dest, dest + size - 1);
+                 dest, (char *)dest + size - 1);
           overlap->vprint();
           mem_manager->regions->dump();
           panic("cannot move module");
@@ -170,7 +168,7 @@ Boot_modules::_move_module(unsigned i, void *_dest,
   memmove(vdest, vsrc, size);
   char *x = vdest + size;
   memset(x, 0, l4_round_page(x) - x);
-  mem_manager->regions->add(Region::n(dest, dest + size,
+  mem_manager->regions->add(Region::n(dest, (char *)dest + size,
                                       ::Mod_reg, Region::Root, i));
 }
 
@@ -429,20 +427,20 @@ namespace {
  * Helper functions for modules
  */
 
-static inline char *mod_cmdline(Mod_info *mod)
-{ return (char *)(l4_addr_t)mod->cmdline; }
+static inline char const *mod_cmdline(Mod_info *mod)
+{ return (char const *)(l4_addr_t)mod->cmdline; }
 
-static inline char *mod_name(Mod_info *mod)
-{ return (char *)(l4_addr_t)mod->name; }
+static inline char const *mod_name(Mod_info *mod)
+{ return (char const *)(l4_addr_t)mod->name; }
 
-static inline char *mod_start(Mod_info *mod)
-{ return (char *)(l4_addr_t)mod->start; }
+static inline char const *mod_start(Mod_info *mod)
+{ return (char const *)(l4_addr_t)mod->start; }
 
-static inline char *mod_md5compr(Mod_info *mod)
-{ return (char *)(l4_addr_t)mod->md5sum_compr; }
+static inline char const *mod_md5compr(Mod_info *mod)
+{ return (char const *)(l4_addr_t)mod->md5sum_compr; }
 
-static inline char *mod_md5(Mod_info *mod)
-{ return (char *)(l4_addr_t)mod->md5sum_uncompr; }
+static inline char const *mod_md5(Mod_info *mod)
+{ return (char const *)(l4_addr_t)mod->md5sum_uncompr; }
 
 static inline bool mod_compressed(Mod_info *mod)
 { return mod->size != mod->size_uncompressed; }
@@ -492,7 +490,7 @@ print_mod(Mod_info *mod)
 #ifdef DO_CHECK_MD5
 #include <bsd/md5.h>
 
-static void check_md5(const char *name, u_int8_t *start, unsigned size,
+static void check_md5(const char *name, void const *start, unsigned size,
                       const char *md5sum)
 {
   MD5_CTX md5ctx;
@@ -504,7 +502,7 @@ static void check_md5(const char *name, u_int8_t *start, unsigned size,
   printf("  Checking checksum of %s ... ", name);
 
   MD5Init(&md5ctx);
-  MD5Update(&md5ctx, start, size);
+  MD5Update(&md5ctx, (const uint8_t *)start, size);
   MD5Final(digest, &md5ctx);
 
   for (j = 0; j < MD5_DIGEST_LENGTH; j++)
@@ -520,7 +518,7 @@ static void check_md5(const char *name, u_int8_t *start, unsigned size,
     printf("Ok.\n");
 }
 #else // DO_CHECK_MD5
-static inline void check_md5(const char *, u_int8_t *, unsigned, const char *)
+static inline void check_md5(const char *, void const *, unsigned, const char *)
 {}
 #endif // ! DO_CHECK_MD5
 
@@ -537,7 +535,7 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
     panic("fatal: module %s does not fit into RAM", mod_name(mod));
 
   l4_addr_t image =
-    (l4_addr_t)decompress(mod_name(mod), (void*)mod_start(mod),
+    (l4_addr_t)decompress(mod_name(mod), mod_start(mod),
                           (void*)dest, mod->size, mod->size_uncompressed);
   if (image != dest)
     panic("fatal cannot decompress module: %s (decompression error)\n",
@@ -588,14 +586,12 @@ Boot_modules_image_mode::module(unsigned index, bool uncompress) const
   // we currently assume a module as compressed when the size != size_compressed
   if (uncompress && mod_compressed(mod))
     {
-      check_md5(mod_name(mod), (u_int8_t *)mod_start(mod),
-                mod->size, mod_md5compr(mod));
+      check_md5(mod_name(mod), mod_start(mod), mod->size, mod_md5compr(mod));
 
       unsigned long dest_size = l4_round_page(mod->size_uncompressed);
       decompress_mod(mod, mem_manager->find_free_ram_rev(dest_size));
 
-      check_md5(mod_name(mod), (u_int8_t *)mod_start(mod),
-                mod->size, mod_md5(mod));
+      check_md5(mod_name(mod), mod_start(mod), mod->size, mod_md5(mod));
     }
 #else
   (void)uncompress;
@@ -832,7 +828,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
       {
         total_size += l4_round_page(mod->size_uncompressed);
         if (mod_compressed(mod))
-          check_md5(mod_name(mod), (u_int8_t *)mod_start(mod),
+          check_md5(mod_name(mod), mod_start(mod),
                     mod->size, mod_md5compr(mod));
       }
 
@@ -854,7 +850,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
             || (run == 1 &&  is_base_module(mod)))
           continue;
 
-        check_md5(mod_name(mod), (u_int8_t *)mod_start(mod),
+        check_md5(mod_name(mod), mod_start(mod),
                   mod->size_uncompressed, mod_md5(mod));
 
         if (char const *c = mod_cmdline(mod))
@@ -877,7 +873,6 @@ void
 Boot_modules_image_mode::move_module(unsigned index, void *dest)
 {
   Mod_info *mod = &module_infos[index];
-  unsigned long size = mod->size;
-  _move_module(index, dest, mod_start(mod), size);
+  _move_module(index, dest, mod_start(mod), mod->size);
   mod->start = (l4_addr_t)dest;
 }
