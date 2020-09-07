@@ -12,7 +12,6 @@
 #define EXEC_H
 
 #include "types.h"
-#include <l4/sys/compiler.h>
 #include <l4/util/mb_info.h>
 
 typedef int exec_sectype_t;
@@ -32,11 +31,7 @@ typedef int exec_handler_func_t(void *handle,
 				  l4_size_t mem_size,
 				  exec_sectype_t section_type);
 
-EXTERN_C_BEGIN
-
 int exec_load_elf(exec_handler_func_t *handler_exec,
 		  void *handle, const char **error_msg, l4_addr_t *entry);
-
-EXTERN_C_END
 
 #endif
