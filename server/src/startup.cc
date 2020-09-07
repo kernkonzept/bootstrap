@@ -375,7 +375,6 @@ static void do_the_memset(unsigned long s, unsigned val, unsigned long len)
 
 static void fill_mem(unsigned fill_value)
 {
-  regions.sort();
   for (Region const *r = ram.begin(); r != ram.end(); ++r)
     {
       unsigned long long b = r->begin();

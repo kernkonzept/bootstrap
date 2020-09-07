@@ -258,7 +258,6 @@ Boot_modules::move_modules(unsigned long modaddr)
   unsigned long req_size = calc_modules_size(this, L4_PAGESHIFT);
 
   // find a spot to insert the modules
-  mem_manager->ram->sort();
   char *to = (char *)mem_manager->find_free_ram(req_size, modaddr);
   if (!to)
     {

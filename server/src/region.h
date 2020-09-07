@@ -288,9 +288,6 @@ public:
   /** Remove the region given by the iterator r. */
   Region *remove(Region *r);
 
-  /** Sort the region list (does bubble sort). */
-  void sort();
-
   /** Optimize the region list.
    * Basically merges all regions with the same type, subtype, and name
    * that have a begin and end address on the same memory page.
@@ -308,11 +305,9 @@ protected:
   unsigned long long _combined_size;
 
 private:
-  void swap(Region *a, Region *b);
-
   /**
    * Add a new memory region to the list. The new region must not overlap
-   * any known region.
+   * any known region. The resulting list is ascending sorted.
    */
   void add_nolimitcheck(Region const &r, bool may_overlap = false);
 };
