@@ -454,7 +454,7 @@ public:
     return c;
   }
 
-  int write(char const *s, unsigned long count) const override
+  int write(char const *s, unsigned long count, bool) const override
   {
     int r = _u1->write(s, count);
     if (_u2)
@@ -773,7 +773,14 @@ public:
     return raw_keyboard_getscancode() != -1;
   }
 
-  int write(char const *s, unsigned long count) const override
+  void out_char(char c) const
+  {
+    if (c == 10)
+      vga_putchar(13);
+    vga_putchar(c);
+  }
+
+  int write(char const *s, unsigned long count, bool) const override
   {
     unsigned long c = count;
     while (c)
