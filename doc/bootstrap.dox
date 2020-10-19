@@ -81,7 +81,7 @@
  *
  *     Limit the available memory to at most `<mbytes>` MiB.
  *
- *   * `-mem=<size>:<offset>`
+ *   * `-mem=<size>@<offset>`
  *
  *     Add a region of memory of `<size>` at `<offset>` to the system's memory
  *     map. Both `<size>` and `<offset>` may be suffixed by either `G`, `M`, or
