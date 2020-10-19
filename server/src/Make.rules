@@ -136,7 +136,7 @@ DEFINES         += -DCPU_ABI=$(CPU_ABI)
 
 MOD_ADDR         = 0x02000000
 
-SRC_S           += $(SRC_S-y) $(SRC_S_$(ARCH)-y)
+SRC_S           += $(SRC_S_$(ARCH)-y)
 CPPFLAGS        += $(CPPFLAGS_$(ARCH)-$(PLATFORM_TYPE))
 CPPFLAGS        += $(BID_PKG_CONFIG_CFLAGS)
 
