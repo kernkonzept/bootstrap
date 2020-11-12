@@ -46,6 +46,8 @@ PLATFORM_USE_DT-arm-arm_virt   := y
 SUPPORT_CC_arm-armada37xx      := platform/armada37xx.cc
 SUPPORT_CC_arm-s32             := platform/s32.cc
 SUPPORT_CC_arm-arm_fvp_base_r  := platform/arm_fvp_base_r.cc
+SUPPORT_CC_arm-s32s            := platform/s32s.cc
+DEFAULT_RELOC_arm-s32s         := 0x00500000
 
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc
