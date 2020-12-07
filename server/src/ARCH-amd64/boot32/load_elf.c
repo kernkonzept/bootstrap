@@ -14,8 +14,6 @@
 #include "load_elf.h"
 #include "support.h"
 
-extern char _image_start;
-extern char _image_end;
 
 l4_uint32_t
 load_elf (void *elf)
@@ -24,9 +22,6 @@ load_elf (void *elf)
   Elf64_Ehdr *eh = (Elf64_Ehdr *)(_elf);
   Elf64_Phdr *ph = (Elf64_Phdr *)(_elf + eh->e_phoff);
   int i;
-
-  reservation_add((unsigned long)&_image_start,
-                  (unsigned long)(&_image_end - &_image_start));
 
   for (i = 0; i < eh->e_phnum; i++, ph++)
     {
