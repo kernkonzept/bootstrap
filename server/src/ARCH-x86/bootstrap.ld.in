@@ -9,6 +9,7 @@ ENTRY(_start)
 
 PHDRS {
   data PT_LOAD;
+  dyn PT_DYNAMIC;
   /* having the mods PHDR defines some empty PHDR which QEMU does not seem
    * to like... */
 #ifdef IMAGE_MODE
@@ -69,7 +70,7 @@ SECTIONS
 
   } : data
 
-  .dynamic  : { *(.dynamic) } : data
+  .dynamic  : { *(.dynamic) } : dyn : data
   .rela.dyn :
   {
     *(.rela.init)

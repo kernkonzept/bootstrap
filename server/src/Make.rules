@@ -8,6 +8,9 @@
 # - BOOTSTRAP_DO_RAW_IMAGE
 # - BOOTSTRAP_DO_UIMAGE
 # - BOOTSTRAP_DO_ITB
+# - BUILD_PIE  Set to 1 if you want bootstrap to be position independent.
+#              Automatically set for UEFI mode (see below). Also enables outer
+#              bootstrap on amd64 multiboot to load relocatable image.
 # - BOOTSTRAP_DO_UEFI if set to y an image which is bootable by UEFI is built
 # - BOOTSTRAP_NO_STRIP if set no stripping of image
 # - BOOTSTRAP_UIMAGE_COMPRESSION: set to none, gzip, or bzip2
@@ -173,8 +176,8 @@ ifeq ($(BUILD_PIE),1)
 CFLAGS            += -fpie
 CXXFLAGS          += -fpie
 LDFLAGS_arm64     += -shared -Bsymbolic --defsym=EFI_SUBSYSTEM=0xa
-LDFLAGS_amd64     += -pie -Bsymbolic
-LDFLAGS_x86       += -pie -Bsymbolic
+LDFLAGS_amd64     += -pie -Bsymbolic --no-dynamic-linker
+LDFLAGS_x86       += -pie -Bsymbolic --no-dynamic-linker
 LDFLAGS           += -z text
 else
 LDFLAGS           += -static -Bstatic
@@ -443,6 +446,7 @@ vpath ARCH-amd64/boot32/bootstrap32.ld.in $(SRC_DIR)
 vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-x86
 
 SRC32_C		 = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c support.c
+SRC32_C		+= $(if $(filter 1,$(BUILD_PIE)),mm_alloc.c)
 SRC32_CC	 = multiboot2.cc cpu_info.cc paging.cc
 SRC32_S		 = boot.S boot_idt.S ARCH-x86/mb2.S
 OBJ32		 = $(SRC32_S:.S=.o32) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32)

@@ -11,15 +11,18 @@
 #include <stdio.h>
 
 #include <l4/util/mb_info.h>
+
 #include "boot_cpu.h"
 #include "paging.h"
 #include "load_elf.h"
+#include "mm_alloc.h"
 #include "support.h"
 
 extern void _exit(int rc);
 
 extern unsigned KERNEL_CS_64;
 extern char _binary_bootstrap64_bin_start;
+extern char _binary_bootstrap64_bin_end;
 extern char _image_start;
 extern char _image_end;
 
@@ -87,7 +90,18 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   reservation_add(0, 0x1000);      // null page
   reservation_add(0x1000, 0x1000); // fiasco trampoline page
 
+  // reserve memory for final locations of fiasco, sigma0 and moe
+  l4util_mb_mod_t *mods = (l4util_mb_mod_t*)mbi->mods_addr;
+  reserve_elf((void *)mods[0].mod_start, (void *)mods[0].mod_end); // fiasco
+  if (mbi->mods_count > 1)
+    reserve_elf((void *)mods[1].mod_start, (void *)mods[1].mod_end); // sigma0
+  if (mbi->mods_count > 2)
+    reserve_elf((void *)mods[2].mod_start, (void *)mods[2].mod_end); // moe
+
   reserve_mbi(mbi);
+
+  if (mm_alloc_init)
+    mm_alloc_init(mbi);
 
   if (mem_upper > Max_initial_mem)
     mem_upper = Max_initial_mem;
@@ -101,7 +115,8 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   printf("Loading 64bit part...\n");
   // switch from 32 Bit compatibility mode to 64 Bit mode
   far_ptr.cs    = KERNEL_CS_64;
-  far_ptr.start = load_elf(&_binary_bootstrap64_bin_start);
+  far_ptr.start = load_elf(&_binary_bootstrap64_bin_start,
+                           &_binary_bootstrap64_bin_end);
 
   asm volatile("ljmp *(%4)"
                 :: "D"(mbi), "S"(flag), "d"(rm_pointer),

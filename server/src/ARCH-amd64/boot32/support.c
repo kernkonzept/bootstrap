@@ -19,6 +19,12 @@ panic(char const *str)
     ;
 }
 
+int
+is_range_in_4g(unsigned long long start, unsigned long long size)
+{
+  return size <= (1ULL << 32) && start <= (1ULL << 32) - size;
+}
+
 typedef struct
 {
   unsigned long start;
@@ -38,7 +44,8 @@ reservation_add(unsigned long start, unsigned long size)
 {
   unsigned long _start = l4_trunc_page(start);
   unsigned long _size  = l4_round_page(start - _start + size);
-  if (_start > (1ULL << 32) - _size)
+
+  if (!is_range_in_4g(_start, _size))
     panic("Cannot add reservation that exceeds 32-bit address space");
 
   for (Area *r = reservations.entries;

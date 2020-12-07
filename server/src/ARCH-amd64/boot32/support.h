@@ -17,7 +17,19 @@
  */
 void L4_NORETURN panic(char const *str);
 
-enum { Max_reservations = 8 };
+enum { Max_reservations = 16 };
+
+/**
+ * Checks if a range of memory is within the 32-bit addressable space (4 GiB).
+ *
+ * \param start  start address of the memory range to check.
+ * \param size   size of the memory range to check.
+ *
+ * \retval 0  The tested range is (partly) outside the 32-bit addressable space.
+ * \retval 1  The tested range is within the 32-bit addressable space.
+ */
+int
+is_range_in_4g(unsigned long long start, unsigned long long size);
 
 /**
  * Adds a range of memory to a reservation map.

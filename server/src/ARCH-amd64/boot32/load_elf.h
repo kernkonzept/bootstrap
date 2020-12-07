@@ -12,6 +12,7 @@
 
 #include "types.h"
 
-l4_uint32_t load_elf(void *elf);
+void reserve_elf(void const *elf, void const *elf_end);
+l4_uint32_t load_elf(void const *elf, void const *elf_end);
 
 #endif
