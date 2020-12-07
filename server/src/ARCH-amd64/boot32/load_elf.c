@@ -30,24 +30,17 @@ static void check_overlap(unsigned long s, unsigned long e)
 }
 
 l4_uint32_t
-load_elf (void *elf, l4_uint32_t *vma_start, l4_uint32_t *vma_end)
+load_elf (void *elf)
 {
   char *_elf = (char *) elf;
   Elf64_Ehdr *eh = (Elf64_Ehdr *)(_elf);
   Elf64_Phdr *ph = (Elf64_Phdr *)(_elf + eh->e_phoff);
-  l4_uint32_t _vma_start = ~0, _vma_end = 0;
   int i;
 
   for (i = 0; i < eh->e_phnum; i++, ph++)
     {
       if (ph->p_type != PT_LOAD)
         continue;
-
-      if (ph->p_vaddr < _vma_start)
-        _vma_start = ph->p_vaddr;
-
-      if (ph->p_vaddr + ph->p_memsz > _vma_end)
-        _vma_end = ph->p_vaddr + ph->p_memsz;
 
       check_overlap(ph->p_paddr, ph->p_paddr + ph->p_filesz);
 
@@ -62,10 +55,6 @@ load_elf (void *elf, l4_uint32_t *vma_start, l4_uint32_t *vma_end)
         }
     }
 
-  if (vma_start)
-    *vma_start = _vma_start;
-  if (vma_end)
-    *vma_end = _vma_end;
 
   return eh->e_entry;
 }

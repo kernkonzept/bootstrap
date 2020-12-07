@@ -54,7 +54,6 @@ void bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer);
 void
 bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
 {
-  l4_uint32_t vma_start, vma_end;
   struct
   {
     l4_uint32_t start;
@@ -92,8 +91,7 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   printf("Loading 64bit part...\n");
   // switch from 32 Bit compatibility mode to 64 Bit mode
   far_ptr.cs    = KERNEL_CS_64;
-  far_ptr.start = load_elf(&_binary_bootstrap64_bin_start,
-                           &vma_start, &vma_end);
+  far_ptr.start = load_elf(&_binary_bootstrap64_bin_start);
 
   asm volatile("ljmp *(%4)"
                 :: "D"(mbi), "S"(flag), "d"(rm_pointer),
