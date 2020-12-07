@@ -13,6 +13,7 @@
 #include "types.h"
 #include <l4/util/elf.h>
 #include "load_elf.h"
+#include "support.h"
 
 extern char _image_start;
 extern char _image_end;
@@ -24,9 +25,7 @@ static void check_overlap(unsigned long s, unsigned long e)
     {
       printf("Overwrite: ELF-PH: %lx - %lx, bootstrap loader: %lx - %lx\n",
              s, e, (unsigned long)&_image_start, (unsigned long)&_image_end);
-      printf("Change your 'modaddr' setting.\n");
-      while (1)
-        ;
+      panic("Change your 'modaddr' setting.\n");
     }
 }
 

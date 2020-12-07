@@ -47,7 +47,6 @@ static void check_mbi_modules_in_limit(l4util_mb_info_t *mbi,
         printf("Please adapt your boot process\n"
                "  or supply more memory to bootstrap's allocator.\n");
         while (1);
-        _exit(-1);
       }
 }
 

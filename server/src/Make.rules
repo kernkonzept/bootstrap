@@ -429,7 +429,7 @@ vpath %.c             $(SRC_DIR)/ARCH-amd64/boot32
 vpath %.S             $(SRC_DIR)/ARCH-amd64/boot32
 vpath bootstrap.ld.in $(SRC_DIR)/ARCH-x86
 
-SRC32_C		 = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c
+SRC32_C		 = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c support.c
 SRC32_CC	 = multiboot2.cc
 SRC32_S		 = boot.S boot_idt.S ARCH-x86/mb2.S
 OBJ32		 = $(SRC32_S:.S=.o32) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32)
