@@ -24,11 +24,10 @@
 
 int
 exec_load_elf(exec_handler_func_t *handler,
-              void *handle, const char **error_msg,
+              Elf_handle *handle, const char **error_msg,
               l4_addr_t *entry)
 {
-  ElfW(Ehdr) **t = reinterpret_cast<ElfW(Ehdr) **>(handle);
-  auto *x = *t;
+  ElfW(Ehdr) const *x = reinterpret_cast<ElfW(Ehdr) const *>(handle->mod.start);
 
   /* Read the ELF header.  */
 
@@ -69,9 +68,8 @@ exec_load_elf(exec_handler_func_t *handler,
       if (ph->p_flags & PF_X)
         type |= EXEC_SECTYPE_EXECUTE;
 
-      int res = (*handler)(handle,
-                           ph->p_offset, ph->p_filesz,
-                           ph->p_paddr, ph->p_vaddr, ph->p_memsz, type);
+      int res = (*handler)(handle, ph->p_offset, ph->p_filesz, ph->p_paddr,
+                           ph->p_vaddr, ph->p_memsz, type);
       if (res != 0)
         return *error_msg="", res;
     }

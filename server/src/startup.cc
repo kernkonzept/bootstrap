@@ -78,15 +78,13 @@ static const char *builtin_cmdline = CMDLINE;
 
 
 /// Info passed through our ELF interpreter code
-struct Elf_info
+struct Elf_info : Elf_handle
 {
-  Boot_modules::Module mod;
   Region::Type type;
 };
 
-struct Hdr_info
+struct Hdr_info : Elf_handle
 {
-  Boot_modules::Module mod;
   unsigned hdr_type;
   l4_addr_t start;
   l4_size_t size;
@@ -140,7 +138,7 @@ void *find_kip(Boot_modules::Module const &mod)
   Hdr_info hdr;
   hdr.mod = mod;
   hdr.hdr_type = EXEC_SECTYPE_KIP;
-  int r = exec_load_elf(l4_exec_find_hdr, &hdr.mod, &error_msg, NULL);
+  int r = exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL);
 
   if (r == 1)
     {
@@ -179,8 +177,7 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod, void *ki
   Hdr_info hdr;
   hdr.mod = mod;
   hdr.hdr_type = EXEC_SECTYPE_KOPT;
-  int r = exec_load_elf(l4_exec_find_hdr, &hdr.mod,
-                        &error_msg, NULL);
+  int r = exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL);
 
   if (r == 1)
     {
@@ -444,8 +441,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type)
 
   printf("  Scanning %s\n", m.cmdline);
 
-  r = exec_load_elf(l4_exec_add_region, &info,
-                    &error_msg, NULL);
+  r = exec_load_elf(l4_exec_add_region, &info, &error_msg, NULL);
 
   if (r)
     {
@@ -476,9 +472,9 @@ load_elf_module(Boot_modules::Module const &mod)
   l4_addr_t entry;
   int r;
   const char *error_msg;
+  Elf_handle handle = { mod };
 
-  r = exec_load_elf(l4_exec_read_exec, const_cast<Boot_modules::Module *>(&mod),
-                    &error_msg, &entry);
+  r = exec_load_elf(l4_exec_read_exec, &handle, &error_msg, &entry);
 
   if (r)
     printf("  => can't load module (%s)\n", error_msg);
@@ -825,13 +821,13 @@ startup(char const *cmdline)
 }
 
 static int
-l4_exec_read_exec(void * handle,
+l4_exec_read_exec(Elf_handle *handle,
 		  l4_addr_t file_ofs, l4_size_t file_size,
 		  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
 		  l4_size_t mem_size,
 		  exec_sectype_t section_type)
 {
-  Boot_modules::Module const *m = (Boot_modules::Module const *)handle;
+  Boot_modules::Module &m = handle->mod;
   if (!mem_size)
     return 0;
 
@@ -852,7 +848,7 @@ l4_exec_read_exec(void * handle,
       panic("Binary outside memory");
     }
 
-  memcpy((void *) mem_addr, (char const *)m->start + file_ofs, file_size);
+  memcpy((void *) mem_addr, m.start + file_ofs, file_size);
   if (file_size < mem_size)
     memset((void *) (mem_addr + file_size), 0, mem_size - file_size);
 
@@ -865,19 +861,19 @@ l4_exec_read_exec(void * handle,
       panic("Oops: region for module not found\n");
     }
 
-  f->name(m->cmdline ? m->cmdline :  ".[Unknown]");
+  f->name(m.cmdline ? m.cmdline :  ".[Unknown]");
   return 0;
 }
 
 
 static int
-l4_exec_add_region(void *handle,
+l4_exec_add_region(Elf_handle *handle,
 		  l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
 		  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
 		  l4_size_t mem_size,
 		  exec_sectype_t section_type)
 {
-  Elf_info const *info = (Elf_info const *)handle;
+  Elf_info const &info = static_cast<Elf_info const&>(*handle);
 
   if (!mem_size)
     return 0;
@@ -897,8 +893,8 @@ l4_exec_add_region(void *handle,
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.
   Region n = Region::n(mem_addr, mem_addr + mem_size,
-                       info->mod.cmdline ? info->mod.cmdline : ".[Unknown]",
-                       info->type, info->type == Region::Root ? rights : 0);
+                       info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
+                       info.type, info.type == Region::Root ? rights : 0);
 
   for (Region *r = regions.begin(); r != regions.end(); ++r)
     if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg)
@@ -916,17 +912,17 @@ l4_exec_add_region(void *handle,
 }
 
 static int
-l4_exec_find_hdr(void *handle,
+l4_exec_find_hdr(Elf_handle *handle,
                  l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
                  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
                  l4_size_t mem_size,
                  exec_sectype_t section_type)
 {
-  Hdr_info *hdr = reinterpret_cast<Hdr_info *>(handle);
-  if (hdr->hdr_type == (section_type & EXEC_SECTYPE_TYPE_MASK))
+  Hdr_info &hdr = static_cast<Hdr_info&>(*handle);
+  if (hdr.hdr_type == (section_type & EXEC_SECTYPE_TYPE_MASK))
     {
-      hdr->start = mem_addr;
-      hdr->size = mem_size;
+      hdr.start = mem_addr;
+      hdr.size = mem_size;
       return 1;
     }
   return 0;

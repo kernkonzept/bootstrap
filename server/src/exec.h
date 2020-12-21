@@ -11,6 +11,7 @@
 #ifndef EXEC_H
 #define EXEC_H
 
+#include "support.h"
 #include "types.h"
 #include <l4/util/mb_info.h>
 
@@ -25,13 +26,18 @@ typedef int exec_sectype_t;
 #define EXEC_SECTYPE_KOPT		((exec_sectype_t)0x110000)
 #define EXEC_SECTYPE_TYPE_MASK		((exec_sectype_t)0xff0000)
 
-typedef int exec_handler_func_t(void *handle,
+struct Elf_handle
+{
+  Boot_modules::Module mod;
+};
+
+typedef int exec_handler_func_t(Elf_handle *handle,
 				  l4_addr_t file_ofs, l4_size_t file_size,
 				  l4_addr_t mem_addr, l4_addr_t v_addr,
 				  l4_size_t mem_size,
 				  exec_sectype_t section_type);
 
 int exec_load_elf(exec_handler_func_t *handler_exec,
-		  void *handle, const char **error_msg, l4_addr_t *entry);
+		  Elf_handle *handle, const char **error_msg, l4_addr_t *entry);
 
 #endif
