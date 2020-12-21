@@ -32,6 +32,7 @@
 
 /* L4 stuff */
 #include <l4/sys/compiler.h>
+#include <l4/sys/consts.h>
 #include <l4/util/mb_info.h>
 #include <l4/util/l4_macros.h>
 #include <l4/util/kip.h>
@@ -133,17 +134,13 @@ dump_mbi(l4util_mb_info_t *mbi)
 static
 void *find_kip(Boot_modules::Module const &mod)
 {
-  unsigned char *p, *end;
-  void *k = 0;
-
   printf("  find kernel info page...\n");
 
   const char *error_msg;
   Hdr_info hdr;
   hdr.mod = mod;
   hdr.hdr_type = EXEC_SECTYPE_KIP;
-  int r = exec_load_elf(l4_exec_find_hdr, &hdr.mod,
-                        &error_msg, NULL);
+  int r = exec_load_elf(l4_exec_find_hdr, &hdr.mod, &error_msg, NULL);
 
   if (r == 1)
     {
@@ -151,38 +148,28 @@ void *find_kip(Boot_modules::Module const &mod)
       return (void *)hdr.start;
     }
 
-  for (Region const *m = regions.begin(); m != regions.end(); ++m)
+  for (Region const &m : regions)
     {
-      if (m->type() != Region::Kernel)
-	continue;
+      if (m.type() != Region::Kernel)
+        continue;
 
-      if (sizeof(unsigned long) < 8
-          && m->end() >= (1ULL << 32))
-	end = (unsigned char *)(~0UL - 0x1000);
+      l4_addr_t end;
+      if (sizeof(unsigned long) < 8 && m.end() >= (1ULL << 32))
+        end = ~0UL - 0x1000;
       else
-	end = (unsigned char *) (unsigned long)m->end();
+        end = m.end();
 
-      for (p = (unsigned char *) (unsigned long)(m->begin() & 0xfffff000);
-	   p < end;
-	   p += 0x1000)
-	{
-	  l4_umword_t magic = L4_KERNEL_INFO_MAGIC;
-	  if (memcmp(p, &magic, 4) == 0)
-	    {
-	      k = p;
-	      printf("  found kernel info page at %p\n", p);
-	      break;
-	    }
-	}
-
-      if (k)
-        break;
+      for (l4_addr_t p = l4_round_size(m.begin(), 12); p < end; p += 0x1000)
+        {
+          if ( *(l4_uint32_t *)p == L4_KERNEL_INFO_MAGIC)
+            {
+              printf("  found kernel info page at %lx\n", p);
+              return (void *)p;
+            }
+        }
     }
 
-  if (!k)
-    panic("could not find kernel info page, maybe your kernel is too old");
-
-  return k;
+  panic("could not find kernel info page, maybe your kernel is too old");
 }
 
 static
