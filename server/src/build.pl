@@ -139,6 +139,7 @@ sub build_obj
 
   my $c_unc = Digest::MD5->new;
   open(M, "$modname.obj") || die "Failed to open $modname.obj: $!";
+  binmode M;
   $c_unc->addfile(*M);
   close M;
 
@@ -249,6 +250,7 @@ sub build_objects(@)
     }
 
   open(my $fd, ">mods.bin") || die "Cannot open 'mods.bin': $!";
+  binmode $fd;
   my %offsets = L4::Image::export_modules($fd, %img);
   close $fd;
 
@@ -377,6 +379,7 @@ sub postprocess
     unless defined $_module_data_start;
 
   open(my $fd, "+<$fn") || error("Could not open '$fn': $!");
+  binmode $fd;
 
   my $buf;
   my $r = sysread($fd, $buf, 1 << 20); # would we be interrupted?
