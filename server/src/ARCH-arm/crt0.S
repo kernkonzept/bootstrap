@@ -49,7 +49,7 @@ _start:
 	mcr p15, 0, r0, c1, c0
 
 	/* Figure how to move */
-        ldr     r7, crt_end_bin
+        ldr     r7, crt_end_bin_lsb
 	subs	r8, r5, r4	/* r8 is the distance between the blocks */
 	bpl	move_behind
 
@@ -88,7 +88,8 @@ move_behind:
 
 .LCrun:       .word run
 .LCstart_bin: .word _start
-crt_end_bin:  .word 0; .word _module_data_end;
+crt_end_bin:     .word 0
+crt_end_bin_lsb: .word _module_data_end;
 
 run:
 	mov	r3, #0x1000
