@@ -53,6 +53,9 @@ exec_load_elf(exec_handler_func_t *handler,
       if (ph->p_type == PT_LOAD)
         type |= EXEC_SECTYPE_ALLOC | EXEC_SECTYPE_LOAD;
 
+      if (ph->p_type == PT_DYNAMIC)
+        type |= EXEC_SECTYPE_DYNAMIC;
+
       if (ph->p_type == 0x10) // KIP PHDR
         type |= EXEC_SECTYPE_KIP;
 
@@ -69,7 +72,7 @@ exec_load_elf(exec_handler_func_t *handler,
         type |= EXEC_SECTYPE_EXECUTE;
 
       int res = (*handler)(handle, ph->p_offset, ph->p_filesz, ph->p_paddr,
-                           ph->p_vaddr, ph->p_memsz, type);
+                           ph->p_vaddr, ph->p_memsz, ph->p_align, type);
       if (res != 0)
         return *error_msg="", res;
     }

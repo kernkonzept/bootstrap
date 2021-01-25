@@ -24,6 +24,7 @@ typedef int exec_sectype_t;
 #define EXEC_SECTYPE_EXECUTE		((exec_sectype_t)0x000004)
 #define EXEC_SECTYPE_ALLOC		((exec_sectype_t)0x000100)
 #define EXEC_SECTYPE_LOAD		((exec_sectype_t)0x000200)
+#define EXEC_SECTYPE_DYNAMIC		((exec_sectype_t)0x010000)
 #define EXEC_SECTYPE_KIP		((exec_sectype_t)0x100000)
 #define EXEC_SECTYPE_KOPT		((exec_sectype_t)0x110000)
 #define EXEC_SECTYPE_TYPE_MASK		((exec_sectype_t)0xff0000)
@@ -36,7 +37,7 @@ struct Elf_handle
 typedef int exec_handler_func_t(Elf_handle *handle,
 				  l4_addr_t file_ofs, l4_size_t file_size,
 				  l4_addr_t mem_addr, l4_addr_t v_addr,
-				  l4_size_t mem_size,
+				  l4_size_t mem_size, l4_size_t align,
 				  exec_sectype_t section_type);
 
 int exec_load_elf(exec_handler_func_t *handler_exec,
