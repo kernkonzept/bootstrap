@@ -29,6 +29,11 @@ public:
                  "smc #0" : : "r" (r0));
   }
 
+#ifdef ARCH_arm
+  // Must be executed in ARM mode because it uses inline assembly with ARM
+  // instruction.
+  __attribute__((target("arm")))
+#endif
   void setup_kernel_config(l4_kernel_info_t *kip) override;
 
   void setup_kernel_options(L4_kernel_options::Options *lko) override
