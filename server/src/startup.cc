@@ -506,7 +506,13 @@ running_in_hyp_mode()
   return (cpsr & 0x1f) == 0x1a;
 }
 
-static void
+// Must be executed in ARM mode because it uses inline assembly with ARM
+// instruction.
+__attribute__((target("arm")))
+void
+setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip);
+
+void
 setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
 {
   l4_kip_platform_info_arch *ia = &kip->platform_info.arch;
