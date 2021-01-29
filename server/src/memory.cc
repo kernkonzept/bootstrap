@@ -3,7 +3,8 @@
 unsigned long
 Memory::find_free_ram(unsigned long size,
                       unsigned long min_addr,
-                      unsigned long max_addr)
+                      unsigned long max_addr,
+                      unsigned align)
 {
   unsigned long min = min_addr;
   if (min < sizeof(unsigned long long))
@@ -24,7 +25,7 @@ Memory::find_free_ram(unsigned long size,
         max = rr->end();
 
       Region search_area(min, max, "ram for modules");
-      unsigned long long to = regions->find_free(search_area, size, L4_PAGESHIFT);
+      unsigned long long to = regions->find_free(search_area, size, align);
       if (to)
         return to;
     }
@@ -34,7 +35,8 @@ Memory::find_free_ram(unsigned long size,
 unsigned long
 Memory::find_free_ram_rev(unsigned long size,
                           unsigned long min_addr,
-                          unsigned long max_addr)
+                          unsigned long max_addr,
+                          unsigned align)
 {
   if (min_addr < sizeof(unsigned long long))
     min_addr = sizeof(unsigned long long);
@@ -57,7 +59,7 @@ Memory::find_free_ram_rev(unsigned long size,
 
       Region search_area(min, max, "ram for modules");
       unsigned long long to
-        = regions->find_free_rev(search_area, size, L4_PAGESHIFT);
+        = regions->find_free_rev(search_area, size, align);
       if (to)
         return to;
     }

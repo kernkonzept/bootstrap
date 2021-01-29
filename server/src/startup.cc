@@ -82,9 +82,15 @@ static const char *builtin_cmdline = CMDLINE;
 
 
 /// Info passed through our ELF interpreter code
+struct Load_info : Elf_handle
+{
+  l4_addr_t offset;
+};
+
 struct Elf_info : Elf_handle
 {
   Region::Type type;
+  l4_addr_t offset;
 };
 
 struct Hdr_info : Elf_handle
@@ -94,9 +100,18 @@ struct Hdr_info : Elf_handle
   l4_size_t size;
 };
 
+struct Section_info : Elf_handle
+{
+  l4_addr_t start = ~0UL;
+  l4_addr_t end = 0;
+  l4_addr_t align = 1;
+  bool has_dynamic = false;
+};
+
 static exec_handler_func_t l4_exec_read_exec;
 static exec_handler_func_t l4_exec_add_region;
 static exec_handler_func_t l4_exec_find_hdr;
+static exec_handler_func_t l4_exec_gather_info;
 
 // this function can be provided per architecture
 void __attribute__((weak)) print_cpu_info();
@@ -134,7 +149,7 @@ dump_mbi(l4util_mb_info_t *mbi)
  * After loading the kernel we scan for the magic number at page boundaries.
  */
 static
-void *find_kip(Boot_modules::Module const &mod)
+void *find_kip(Boot_modules::Module const &mod, l4_addr_t offset)
 {
   printf("  find kernel info page...\n");
 
@@ -146,6 +161,7 @@ void *find_kip(Boot_modules::Module const &mod)
 
   if (r == 1)
     {
+      hdr.start += offset;
       printf("  found kernel info page (via ELF) at %lx\n", hdr.start);
       return (void *)hdr.start;
     }
@@ -175,7 +191,8 @@ void *find_kip(Boot_modules::Module const &mod)
 }
 
 static
-L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod, void *kip)
+L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
+                                       void *kip, l4_addr_t offset)
 {
   const char *error_msg;
   Hdr_info hdr;
@@ -185,6 +202,7 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod, void *ki
 
   if (r == 1)
     {
+      hdr.start += offset;
       printf("  found kernel options (via ELF) at %lx\n", hdr.start);
       return (L4_kernel_options::Options *)hdr.start;
     }
@@ -431,16 +449,42 @@ init_regions()
  * Actually does not load the ELF binary (see load_elf_module()).
  */
 static void
-add_elf_regions(Boot_modules::Module const &m, Region::Type type)
+add_elf_regions(Boot_modules::Module const &m, Region::Type type,
+                l4_addr_t *offset)
 {
+  Section_info si;
   Elf_info info;
   int r;
   const char *error_msg;
 
+  si.mod = m;
   info.type = type;
   info.mod = m;
 
   printf("  Scanning %s\n", m.cmdline);
+
+  r = exec_load_elf(l4_exec_gather_info, &si, &error_msg, NULL);
+  if (r)
+    panic("\nCould not gather load section infos (%s)", error_msg);
+
+  if (si.has_dynamic)
+    {
+      if (si.start > si.end)
+        panic("No load sections?");
+
+      si.start &= ~(si.align - 1U);
+      unsigned align_shift = sizeof(unsigned long) * 8
+                             - __builtin_clzl(si.align) - 1;
+      l4_addr_t addr = _mem_manager.find_free_ram(si.end - si.start + 1U,
+                                                  0, ~0UL,
+                                                  align_shift);
+      if (!addr)
+        panic("OOM");
+
+      *offset = info.offset = addr - si.start;
+    }
+  else
+      *offset = info.offset = 0;
 
   r = exec_load_elf(l4_exec_add_region, &info, &error_msg, NULL);
 
@@ -468,14 +512,17 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type)
  * memory region.
  */
 static l4_addr_t
-load_elf_module(Boot_modules::Module const &mod)
+load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
 {
   l4_addr_t entry;
   int r;
   const char *error_msg;
-  Elf_handle handle = { mod };
+  Load_info info;
 
-  r = exec_load_elf(l4_exec_read_exec, &handle, &error_msg, &entry);
+  info.mod = mod;
+  info.offset = offset;
+
+  r = exec_load_elf(l4_exec_read_exec, &info, &error_msg, &entry);
 
   if (r)
     printf("  => can't load module (%s)\n", error_msg);
@@ -494,7 +541,7 @@ load_elf_module(Boot_modules::Module const &mod)
         }
     }
 
-  return entry;
+  return entry + offset;
 }
 
 #ifdef ARCH_arm
@@ -663,10 +710,17 @@ search_and_setup_utest_feature(char const *cmdline, l4_kernel_info_t *info)
 }
 
 static unsigned long
-load_elf_module(Boot_modules::Module const &mod, char const *n)
+load_elf_module(Boot_modules::Module const &mod, char const *n, l4_addr_t offset)
 {
-  printf("  Loading "); print_module_name(mod.cmdline, n); putchar('\n');
-  return load_elf_module(mod);
+  printf("  Loading ");
+  print_module_name(mod.cmdline, n);
+  if (offset)
+    {
+      bool neg = offset >= ~(l4_addr_t)0U / 2U;
+      printf(" (offset %c0x%lx)", neg?'-':'+', neg ? (~offset + 1U) : offset);
+    }
+  putchar('\n');
+  return load_elf_module(mod, offset);
 }
 
 /**
@@ -758,18 +812,21 @@ startup(char const *cmdline)
   int idx_kern = mods->base_mod_idx(Mod_info_flag_mod_kernel);
   int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0);
   int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask);
+  l4_addr_t fiasco_offset = 0;
+  l4_addr_t sigma0_offset = 0;
+  l4_addr_t roottask_offset = 0;
 
   if (idx_kern < 0)
     panic("No kernel module available");
-  add_elf_regions(mods->module(idx_kern), Region::Kernel);
+  add_elf_regions(mods->module(idx_kern), Region::Kernel, &fiasco_offset);
 
   if (idx_sigma0 >= 0)
-    add_elf_regions(mods->module(idx_sigma0), Region::Sigma0);
+    add_elf_regions(mods->module(idx_sigma0), Region::Sigma0, &sigma0_offset);
   else
     printf("  WARNING: No sigma0 module specified -- setup might not boot!\n");
 
   if (idx_roottask >= 0)
-    add_elf_regions(mods->module(idx_roottask), Region::Root);
+    add_elf_regions(mods->module(idx_roottask), Region::Root, &roottask_offset);
   else
     printf("  WARNING: No roottask module specified -- setup might not boot!\n");
 
@@ -783,29 +840,31 @@ startup(char const *cmdline)
   regions.optimize();
 
   /* setup kernel PART ONE */
-  boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]");
+  boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]",
+                                           fiasco_offset);
 
   if (idx_sigma0 >= 0)
     {
       /* setup sigma0 */
       boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0),
-                                               "[SIGMA0]");
+                                               "[SIGMA0]", sigma0_offset);
     }
 
   if (idx_roottask >= 0)
     {
       /* setup roottask */
       boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
-                                                 "[ROOTTASK]");
+                                                 "[ROOTTASK]", roottask_offset);
     }
 
   /* setup kernel PART TWO (special kernel initialization) */
-  void *l4i = find_kip(mods->module(idx_kern));
+  void *l4i = find_kip(mods->module(idx_kern), fiasco_offset);
 
   regions.optimize();
   regions.dump();
 
-  L4_kernel_options::Options *lko = find_kopts(mods->module(idx_kern), l4i);
+  L4_kernel_options::Options *lko = find_kopts(mods->module(idx_kern), l4i,
+                                               fiasco_offset);
 
   // Note: we have to ensure that the original ELF binaries are not modified
   // or overwritten up to this point. However, the memory regions for the
@@ -888,10 +947,11 @@ static int
 l4_exec_read_exec(Elf_handle *handle,
 		  l4_addr_t file_ofs, l4_size_t file_size,
 		  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
-		  l4_size_t mem_size,
+		  l4_size_t mem_size, l4_size_t /*align*/,
 		  exec_sectype_t section_type)
 {
-  Boot_modules::Module &m = handle->mod;
+  Load_info const *info = static_cast<Load_info const *>(handle);
+  Boot_modules::Module const &m = info->mod;
   if (!mem_size)
     return 0;
 
@@ -900,6 +960,8 @@ l4_exec_read_exec(Elf_handle *handle,
 
   if (! (section_type & (EXEC_SECTYPE_ALLOC|EXEC_SECTYPE_LOAD)))
     return 0;
+
+  mem_addr += info->offset;
 
   if (Verbose_load)
     printf("    [%p-%p]\n", (void *) mem_addr, (void *) (mem_addr + mem_size));
@@ -938,7 +1000,7 @@ static int
 l4_exec_add_region(Elf_handle *handle,
 		  l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
 		  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
-		  l4_size_t mem_size,
+		  l4_size_t mem_size, l4_size_t /*align*/,
 		  exec_sectype_t section_type)
 {
   Elf_info const &info = static_cast<Elf_info const&>(*handle);
@@ -960,7 +1022,8 @@ l4_exec_add_region(Elf_handle *handle,
 
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.
-  Region n = Region::n(mem_addr, mem_addr + mem_size,
+  Region n = Region::n(mem_addr + info.offset,
+                       mem_addr + mem_size + info.offset,
                        info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
                        info.type, info.type == Region::Root ? rights : 0);
 
@@ -983,7 +1046,7 @@ static int
 l4_exec_find_hdr(Elf_handle *handle,
                  l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
                  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
-                 l4_size_t mem_size,
+                 l4_size_t mem_size, l4_size_t /*align*/,
                  exec_sectype_t section_type)
 {
   Hdr_info &hdr = static_cast<Hdr_info&>(*handle);
@@ -993,5 +1056,35 @@ l4_exec_find_hdr(Elf_handle *handle,
       hdr.size = mem_size;
       return 1;
     }
+  return 0;
+}
+
+static int
+l4_exec_gather_info(Elf_handle *handle,
+                    l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
+                    l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
+                    l4_size_t mem_size, l4_size_t align,
+                    exec_sectype_t section_type)
+{
+  Section_info *info = static_cast<Section_info *>(handle);
+
+  if (!mem_size)
+    return 0;
+
+  if ((section_type & EXEC_SECTYPE_TYPE_MASK) == EXEC_SECTYPE_DYNAMIC)
+    info->has_dynamic = true;
+
+  if (! (section_type & EXEC_SECTYPE_ALLOC))
+    return 0;
+
+  if (mem_addr < info->start)
+    info->start = mem_addr;
+
+  if ((mem_addr + mem_size - 1U) > info->end)
+    info->end = mem_addr + mem_size - 1U;
+
+  if (align > info->align)
+    info->align = align;
+
   return 0;
 }
