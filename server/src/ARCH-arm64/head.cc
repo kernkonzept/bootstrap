@@ -9,6 +9,9 @@ extern "C" void __main(unsigned long r0, unsigned long r1,
 void __main(unsigned long r0, unsigned long r1,
             unsigned long r2, unsigned long r3)
 {
+  // Ensure all is masked, irrespective of what our bootloader selected.
+  asm("msr daif, %0" : : "r" (0x3c0));
+
   clear_bss();
 
   boot_args.r[0] = r0;
