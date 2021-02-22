@@ -307,7 +307,7 @@ protected:
 private:
   /**
    * Add a new memory region to the list. The new region must not overlap
-   * any known region. The resulting list is ascending sorted.
+   * any known region. The resulting list is sorted in ascending order.
    */
   void add_nolimitcheck(Region const &r, bool may_overlap = false);
 };
