@@ -19,6 +19,8 @@ SECTIONS
     *(.text .text.* .gnu.linkonce.t.*)
   } : common
 
+  .note.gnu.build-id : { *(.note.gnu.build-id) }
+
   .data :
   {
     *(.rodata* .gnu.linkonce.r.*)

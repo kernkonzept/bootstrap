@@ -42,6 +42,8 @@ SECTIONS
   _etext = .;
   PROVIDE (etext = .);
 
+  .note.gnu.build-id : { *(.note.gnu.build-id) }
+
   /* ensure that data starts at a new L4 page */
   . = ALIGN(4096);
   .data :
