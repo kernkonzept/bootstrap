@@ -7,12 +7,11 @@
  * GNU General Public License 2.
  * Please see the COPYING-GPL-2 file for details.
  */
-#ifndef __ARCH_AMD64_MACROS_H__
-#define __ARCH_AMD64_MACROS_H__
+#pragma once
+
+#include <l4/sys/types.h>
 
 /* We need this typecasts since addresses of the GRUB multiboot info
  * have always a size of 32 Bit. */
 
 #define L4_CONST_CHAR_PTR(x)	(const char*)(l4_addr_t)(x)
-
-#endif  /* ! __ARCH_AMD64_MACROS_H__ */
