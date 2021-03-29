@@ -9,8 +9,6 @@
 #ifndef __ARCH_SPARC_MACROS_H__
 #define __ARCH_SPARC_MACROS_H__
 
-#define L4_CHAR_PTR		(char*)
 #define L4_CONST_CHAR_PTR	(const char*)
-#define L4_VOID_PTR		(void*)
 
 #endif  /* ! __ARCH_SPARC_MACROS_H__ */
