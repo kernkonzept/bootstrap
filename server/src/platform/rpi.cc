@@ -149,6 +149,9 @@ static constexpr const char *type_list[] = {
   "Internal use only",
   "CM3+",
   "4B",
+  "Unknown",
+  "400",
+  "CM4",
 };
 
 static constexpr const char *processor_list[] = {
