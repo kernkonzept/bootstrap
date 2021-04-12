@@ -44,6 +44,11 @@ SUPPORT_CC_arm-rcar4           := platform/rcar4.cc
 SUPPORT_CC_arm-arm_virt        := platform/arm_virt.cc
 SUPPORT_CC_arm-armada37xx      := platform/armada37xx.cc
 SUPPORT_CC_arm-s32             := platform/s32.cc
+SUPPORT_CC_arm-msm8226         := platform/qcom.cc
+SUPPORT_CC_arm-msm8909         := platform/qcom.cc
+SUPPORT_CC_arm-msm8916         := platform/qcom.cc
+SUPPORT_CC_arm-msm8939         := platform/qcom.cc
+SUPPORT_CC_arm-msm8974         := platform/qcom.cc
 
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc
@@ -64,6 +69,9 @@ SUPPORT_CC_arm64-imx8x         := platform/imx.cc
 SUPPORT_CC_arm64-s32           := platform/s32.cc
 SUPPORT_CC_arm64-lx2160        := platform/lx2160.cc
 DEFAULT_RELOC_arm64-lx2160     := 0x02000000 # Because of u-boot regions
+SUPPORT_CC_arm64-msm8916       := platform/qcom.cc
+SUPPORT_CC_arm64-msm8939       := platform/qcom.cc
+SUPPORT_CC_arm64-sm8150        := platform/qcom.cc
 
 # PPC
 SUPPORT_CC_ppc32-mpc5200       := platform/mpc5200.cc
