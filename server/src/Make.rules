@@ -193,7 +193,7 @@ BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         L4DIR=$(L4DIR) \
                         BOOTSTRAP_LINKADDR=$(BOOTSTRAP_LINKADDR) \
                         OPT_PLATFORM_TYPE=$(PLATFORM_TYPE) \
-                        QEMU_BINARY_NAME="$(if $(QEMU_PATH),$(QEMU_PATH),$(QEMU_ARCH_MAP_$(ARCH)))" \
+                        QEMU_BINARY_NAME="$(QEMU_BINARY_NAME)" \
                         QEMU_OPTIONS="$(QEMU_OPTIONS)"
 
 ifneq ($(ENTRY),)
