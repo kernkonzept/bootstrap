@@ -51,7 +51,7 @@ struct Image_info
   char magic[32]      = "<< L4Re Bootstrap Image Info >>";
   l4_uint32_t crc32   = 0;
   /// Version of the data structure
-  l4_uint32_t version = 1;
+  l4_uint32_t version = 2;
   /// Boolean-style info and small numbers
   l4_uint64_t flags   =   (sizeof(long) == 8 ? Image_info_flag_arch_width_64bit
                                               : Image_info_flag_arch_width_32bit)
@@ -410,8 +410,10 @@ void init_modules_infos()
     panic("bootstrap ELF file post-processing did not run");
 
   mod_header = (Mod_header *)(image_info.start_of_binary + image_info.module_header);
+  assert(((unsigned long)mod_header & 7ul) == 0);
 
   module_infos = mod_info_mods(mod_header);
+  assert(((unsigned long)module_infos & 7ul) == 0);
 
   mod_translate_addresses_to_absolute();
   modinfo_gen_payload_size();

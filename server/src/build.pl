@@ -339,7 +339,7 @@ sub postprocess
 
   error("Need a bootstrap ELF file") unless $type == L4::Image::FILE_TYPE_ELF;
 
-  my $magic = L4::Image::BOOTSTRAP_IMAGE_INFO_MAGIC;
+  my $magic = L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC');
   my $count = `grep -c "$magic" $fn`;
   chomp $count;
   error("Multiple or no image info headers found -- must not be") if $count != 1;
@@ -385,7 +385,7 @@ sub postprocess
   my $r = sysread($fd, $buf, 1 << 20); # would we be interrupted?
   error("Could not read from file") unless $r;
 
-  my $pos = index($buf, L4::Image::BOOTSTRAP_IMAGE_INFO_MAGIC);
+  my $pos = index($buf, L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC'));
   error("Did not find image info") if $pos == -1;
 
   if ($v)
@@ -397,12 +397,12 @@ sub postprocess
       print "ELF: bin_addr_end_bin=", $bin_addr_end_bin->as_hex(), "\n";
     }
 
-  $pos += L4::Image::BOOTSTRAP_IMAGE_INFO_MAGIC_LEN; # jump over magic
+  $pos += L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC_LEN'); # jump over magic
 
   my ($_crc32, $_version, $_flags, $start_in_image, $end_in_image,
       undef, undef, $mod_header_in_image, $attrs_in_header)
-    = unpack(L4::Image::TEMPLATE_IMAGE_INFO,
-             substr($buf, $pos, L4::Image::IMAGE_INFO_SIZE));
+    = unpack(L4::Image::dsi('TEMPLATE_IMAGE_INFO'),
+             substr($buf, $pos, L4::Image::dsi('IMAGE_INFO_SIZE')));
 
   if ($v)
     {
@@ -440,16 +440,16 @@ sub postprocess
     }
 
   sysseek($fd, $pos, 0);
-  $r = syswrite($fd, pack(L4::Image::TEMPLATE_IMAGE_INFO,
+  $r = syswrite($fd, pack(L4::Image::dsi('TEMPLATE_IMAGE_INFO'),
                           0, # crc32
                           $_version,
                           $_flags,
                           $_start, $_end, $_module_data_start,
                           $bin_addr_end_bin,
                           $_mod_header, $_attrs),
-                L4::Image::IMAGE_INFO_SIZE);
+                L4::Image::dsi('IMAGE_INFO_SIZE'));
   error("Could not patch binary")
-    if not defined $r or $r != L4::Image::IMAGE_INFO_SIZE;
+    if not defined $r or $r != L4::Image::dsi('IMAGE_INFO_SIZE');
 
   # TODO: update crc32
 

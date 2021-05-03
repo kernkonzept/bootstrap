@@ -36,8 +36,7 @@ enum Mod_header_flags
 struct Mod_info
 {
   char magic[32];
-  unsigned flags;
-
+  unsigned long long flags;
   unsigned long long start;
   unsigned size;
   unsigned size_uncompressed;
@@ -46,7 +45,7 @@ struct Mod_info
   unsigned long long md5sum_compr;
   unsigned long long md5sum_uncompr;
   unsigned long long attrs; // relative to this structure
-} __attribute__((packed));
+} __attribute__((packed)) __attribute__((aligned(8)));
 
 struct Mod_header
 {
@@ -55,7 +54,7 @@ struct Mod_header
   unsigned flags;
   unsigned long long mbi_cmdline;
   unsigned long long mods;
-} __attribute__((packed));
+} __attribute__((packed)) __attribute__((aligned(8)));
 
 static inline char *
 mod_info_hdr_offs_to_charp(struct Mod_header *hdr,
