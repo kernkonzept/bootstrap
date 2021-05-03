@@ -350,7 +350,7 @@ sub postprocess
   do
     {
       $restart_nm = 0;
-      open(my $nm, "LANG=C $prog_nm $fn_nm |") || error("Cannot get symbols from '$fn_nm'");
+      open(my $nm, "LC_ALL=C $prog_nm $fn_nm |") || error("Cannot get symbols from '$fn_nm'");
       while (<$nm>)
         {
           chomp;
