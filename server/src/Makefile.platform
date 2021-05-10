@@ -47,6 +47,7 @@ SUPPORT_CC_arm-s32             := platform/s32.cc
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc
 SUPPORT_CC_arm64-rv_vexpress_a15 := platform/rv_vexpress.cc
+SUPPORT_CC_arm64-arm_fvp_base  := platform/arm_fvp_base.cc
 SUPPORT_CC_arm64-armada37xx    := platform/armada37xx.cc
 SUPPORT_CC_arm64-rcar3         := platform/rcar3.cc
 DEFAULT_RELOC_arm64-rcar3      := 0x09000000
