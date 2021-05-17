@@ -620,6 +620,54 @@ setup_and_check_kernel_config(Platform_base *, l4_kernel_info_t *kip)
 extern "C" void syncICache(unsigned long start, unsigned long size);
 #endif
 
+/*
+ * Replace the placeholder string in the utest_opts feature with the config
+ * string given on the command line.
+ *
+ * If the argument is found on the given command line and the KIP contains the
+ * feature string of the kernel unit test framework, the argument is written
+ * over the feature string's palceholder.
+ *
+ * \param cmdline  Kernel command line to search for argument.
+ * \param info     Kernel info page.
+ */
+static void
+search_and_setup_utest_feature(char const *cmdline, l4_kernel_info_t *info)
+{
+  char const *arg = "-utest_opts=";
+  size_t arg_len = strlen(arg);
+  char const *config = check_arg(cmdline, arg);
+
+  if (!config)
+    return;
+
+  config += arg_len;
+
+  char const *feat_prefix = "utest_opts=";
+  size_t prefix_len = strlen(feat_prefix);
+  char const *s = l4_kip_version_string(info);
+
+  if (!s)
+    return;
+
+  l4util_kip_for_each_feature(s)
+    if (0 == strncmp(s, feat_prefix, prefix_len))
+      {
+        size_t max_len = strlen(s) - prefix_len;
+        size_t opts_len = 0;
+        for (char const *s = config; *s && !isspace(*s); ++s, ++opts_len)
+          ;
+        size_t cpy_len = opts_len < max_len ? opts_len : max_len;
+
+        if (opts_len > max_len)
+          printf("Warning: %s argument too long for feature placeholder. Truncated to fit.\n", arg);
+
+        // We explicitly want to replace the placeholder string in this
+        // feature, thus the const_cast. Don't copy the null terminator.
+        strncpy(const_cast<char *>(s) + prefix_len, config, cpy_len);
+      }
+}
+
 static unsigned long
 load_elf_module(Boot_modules::Module const &mod, char const *n)
 {
@@ -757,6 +805,8 @@ startup(char const *cmdline)
   lko->uart   = kuart;
   lko->flags |= kuart_flags;
 
+  search_and_setup_utest_feature(L4_CONST_CHAR_PTR(mb_mod[0].cmdline),
+                                 (l4_kernel_info_t *)l4i);
 
   /* setup the L4 kernel info page before booting the L4 microkernel:
    * patch ourselves into the booter task addresses */
