@@ -8,6 +8,7 @@
 # - BOOTSTRAP_DO_RAW_IMAGE
 # - BOOTSTRAP_DO_UIMAGE
 # - BOOTSTRAP_DO_ITB
+# - BOOTSTRAP_DO_FLASH_IMAGE
 # - BOOTSTRAP_DO_UEFI if set to y an image which is bootable by UEFI is built
 # - BOOTSTRAP_NO_STRIP if set no stripping of image
 # - BOOTSTRAP_UIMAGE_COMPRESSION: set to none, gzip, or bzip2
@@ -199,10 +200,21 @@ BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         OUTPUT_DIR="$(BOOTSTRAP_OUTPUT_DIR)" \
                         OPT_ARCH=$(ARCH) OPT_COMPRESS=$(COMPRESS) \
                         L4DIR=$(L4DIR) \
-                        BOOTSTRAP_LINKADDR=$(BOOTSTRAP_LINKADDR) \
                         OPT_PLATFORM_TYPE=$(PLATFORM_TYPE) \
                         QEMU_BINARY_NAME="$(QEMU_BINARY_NAME)" \
                         QEMU_OPTIONS="$(QEMU_OPTIONS)"
+
+ifneq ($(BOOTSTRAP_DO_FLASH_IMAGE),)
+  ifeq ($(PLATFORM_FLASH_BASE),)
+    $(error Platform did not provide PLATFORM_FLASH_BASE - flash image not supported)
+  endif
+  DEFINES               += -DFLASH_BASE=$(PLATFORM_FLASH_BASE)
+  LDFLAGS               += --defsym=image_info=$(PLATFORM_FLASH_BASE)+$(MOD_ADDR)
+  BUILD_MOD_CMD_ENVVARS += BOOTSTRAP_FLASHADDR=$(PLATFORM_FLASH_BASE)
+  BUILD_MOD_CMD_ENVVARS += BOOTSTRAP_FLASHSIZE=$(PLATFORM_FLASH_SIZE)
+else
+  BUILD_MOD_CMD_ENVVARS += BOOTSTRAP_LINKADDR=$(BOOTSTRAP_LINKADDR)
+endif
 
 ifneq ($(ENTRY),)
  ifeq ($(filter clean cleanall,$(MAKECMDGOALS)),)
@@ -216,7 +228,8 @@ endif
 
 # we need to re-do if some things change
 .redo-change-tracker: FORCE
-	$(VERBOSE)echo "$(ENTRY) '$(COMPRESS)' '$(BOOTSTRAP_CMDLINE)' '$(BOOTSTRAP_SEARCH_PATH):$(BOOTSTRAP_MODULE_PATH_BINLIB)' '$(RAM_SIZE_MB)' '$(PLATFORM_TYPE)' '$(PLATFORM_UART_NR)' '$(od)' '$(OPT_STRIP)' '$(call default_reloc,$(ARCH))'" > $@.tmp
+	$(VERBOSE)echo "$(ENTRY) '$(COMPRESS)' '$(BOOTSTRAP_CMDLINE)' '$(BOOTSTRAP_SEARCH_PATH):$(BOOTSTRAP_MODULE_PATH_BINLIB)' '$(RAM_SIZE_MB)' '$(PLATFORM_TYPE)' '$(PLATFORM_UART_NR)' '$(od)' '$(OPT_STRIP)' '$(call default_reloc,$(ARCH))' '$(PLATFORM_FLASH_BASE)' '$(PLATFORM_FLASH_SIZE)'" > $@.tmp
+	$(VERBOSE)echo "'$(BUILD_MOD_CMD_ENVVARS)'" >> $@.tmp
 	$(if $(BUILD_MOD_CMD),$(VERBOSE)$(call BUILD_MOD_CMD,dump) >> $@.tmp)
 	$(VERBOSE)$(call move_if_changed,$@,$@.tmp)
 
@@ -231,6 +244,7 @@ BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
 endif
 
 INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(ENTRY_FN).efi $(EFI_IMAGE)
+INSTALL_FILES-$(BOOTSTRAP_DO_FLASH_IMAGE) += bootstrap_$(ENTRY_FN).cfi bootstrap.cfi
 
 $(od)bootstrap_$(ENTRY_FN): $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
@@ -280,7 +294,7 @@ INSTALL_FILES += $(INSTALL_FILES-y)
 
 all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 	$(VERBOSE)echo "  Image size(s) in bytes:"
-	$(VERBOSE)for f in $(filter bootstrap_$(ENTRY_FN).elf bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
+	$(VERBOSE)for f in $(filter bootstrap_$(ENTRY_FN).elf bootstrap_$(ENTRY_FN).cfi bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
 	  find $(if $(od),$(od),.) -name $$f -printf " %30f:  %s\n"; \
 	done
 	$(if $(LDFLAGS_$(od)bootstrap.elf),$(VERBOSE)echo "  Start address: $(BOOTSTRAP_LINKADDR)")
@@ -323,7 +337,7 @@ entry_files    := $(shell $(call BUILD_MOD_CMD,$(build_list_cmd)))
 # Avoid that pattern rules match on module files
 $(filter-out processing-of-module-list-failed,$(entry_files)): ;
 
-mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) $(entry_files)
+mod.make.inc $(od)mbi_modules.o $(od)bootstrap.cfi: $(GENERAL_D_LOC) $(entry_files)
 	@echo Building entry \""$(ENTRY)"\".
 	$(VERBOSE)$(call BUILD_MOD_CMD,build)
 
@@ -334,8 +348,13 @@ mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) $(entry_files)
  endif
 
  CPPFLAGS                     += -DIMAGE_MODE
+
+  ifeq ($(BOOTSTRAP_DO_FLASH_IMAGE),)
+  BID_POST_PROG_LINK_MSG_$(TARGET) = echo -e "  [$(PKGNAME_DIRNAME)] ==> Image post-processing $@"
+  BID_POST_PROG_LINK_$(TARGET)     = $(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl postprocess $@ $(ARCH)
+  endif
 else
-mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) \
+mod.make.inc $(od)mbi_modules.o $(od)bootstrap.cfi: $(GENERAL_D_LOC) \
                                  $(BOOTSTRAP_BUILD_OUTPUT_FORMATTER)
 	$(VERBOSE)$(BUILD_MOD_CMD_ENVVARS) $(SRC_DIR)/build.pl build
 
@@ -372,9 +391,6 @@ MKIMAGE_ARCH-ppc32   = ppc
 MKIMAGE_ARCH-mips    = $(if $(filter "64",$(CONFIG_CPU_ABI)),mips64,mips)
 
 MKIMAGE_ARCH = $(MKIMAGE_ARCH-$(ARCH))
-
-BID_POST_PROG_LINK_MSG_$(TARGET) = echo -e "  [$(PKGNAME_DIRNAME)] ==> Image post-processing $@"
-BID_POST_PROG_LINK_$(TARGET)     = $(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl postprocess $@ $(ARCH)
 
 # u-boot images, based on raw-version
 $(BOOTSTRAP_UIMAGE): $(BOOTSTRAP_RAW).$(BOOTSTRAP_UIMAGE_COMPRESSION)
@@ -419,7 +435,7 @@ CPPFLAGS_startup.cc += -DBUILD_DATE="\"$(shell LC_ALL=C date)\"" -DBUILD_NR=\"$(
 
 clean::
 	$(VERBOSE)$(RM) mod.make.inc mod*.bin mbi_modules.bin $(LDSCRIPT)
-	$(VERBOSE)$(RM) mod*.bin
+	$(VERBOSE)$(RM) mod*.bin bootstrap*.cfi
 	$(VERBOSE)$(RM) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32) $(SRC32_S:.S=.o32)
 	$(VERBOSE)$(RM) .redo-change-tracker
 

@@ -104,6 +104,7 @@ public:
   virtual void move_module(unsigned index, void *dest) = 0;
   virtual int base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
   void move_modules(unsigned long modaddr);
+  void scan_modules();
   Region mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                     Region::Type type = Region::Boot);
   void merge_mod_regions();

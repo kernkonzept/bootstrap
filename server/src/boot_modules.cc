@@ -52,7 +52,6 @@ enum
 
 
 /* This structure is further filled by image post-processing */
-/* TODO: Ensure this never goes to BSS */
 struct Image_info
 {
   char magic[32]      = "<< L4Re Bootstrap Image Info >>";
@@ -76,7 +75,14 @@ struct Image_info
   l4_uint64_t module_header     = 0;
   /// Offset to global attr-store, relative to _start
   l4_uint64_t attrs             = 0;
-} __attribute__((packed)) image_info;
+} __attribute__((packed));
+
+#ifdef FLASH_BASE
+extern Image_info image_info;
+#else
+/* TODO: Ensure this never goes to BSS */
+Image_info image_info;
+#endif
 
 // Get 'c' if it is printable, '.' else.
 static char
@@ -322,6 +328,36 @@ Boot_modules::move_modules(unsigned long modaddr)
   merge_mod_regions();
 }
 
+/**
+ * Pick up modules from read-only flash memory.
+ */
+void
+Boot_modules::scan_modules()
+{
+  unsigned count = num_modules();
+
+  // Remove regions for module contents from region list.
+  // The memory for the boot modules is marked as reserved up to now,
+  // ...
+  for (Region *i = mem_manager->regions->begin();
+      i < mem_manager->regions->end();)
+    if (i->name() == ::Mod_reg)
+      i = mem_manager->regions->remove(i);
+    else
+      ++i;
+
+  // Add modules as read-only regions
+  for (unsigned i = 0; i < count; ++i)
+    {
+      Module mod = module(i);
+      mem_manager->regions->add(Region::n(mod.start, mod.end,
+                                          ::Mod_reg, Region::Root, L4_FPAGE_RX),
+                                i < 3);
+    }
+
+  mem_manager->regions->optimize();
+}
+
 
 Mod_header *mod_header;
 
@@ -359,7 +395,7 @@ static inline unsigned long long modinfo_payload_size()
 
 void init_modules_infos()
 {
-#if defined(__PIC__) || defined(__PIE__)
+#if !defined(FLASH_BASE) && (defined(__PIC__) || defined(__PIE__))
   // Fixup header addresses when being compiled position independent
   extern int _start;      /* begin of image -- defined in crt0.S */
   l4_uint64_t off = (l4_uint64_t)&_start - image_info.start_of_binary;
@@ -814,8 +850,8 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
   mod_count += internal_mods.cnt;
 
-  unsigned long mbi_size = sizeof(l4util_mb_info_t);
-  mbi_size += sizeof(l4util_mb_mod_t) * mod_count;
+  unsigned long mbi_size = sizeof(l4util_l4mod_info);
+  mbi_size += sizeof(l4util_l4mod_mod) * mod_count;
 
   assert(mod_count >= 1);
 
@@ -847,7 +883,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
     {
       if (mod.size() == 0)
         panic("Module %zd '%s' empty, modules must not have zero size.",
-              &mod - mod_header()->mods().begin(), mod.name());
+              &mod - mod_header->mods().begin(), mod.name());
       if (!is_base_module(&mod))
         {
           total_size += l4_round_page(mod.size_uncompressed());
@@ -858,16 +894,20 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
     }
 
 #ifdef COMPRESS
-  if (mod_header->num_mods > Num_base_modules)
-    decompress_mods(mod_header->num_mods, total_size, mod_addr);
+  if (mod_header->num_mods() > Num_base_modules)
+    decompress_mods(mod_header->num_mods(), total_size, mod_addr);
   merge_mod_regions();
-#else // COMPRESS
+#elif defined(FLASH_BASE)
+  // Modules are RO in flash
+  (void)mod_addr;
+  scan_modules();
+#else
   move_modules(mod_addr);
-#endif // ! COMPRESS
+#endif
 
   unsigned cnt = 0;
   for (unsigned run = 0; run < 2; ++run)
-    for (unsigned i = 0; i < mod_header->num_mods; ++i)
+    for (unsigned i = 0; i < mod_header->num_mods(); ++i)
       {
         Mod_info *mod = mod_header->mods()[i];
 

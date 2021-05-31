@@ -966,22 +966,25 @@ l4_exec_read_exec(Elf_handle *handle,
   if (Verbose_load)
     printf("    [%p-%p]\n", (void *) mem_addr, (void *) (mem_addr + mem_size));
 
-  if (!ram.contains(Region::n(mem_addr, mem_addr + mem_size)))
+  if ((char const *)mem_addr != (char const *)m.start + file_ofs)
     {
-      printf("To be loaded binary region is out of memory region.\n");
-      printf(" Binary region: %lx - %lx\n", mem_addr, mem_addr + mem_size);
-      dump_ram_map();
-      panic("Binary outside memory");
-    }
+      if (!ram.contains(Region::n(mem_addr, mem_addr + mem_size)))
+        {
+          printf("To be loaded binary region is out of memory region.\n");
+          printf(" Binary region: %lx - %lx\n", mem_addr, mem_addr + mem_size);
+          dump_ram_map();
+          panic("Binary outside memory");
+        }
 
-  auto *src = (char const *)m.start + file_ofs;
-  auto *dst = (char *)mem_addr;
-  if ((unsigned long)src % 8 || (unsigned long)dst % 8)
-    memcpy(dst, src, file_size);
-  else
-    memcpy_aligned(dst, src, file_size);
-  if (file_size < mem_size)
-    memset(dst + file_size, 0, mem_size - file_size);
+      auto *src = (char const *)m.start + file_ofs;
+      auto *dst = (char *)mem_addr;
+      if ((unsigned long)src % 8 || (unsigned long)dst % 8)
+        memcpy(dst, src, file_size);
+      else
+        memcpy_aligned(dst, src, file_size);
+      if (file_size < mem_size)
+        memset(dst + file_size, 0, mem_size - file_size);
+    }
 
   Region *f = regions.find(mem_addr);
   if (!f)

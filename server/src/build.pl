@@ -97,10 +97,15 @@ my %output_formatter = (
   end    => \&default_output_end,
 );
 
+sub cmp_mod_addr($$)
+{
+  return $_[0]->{file_offset} <=> $_[1]->{file_offset};
+}
+
 # build object files from the modules
 sub build_obj
 {
-  my ($file, $cmdline, $modname, $flags, $opts) = @_;
+  my ($file, $cmdline, $modname, $flags, $opts, $flashaddr) = @_;
   my %d;
   my %imgmod;
 
@@ -172,6 +177,18 @@ sub build_obj
   $imgmod{md5sum_compr}      = $md5_compr;
   $imgmod{md5sum_uncompr}    = $md5_uncompr;
 
+  if (exists $opts->{xip})
+    {
+      if (defined $flashaddr)
+        {
+          $imgmod{xip} = $flashaddr;
+        }
+      else
+        {
+          print STDERR "Warning: $modname: no flash base configured - ignoring 'xip' option\n";
+        }
+    }
+
   return %imgmod;
 }
 
@@ -180,7 +197,13 @@ sub build_objects(@)
   my %entry = @_;
   my @mods;
   @mods = @{$entry{mods}} if exists $entry{mods};
-  my $obj_fn = "$output_dir/mbi_modules.o";
+  my $obj_fn = "$output_dir/mbi_modules.o"
+    if not $ENV{BOOTSTRAP_FLASHADDR};
+  my $modaddr = hex($entry{modaddr});
+  my $flashaddr = hex($ENV{BOOTSTRAP_FLASHADDR}) + $modaddr
+    if $ENV{BOOTSTRAP_FLASHADDR};
+  my $flashsize = hex($ENV{BOOTSTRAP_FLASHSIZE})
+    if $ENV{BOOTSTRAP_FLASHSIZE};
   
   unlink($make_inc_file);
 
@@ -213,13 +236,14 @@ sub build_objects(@)
     $img{mods}[$i] =
       { build_obj($mods[$i]->{file}, $mods[$i]->{cmdline},
                   $mods[$i]->{modname}, $flags,
-                  $mods[$i]->{opts}) };
+                  $mods[$i]->{opts}, $flashaddr) };
   }
 
   &{$output_formatter{end}}();
 
-  my $make_inc_str = "MODULE_OBJECT_FILES += $obj_fn\n".
-                     "LDFLAGS             += -u _binary_modules_start\n";
+  my $make_inc_str = "LDFLAGS             += -u _binary_modules_start\n";
+  $make_inc_str   .= "MODULE_OBJECT_FILES += $obj_fn\n"
+    if defined $obj_fn;
   $make_inc_str   .= "MOD_ADDR            := $entry{modaddr}"
     if defined $entry{modaddr};
 
@@ -239,7 +263,12 @@ sub build_objects(@)
   $img{attrs}{"l4i:license"} = $ENV{L4IMAGE_LICENSE}
     if $ENV{L4IMAGE_LICENSE};
 
-  $img{attrs}{"l4i:loadaddr"} = $ENV{BOOTSTRAP_LINKADDR};
+  $img{attrs}{"l4i:loadaddr"} = $ENV{BOOTSTRAP_LINKADDR}
+    if $ENV{BOOTSTRAP_LINKADDR};
+  $img{attrs}{"l4i:flashaddr"} = $ENV{BOOTSTRAP_FLASHADDR}
+    if $ENV{BOOTSTRAP_FLASHADDR};
+  $img{attrs}{"l4i:flashsize"} = $ENV{BOOTSTRAP_FLASHSIZE}
+    if $ENV{BOOTSTRAP_FLASHSIZE};
 
   my $volatile_data = 1;
 
@@ -249,39 +278,97 @@ sub build_objects(@)
       $img{attrs}{$_} = $a{$_} foreach keys %a;
     }
 
-  open(my $fd, ">mods.bin") || die "Cannot open 'mods.bin': $!";
-  binmode $fd;
-  my %offsets = L4::Image::export_modules($fd, %img);
-  close $fd;
-
-  open($fd, ">mods.offsets") || die "Cannot open 'mods.offsets': $!";
-  print $fd "{\n";
-  print $fd "  attrs => $offsets{attrs},\n" if defined $offsets{attrs};
-  print $fd "  mod_header => $offsets{mod_header},\n" if defined $offsets{mod_header};
-  print $fd "};\n";
-  close $fd;
-
-  my $section_attr = ($arch ne 'sparc' && $arch ne 'arm'
-       ? #'"a", @progbits' # Not Xen
-         '\"awx\", @progbits' # Xen
-       : '#alloc' );
-
   my $alignment = 12;
   $alignment = 16 if $arch eq 'mips';
 
-  write_to_file("mods.c",qq|
-    asm (".section .module_data, $section_attr           \\n"
-         ".p2align $alignment                            \\n"
-         ".global _binary_modules_start                  \\n"
-         "_binary_modules_start:                         \\n"
-         ".incbin \\"mods.bin\\"                         \\n"
-         "_binary_modules_end:                           \\n");
-  |);
+  open(my $fd, ">mods.bin") || die "Cannot open 'mods.bin': $!";
+  binmode $fd;
+  if (not defined $obj_fn)
+    {
+      # Make room for image_info. Must be page aligned because module area must
+      # start at page alignment. TODO: lift this restriction in export_modules.
+      sysseek($fd,
+              1 << $alignment,
+              0);
+    }
+  my %offsets = L4::Image::export_modules($fd, %img);
+  close $fd;
 
-  system("$prog_cc $flags_cc -Wall -W -c -o $obj_fn mods.c");
-  die "Compiling mods.obj failed" if $?;
-  unlink("mods.c");
-  unlink("mods.bin");
+  if (defined $obj_fn)
+    {
+      open($fd, ">mods.offsets") || die "Cannot open 'mods.offsets': $!";
+      print $fd "{\n";
+      print $fd "  attrs => $offsets{attrs},\n" if defined $offsets{attrs};
+      print $fd "  mod_header => $offsets{mod_header},\n" if defined $offsets{mod_header};
+      print $fd "};\n";
+      close $fd;
+
+      my $section_attr = ($arch ne 'sparc' && $arch ne 'arm'
+           ? #'"a", @progbits' # Not Xen
+             '\"awx\", @progbits' # Xen
+           : '#alloc' );
+
+      write_to_file("mods.c",qq|
+        asm (".section .module_data, $section_attr           \\n"
+             ".p2align $alignment                            \\n"
+             ".global _binary_modules_start                  \\n"
+             "_binary_modules_start:                         \\n"
+             ".incbin \\"mods.bin\\"                         \\n"
+             "_binary_modules_end:                           \\n");
+      |);
+
+      system("$prog_cc $flags_cc -Wall -W -c -o $obj_fn mods.c");
+      die "Compiling mods.obj failed" if $?;
+      unlink("mods.c");
+      unlink("mods.bin");
+    }
+  else
+    {
+      open($fd, "+<mods.bin") || die "Cannot update mods.bin: $!";
+      binmode($fd);
+      sysseek($fd, 0, 0);
+      my $r = syswrite($fd, L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC') . "\0",
+                       L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC_LEN'));
+      error("Could not patch binary")
+        if not defined $r or $r != L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC_LEN');
+
+      my $hdr_size = 1 << $alignment;
+      $r = syswrite($fd, pack(L4::Image::dsi('TEMPLATE_IMAGE_INFO'),
+                              0, # crc32
+                              L4::Image::dsi('STRUCTURE_VERSION'), # version
+                              0, # TODO: flags
+                              $flashaddr, # start_of_binary
+                              $flashaddr, # end_of_binary
+                              $flashaddr + $hdr_size, # module_data_start
+                              0, # bin_addr_end_bin
+                              $hdr_size + $offsets{mod_header}, # module_header
+                              $hdr_size + $offsets{attrs}),
+                    L4::Image::dsi('IMAGE_INFO_SIZE'));
+      error("Could not patch binary")
+        if not defined $r or $r != L4::Image::dsi('IMAGE_INFO_SIZE');
+
+      close $fd;
+      rename("mods.bin", "bootstrap.cfi");
+
+      print STDERR "Flash layout:\n";
+      printf STDERR "  [%08x:%08x] Header\n", $modaddr, $modaddr+$hdr_size;
+      my $last = $modaddr+$hdr_size;
+      my $used = $hdr_size;
+      foreach my $m (sort cmp_mod_addr @{$img{mods}})
+        {
+          my $start = $m->{file_offset}+$modaddr;
+          my $end = $m->{file_offset}+$m->{file_size}+$modaddr;
+          if ($start-$last > 1 << $alignment)
+            { printf STDERR "                      (%d KiB free)\n", ($start-$last) / 1024; }
+          printf STDERR "  [%08x:%08x] %s (%d KiB%s)\n", $start, $end,
+                 $m->{cmdline}, round_kb($m->{file_size}),
+                 (defined $m->{xip} ? ", XIP" : "");
+          $last = $end;
+          $used += $m->{file_size};
+        }
+      print STDERR "Flash utilization: ", $used * 100 / $flashsize, "%\n";
+    }
+
   unlink($_->{modname}.".obj") foreach @mods;
   unlink($_->{modname}.".ugz") foreach @mods;
 }
@@ -339,7 +426,7 @@ sub postprocess
   my $magic = L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC');
   my $count = `grep -c "$magic" $fn`;
   chomp $count;
-  error("Multiple or no image info headers found -- must not be") if $count != 1;
+  error("Expected one image info headers but found $count.") if $count != 1;
 
   my $fn_nm = $fn;
   my ($_start, $_end, $_module_data_start, $bin_addr_end_bin);
