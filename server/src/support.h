@@ -41,7 +41,6 @@ void ctor_init();
 enum { Verbose_load = 0 };
 
 extern Mod_header *mod_header;
-extern Mod_info *module_infos;
 void init_modules_infos();
 
 template<typename T>

@@ -327,7 +327,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 
   _x86_pc_platform.disable_pci_bus_master();
 
-  startup(mod_info_mbi_cmdline(mod_header));
+  startup(mod_header->mbi_cmdline());
 
   return EFI_SUCCESS;
 }

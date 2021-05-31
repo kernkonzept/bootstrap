@@ -224,7 +224,7 @@ sub build_objects(@)
   for (my $i = 0; $i < @mods; $i++) {
     $img{mods}[$i] =
       { build_obj($mods[$i]->{file}, $mods[$i]->{cmdline},
-                  $mods[$i]->{modname}, $mods[$i]->{type} | 1 << 4,
+                  $mods[$i]->{modname}, $mods[$i]->{type},
                   $mods[$i]->{opts}) };
   }
 

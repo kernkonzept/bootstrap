@@ -91,7 +91,7 @@ public:
   void merge_mod_regions();
   static bool is_base_module(const Mod_info *mod)
   {
-    unsigned v = mod->flags & Mod_info_flag_mod_mask;
+    unsigned v = mod->flags() & Mod_info_flag_mod_mask;
     return v > 0 && v <= Num_base_modules;
   };
 

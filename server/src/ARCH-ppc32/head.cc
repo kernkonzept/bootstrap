@@ -15,6 +15,6 @@ void __main(unsigned long, unsigned long, unsigned long p3)
 
   printf("PPC platform initialized\n");
   init_modules_infos();
-  startup(mod_info_mbi_cmdline(mod_header));
+  startup(mod_header->mbi_cmdline());
   l4_infinite_loop();
 }
