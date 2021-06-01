@@ -21,71 +21,123 @@ enum Mod_info_flags
   Mod_info_flag_mod_sigma0    = 2,
   Mod_info_flag_mod_roottask  = 3,
   Mod_info_flag_mod_mask      = 7 << 0,
-
-  Mod_info_flag_direct_addressing   = 1 << 4,
-  Mod_info_flag_relative_addressing = 0 << 4, //< Relative to Mod_info structure
 };
 
 enum Mod_header_flags
 {
-  Mod_header_flag_direct_addressing   = 1 << 4, //< at the end of this conversion we're not using it anymore -- so remove it
-  Mod_header_flag_relative_addressing = 0 << 4,
 };
 
 /// Info for each module
-struct Mod_info
+class Mod_info
 {
-  char magic[32];
-  unsigned long long flags;
-  unsigned long long start;
-  unsigned size;
-  unsigned size_uncompressed;
-  unsigned long long name;
-  unsigned long long cmdline;
-  unsigned long long md5sum_compr;
-  unsigned long long md5sum_uncompr;
-  unsigned long long attrs; // relative to this structure
+  char _magic[32];
+  unsigned long long _flags;
+
+  unsigned long long _start;
+  unsigned _size;
+  unsigned _size_uncompressed;
+  unsigned long long _name;
+  unsigned long long _cmdline;
+  unsigned long long _md5sum_compr;
+  unsigned long long _md5sum_uncompr;
+  unsigned long long _attrs; // always relative to this structure
+
+  inline char const *
+  abs(unsigned long long v) const
+  {
+    return (char const *)((unsigned long)this + v);
+  }
+
+  inline unsigned long long rel(char const *v)
+  {
+    return (unsigned long long)v - (unsigned long long)this;
+  }
+
+  //static char const *to_phys(char const *addr);
+  //static char const *to_virt(char const *addr);
+
+public:
+  inline unsigned long long flags() const
+  { return _flags; }
+
+  inline unsigned size() const
+  { return _size; }
+
+  inline void size(unsigned size)
+  { _size = size; }
+
+  inline unsigned size_uncompressed() const
+  { return _size_uncompressed; }
+
+  inline char const *cmdline() const
+  { return abs(_cmdline); }
+
+  inline char const *name() const
+  { return abs(_name); }
+
+  inline char const *start() const
+  { return abs(_start); }
+
+  inline void start(char const *addr)
+  { _start = rel(addr); }
+
+  inline char const *md5sum_compr() const
+  { return abs(_md5sum_compr); }
+
+  inline char const *md5sum_uncompr() const
+  { return abs(_md5sum_uncompr); }
+
+  inline bool compressed() const
+  { return _size != _size_uncompressed; }
+
 } __attribute__((packed)) __attribute__((aligned(8)));
 
-struct Mod_header
+class Mod_info_list
 {
-  char magic[32];
-  unsigned num_mods;
-  unsigned flags;
-  unsigned long long mbi_cmdline;
-  unsigned long long mods;
+  Mod_info *_mods;
+  unsigned _num_mods;
+
+public:
+  Mod_info_list(Mod_info *mods, unsigned num_mods)
+  : _mods(mods), _num_mods(num_mods)
+  {}
+
+  Mod_info const *begin() const { return _mods; }
+  Mod_info *begin() { return _mods; }
+
+  Mod_info const *end() const { return _mods + _num_mods; }
+  Mod_info *end() { return _mods + _num_mods; }
+
+  Mod_info const *operator[](unsigned i) const { return _mods + i; }
+  Mod_info *operator[](unsigned i) { return _mods + i; }
+};
+
+class Mod_header
+{
+  char _magic[32];
+  unsigned _num_mods;
+  unsigned _flags;
+  unsigned long long _mbi_cmdline;
+  unsigned long long _mods;
+
+  inline char const *
+  hdr_offs_to_charp(unsigned long long offset) const
+  {
+    return (char const *)((char const *)this + offset);
+  }
+
+public:
+  inline unsigned num_mods() const
+  { return _num_mods; }
+
+  inline Mod_info_list mods() const
+  {
+    return Mod_info_list((Mod_info *)hdr_offs_to_charp(_mods), _num_mods);
+  }
+
+  inline char const *
+  mbi_cmdline()
+  {
+    return hdr_offs_to_charp(_mbi_cmdline);
+  }
 } __attribute__((packed)) __attribute__((aligned(8)));
-
-static inline char *
-mod_info_hdr_offs_to_charp(struct Mod_header *hdr,
-                           unsigned long long offset)
-{
-  return (char *)((char *)hdr + offset);
-}
-
-/* Header */
-
-static inline char *
-mod_info_mbi_cmdline(struct Mod_header *hdr)
-{
-  if (hdr->flags & Mod_header_flag_direct_addressing)
-    return (char *)(unsigned long)hdr->mbi_cmdline;
-  return mod_info_hdr_offs_to_charp(hdr, hdr->mbi_cmdline);
-}
-
-static inline struct Mod_info *
-mod_info_mods(struct Mod_header *hdr)
-{
-  if (hdr->flags & Mod_header_flag_direct_addressing)
-    return (struct Mod_info *)(unsigned long)hdr->mods;
-  return (struct Mod_info *)mod_info_hdr_offs_to_charp(hdr, hdr->mods);
-}
-
-/* Modules */
-static inline unsigned long long
-mod_info_mod_ull(struct Mod_info *mi, unsigned long long v)
-{
-  if (mi->flags & Mod_info_flag_direct_addressing)
-    return v;
-  return (unsigned long long)(unsigned long)mi + v;
-}

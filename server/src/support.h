@@ -40,7 +40,6 @@ void ctor_init();
 enum { Verbose_load = 0 };
 
 extern Mod_header *mod_header;
-extern Mod_info *module_infos;
 void init_modules_infos();
 
 template<typename T>
@@ -110,7 +109,7 @@ public:
   void merge_mod_regions();
   static bool is_base_module(const Mod_info *mod)
   {
-    unsigned v = mod->flags & Mod_info_flag_mod_mask;
+    unsigned v = mod->flags() & Mod_info_flag_mod_mask;
     return v > 0 && v <= Num_base_modules;
   };
 

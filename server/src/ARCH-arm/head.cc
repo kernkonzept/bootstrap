@@ -32,7 +32,7 @@ void __main(unsigned long r0, unsigned long r1,
   Platform_base::iterate_platforms();
 
   init_modules_infos();
-  startup(mod_info_mbi_cmdline(mod_header));
+  startup(mod_header->mbi_cmdline());
   while(1)
     ;
 }
