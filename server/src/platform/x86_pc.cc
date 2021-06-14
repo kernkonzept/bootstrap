@@ -281,8 +281,8 @@ public:
 
     // copy over from MBI to l4mods
     l4mi = (l4util_l4mod_info *)_mb;
+    memset(l4mi, 0, total_size);
 
-    l4mi->flags      = 0;
     l4mi->mods_count = mbi->mods_count;
 
     l4util_l4mod_mod *l4m_mods = (l4util_l4mod_mod *)(l4mi + 1);
