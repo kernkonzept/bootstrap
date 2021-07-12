@@ -56,7 +56,7 @@ sub write_to_file
 {
   my $file = shift;
 
-  open(A, ">$file") || die "Cannot open $file!";
+  open(A, ">$file") || die "Cannot open '$file': $!";
   while ($_ = shift) {
     print A;
   }
@@ -461,6 +461,12 @@ sub postprocess
 # ------------------------------------------------------------------------
 
 my $cmd = $ARGV[0];
+
+if (not defined $cmd)
+  {
+    print STDERR "Error: No command given!\n";
+    exit 1;
+  }
 
 if ($cmd eq 'postprocess')
   {
