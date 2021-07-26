@@ -806,12 +806,14 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
   for (Mod_info *mod = module_infos; mod != mod_end_iter(); ++mod)
     mbi_size += round_wordsize(strlen(mod_cmdline(mod)) + 1);
 
-  l4util_l4mod_info *mbi = (l4util_l4mod_info *)mem_manager->find_free_ram(mbi_size);
+  // Round up to ensure mbi is on its own page
+  unsigned long mbi_size_full = l4_round_page(mbi_size);
+  auto *mbi = (l4util_l4mod_info *)mem_manager->find_free_ram(mbi_size_full);
   if (!mbi)
-    panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size);
+    panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size_full);
 
   Region_list *regions = mem_manager->regions;
-  regions->add(Region::start_size((l4_addr_t)mbi, mbi_size, ".mbi_rt",
+  regions->add(Region::start_size((l4_addr_t)mbi, mbi_size_full, ".mbi_rt",
                                   Region::Root, L4_FPAGE_RWX));
   memset(mbi, 0, mbi_size);
 
