@@ -325,6 +325,7 @@ class Platform_arm_imx
         r.modify<unsigned short>(0, 0xff00, 1 << 2);
       }
 
+    reboot_psci();
     while (1)
       ;
   }
