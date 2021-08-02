@@ -46,6 +46,7 @@ SECTIONS
     *(.rodata*)
   } : data
 
+  .note.gnu.build-id : { *(.note.gnu.build-id) } : data
   .dynsym   : { *(.dynsym) } : data
   .dynstr   : { *(.dynstr) } : data
   .reloc    : { *(.reloc) } : data
