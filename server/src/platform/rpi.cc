@@ -376,15 +376,16 @@ class Platform_arm_rpi : public Platform_base,
                                  ".ram", Region::Ram));
 
     // Only available in DT otherwise
+    unsigned long second_start = (br.revision() == 4) ? 0x4c000000 : 0x40200000;
     if (br.memory_size_mb() == 8192)
       {
-        mem_manager->ram->add(Region(0x040000000, 0x0fbffffff, ".ram", Region::Ram));
+        mem_manager->ram->add(Region(second_start, 0x0fbffffff, ".ram", Region::Ram));
         mem_manager->ram->add(Region(0x100000000, 0x1ffffffff, ".ram", Region::Ram));
       }
     if (br.memory_size_mb() == 4096)
-      mem_manager->ram->add(Region(0x40000000, 0xfbffffff, ".ram", Region::Ram));
+      mem_manager->ram->add(Region(second_start, 0xfbffffff, ".ram", Region::Ram));
     if (br.memory_size_mb() == 2048)
-      mem_manager->ram->add(Region(0x40000000, 0x7fffffff, ".ram", Region::Ram));
+      mem_manager->ram->add(Region(second_start, 0x7fffffff, ".ram", Region::Ram));
 
     mem_manager->regions->add(Region::n(0x0, 0x1000, ".mpspin",
                                         Region::Arch, 0));
