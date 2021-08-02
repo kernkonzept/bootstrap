@@ -10,7 +10,7 @@ PHDRS
 
 SECTIONS
 {
-  . = 0x01000000;
+  . = 0x10000000; /* Place away such that a big (64-bit) bootstrap-image fits before */
   _image_start = .;
   .text :
   {
