@@ -218,8 +218,9 @@ public:
          * with start == end == 0 for empty files loaded as modules.
          */
         if (mb_mod[i].mod_start >= mb_mod[i].mod_end)
-          panic("Found a module with unplausible size (%s). Abort.\n",
-                (char const*)(l4_addr_t)mb_mod[i].cmdline);
+          panic("Found a module with unplausible size %d (%s). Aborting.\n",
+                mb_mod[i].mod_end - mb_mod[i].mod_start,
+                (char const *)(l4_addr_t)mb_mod[i].cmdline);
         regions->add(mod_region(i, mb_mod[i].mod_start,
                                 mb_mod[i].mod_end - mb_mod[i].mod_start));
       }

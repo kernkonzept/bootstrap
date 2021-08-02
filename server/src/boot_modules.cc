@@ -825,13 +825,18 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
   unsigned long total_size = 0;
   for (Mod_info *mod = module_infos; mod < mod_end_iter(); ++mod)
-    if (!is_base_module(mod))
-      {
-        total_size += l4_round_page(mod->size_uncompressed);
-        if (mod_compressed(mod))
-          check_md5(mod_name(mod), mod_start(mod),
-                    mod->size, mod_md5compr(mod));
-      }
+    {
+      if (mod->size == 0)
+        panic("Module %zd '%s' empty, modules must not have zero size.",
+              mod - module_infos, (char *)mod->name);
+      if (!is_base_module(mod))
+        {
+          total_size += l4_round_page(mod->size_uncompressed);
+          if (mod_compressed(mod))
+            check_md5(mod_name(mod), mod_start(mod),
+                      mod->size, mod_md5compr(mod));
+        }
+    }
 
 #ifdef COMPRESS
   if (mod_count > Num_base_modules)
