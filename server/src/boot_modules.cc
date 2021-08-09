@@ -41,6 +41,8 @@ enum
   Image_info_flag_arch_current = Image_info_flag_arch_sparc,
 #elif defined(ARCH_ppc32)
   Image_info_flag_arch_current = Image_info_flag_arch_powerpc,
+#elif defined(ARCH_riscv)
+  Image_info_flag_arch_current = Image_info_flag_arch_riscv,
 #else
 #error Add your architecture
 #endif

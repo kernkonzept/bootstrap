@@ -1,0 +1,118 @@
+#include "ldscript.inc"
+
+#if __riscv_xlen == 32
+OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
+        "elf32-littleriscv")
+#else
+OUTPUT_FORMAT("elf64-littleriscv", "elf64-littleriscv",
+        "elf64-littleriscv")
+#endif
+
+OUTPUT_ARCH(riscv)
+ENTRY(_start)
+
+PHDRS {
+  common PT_LOAD;
+  mods PT_LOAD;
+}
+
+SECTIONS
+{
+  /* Read-only sections, merged into text segment. The start address of
+   * the text segment is : */
+  . = LINKADDR;
+  .text :
+  {
+    _stext = .;
+    *(.text.init)
+    *(.init)
+    *(.text .text.* .gnu.linkonce.t.*)
+    *(.glue_7t) *(.glue_7)
+    KEEP (*(.fini))
+    LONG(0xc3)  /* terminate .fini */
+    . = ALIGN(0x40);
+    *(.rodata .rodata.* .gnu.linkonce.r.* .rodata1)
+    *(.sdata2 .sdata2.* .gnu.linkonce.s2.*)
+    *(.sbss2 .sbss2.* .gnu.linkonce.sb2.*)
+  } : common
+
+  _etext = .;
+  PROVIDE (etext = .);
+
+  .note.gnu.build-id : { *(.note.gnu.build-id) }
+
+  /* ensure that data starts at a new L4 page */
+  . = ALIGN(4096);
+  .data :
+  {
+    __DATA_BEGIN__ = .;
+    *(.data .data.* .gnu.linkonce.d.*)
+    *(.anno)
+
+    CTORS
+    PLATFORMS
+  } : common
+
+  .sdata :
+  {
+    __SDATA_BEGIN__ = .;
+    *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
+    *(.sdata .sdata.* .gnu.linkonce.s.*)
+  } : common
+
+  /* exception frames for C++ */
+  .eh_frame :
+  {
+    KEEP (*(.eh_frame))
+    LONG(0) /* terminate .eh_frame */
+  } : common
+
+  . = ALIGN(4);
+  _edata  =  .;
+  PROVIDE (edata = .);
+
+  _bss_start = .;
+  .sbss :
+  {
+    *(.dynsbss)
+    *(.sbss .sbss.* .gnu.linkonce.sb.*)
+    *(.scommon)
+  } : common
+  .bss :
+  {
+   *(.dynbss)
+   *(.bss .bss.* .gnu.linkonce.b.*)
+   *(COMMON)
+  } : common
+  _bss_end = .;
+  __global_pointer$ = MIN(__SDATA_BEGIN__ + 0x800,
+                          MAX(__DATA_BEGIN__ + 0x800, _bss_end - 0x800));
+  _end = . ;
+  PROVIDE (end = .);
+
+  . = ALIGN(4096);
+  .data.m :
+  {
+    . = ALIGN(4096);
+    _module_data_start = .;
+    *(.module_data)
+    _module_data_end = .;
+  } : mods
+
+  /* Moved here to ensure that these sections are located _after_ the text
+   * section. In the other case we would get program sections with a virtual
+   * address of 0 */
+  .hash    : { *(.hash)    }
+  .dynsym  : { *(.dynsym)  }
+  .dynstr  : { *(.dynstr)  }
+  .rel.dyn : { *(.rel.dyn) }
+
+  /* drop the following sections since we do not need them for DROPS */
+  /DISCARD/ : {
+    *(.interp)
+    *(.comment)
+    *(.note)
+    *(.stab)
+    *(.fini)
+  }
+}
