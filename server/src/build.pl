@@ -325,9 +325,7 @@ sub dump_entry(@)
 sub postprocess
 {
   my $fn = shift;
-  my $arch = shift;
   error("Invalid '$0 postprocess' use, no file given") unless defined $fn;
-  error("Invalid '$0 postprocess' use, no arch given") unless defined $arch;
 
   my $v = 0;
 
@@ -335,7 +333,6 @@ sub postprocess
   error("Error detecting file: $err") if $err;
 
   print "Type: ", (L4::Image::FILE_TYPES)[$type], "\n" if $v;
-  print "Arch: $arch\n" if $v;
 
   error("Need a bootstrap ELF file") unless $type == L4::Image::FILE_TYPE_ELF;
 
@@ -470,7 +467,7 @@ if (not defined $cmd)
 
 if ($cmd eq 'postprocess')
   {
-    postprocess($ARGV[1], $ARGV[2]);
+    postprocess($ARGV[1]);
     exit(0);
   }
 
