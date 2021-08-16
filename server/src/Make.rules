@@ -368,7 +368,7 @@ MKIMAGE_ARCH-mips    = $(if $(filter "64",$(CONFIG_CPU_ABI)),mips64,mips)
 MKIMAGE_ARCH = $(MKIMAGE_ARCH-$(ARCH))
 
 BID_POST_PROG_LINK_MSG_$(TARGET) = echo -e "  [$(PKGNAME_DIRNAME)] ==> Image post-processing $@"
-BID_POST_PROG_LINK_$(TARGET)     = $(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl postprocess $@ $(ARCH)
+BID_POST_PROG_LINK_$(TARGET)     = $(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl postprocess $@
 
 # u-boot images, based on raw-version
 $(BOOTSTRAP_UIMAGE): $(BOOTSTRAP_RAW).$(BOOTSTRAP_UIMAGE_COMPRESSION)
