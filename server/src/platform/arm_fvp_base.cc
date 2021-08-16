@@ -1,12 +1,11 @@
-/*!
+/* SPDX-License-Identifier: GPL-2.0-only or License-Ref-kk-custom */
+/*
+ * Copyright (C) 2021 Kernkonzept GmbH.
+ * Author(s): Adam Lackorzynski <adam@l4re.org>
+ */
+/**
  * \file
  * \brief  Support for ARM's AEM FVP Base platform
- *
- * \date   2021
- * \author Adam Lackorzynski <adam@l4re.org>
- *
- * This file is distributed under the terms of the GNU General Public
- * License, version 2.  Please see the COPYING-GPL-2 file for details.
  */
 
 
