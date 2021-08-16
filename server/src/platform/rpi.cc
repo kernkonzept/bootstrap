@@ -18,6 +18,7 @@
 #include <l4/drivers/uart_pl011.h>
 #include "support.h"
 #include "mmio_16550.h"
+#include "arch/arm/mem.h"
 
 namespace {
 
@@ -68,66 +69,31 @@ struct Mbox_gen
   l4_uint32_t const *response_buffer() const
   { return &_m[5]; }
 
-  void clean_dcache(unsigned long addr)
-  {
-    asm volatile("dsb sy");
-#ifdef ARCH_arm64
-    asm volatile("dc cvac, %0" : : "r" (addr) : "memory");
-#endif
-#ifdef ARCH_arm
-    asm volatile("mcr p15, 0, %0, c7, c10, 1" : : "r" (addr) : "memory");
-#endif
-  }
-
-  void flush_dcache(unsigned long addr)
-  {
-    asm volatile("dsb sy");
-#ifdef ARCH_arm64
-    asm volatile("dc civac, %0" : : "r" (addr) : "memory");
-#endif
-#ifdef ARCH_arm
-    asm volatile("mcr p15, 0, %0, c7, c14, 1 \n"
-                 "mcr p15, 0, %0, c7, c5, 1  \n"
-                 : : "r" (addr) : "memory");
-#endif
-  }
-
-  void inv_dcache(unsigned long addr)
-  {
-    asm volatile("dsb sy");
-#ifdef ARCH_arm64
-    asm volatile("dc ivac, %0" : : "r" (addr) : "memory");
-#endif
-#ifdef ARCH_arm
-    asm volatile("mcr p15, 0, %0, c7, c6, 1" : : "r" (addr) : "memory");
-#endif
-  }
-
   bool call()
   {
     unsigned long mboxa = _base + 0xb880;
     L4::Io_register_block_mmio mboxdev(mboxa);
-    clean_dcache((unsigned long)_m); // todo: all range...
+    Cache::Data::clean((unsigned long)_m);
     unsigned v = (unsigned)(unsigned long)_m |  8;
     mboxdev.write<unsigned>(Mbox1_write, v);
-    clean_dcache(mboxa + Mbox1_write);
+    Cache::Data::clean(mboxa + Mbox1_write);
 
     while (1)
       {
-        inv_dcache(mboxa + Mbox0_read);
+        Cache::Data::inv(mboxa + Mbox0_read);
         while (mboxdev.read<unsigned>(Mbox0_status) & Mbox_empty)
-          inv_dcache(mboxa + Mbox0_read);;
+          Cache::Data::inv(mboxa + Mbox0_read);;
 
         if (mboxdev.read<unsigned>(Mbox0_read) == v) // our request?
           {
-            inv_dcache((unsigned long)_m);
+            Cache::Data::inv((unsigned long)_m);
             return _m[1] == (1u << 31); // response
           }
       }
   }
 
   l4_addr_t _base;
-  l4_uint32_t _m[8] __attribute__((aligned(128)));
+  l4_uint32_t _m[8] __attribute__((aligned(128))); // Adapt cache handling if made larger than one cache-line
 };
 
 // https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-revision-codes
