@@ -2,7 +2,6 @@ ENTRY(_start)
 
 PHDRS
 {
-  sixtyfour PT_LOAD FLAGS(6);
   text PT_LOAD FLAGS(5);
   data PT_LOAD FLAGS(6);
   rodata PT_LOAD FLAGS(4);
@@ -39,13 +38,6 @@ SECTIONS
   } :rodata
 
   _image_end = .;
-
-
-  /* Value of DEFAULT_RELOC_amd64 */
-  .sixtyfour 0x2d0000 :
-  {
-    . = . + 500000;
-  } :sixtyfour
 
   /DISCARD/ : {
     *(.interp)
