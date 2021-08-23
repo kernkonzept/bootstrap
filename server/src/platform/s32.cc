@@ -12,7 +12,7 @@
 
 
 namespace {
-class Platform_s32 : public Platform_base, public Boot_modules_image_mode
+class Platform_s32 : public Platform_dt
 {
   bool probe() { return true; }
 
@@ -32,18 +32,6 @@ class Platform_s32 : public Platform_base, public Boot_modules_image_mode
     static L4::Uart_linflex _uart(kuart.base_baud);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
-  }
-
-  Boot_modules *modules() { return this; }
-
-  void setup_memory_map()
-  {
-    mem_manager->ram->add(Region(0x080200000, 0x0bfffffff,
-                                 ".ram", Region::Ram));
-    mem_manager->ram->add(Region(0x0c0400000, 0x0dfdfffff,
-                                 ".ram", Region::Ram));
-    mem_manager->ram->add(Region(0x880000000, 0x8ffffffff,
-                                 ".ram", Region::Ram));
   }
 
   void reboot()
