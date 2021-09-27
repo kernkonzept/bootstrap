@@ -29,8 +29,9 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
   uefi_call_wrapper(systab->BootServices->ExitBootServices, 2, image, key);
 
   // UEFI has interrupts enabled as per specification. Fiasco boot protocol
-  // requires interrupts to be disabled, though.
-  asm volatile("msr DAIFSet, #3");
+  // requires interrupts to be disabled, though. Overall, ensure all is
+  // masked.
+  asm volatile("msr DAIFSet, #0xf");
 
   // UEFI did setup the MMU with caches. Disable everything because we move
   // code around and will jump to it at the end.
