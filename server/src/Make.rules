@@ -434,12 +434,12 @@ clean::
 cleanall::
 	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.*
 
-bootaa64.efi: bootstrap.elf
+$(od)bootaa64.efi: $(od)$(BOOTSTRAP_ELF_NAME)
 	$(OBJCOPY) -S -j .text -j .data -j .dynamic -j .dynsym -j .rela.* \
 	           -j .data.m \
 	           -O binary $< $@
 
-boot%.efi: bootstrap.elf
+$(od)boot%.efi: $(od)$(BOOTSTRAP_ELF_NAME)
 	$(OBJCOPY) -S -j .text -j .rodata -j .reloc -j .dynsym -j .dynstr -j .rel.dyn \
 	           -j .data \
 	           -j .data.m -j .dynamic -j .rela.dyn -j .rela.plt -j .reloc \
