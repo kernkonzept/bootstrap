@@ -145,7 +145,7 @@ public:
   }
 
 #if defined(ARCH_arm) || defined(ARCH_arm64)
-  void reboot_psci()
+  static void reboot_psci()
   {
     register unsigned long r0 asm("r0") = 0x84000009;
     asm volatile(
