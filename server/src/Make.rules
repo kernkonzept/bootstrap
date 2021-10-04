@@ -68,7 +68,6 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
   CRTEND_dyn_bin      :=
   INTERNAL_CRT0       := n
   CRT0                 = $(OBJ_BASE)/lib/$(SYSTEM)/crt0-efi-$(EFI_ARCH).o
-  EXTRA_LIBS           = -L$(OBJ_BASE)/lib/$(SYSTEM) -lefi -lgnuefi
   CXXFLAGS            += -fshort-wchar
   CFLAGS              += -fshort-wchar
   DEFINES             += -DGNU_EFI_USE_MS_ABI
