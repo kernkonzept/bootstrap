@@ -154,7 +154,7 @@ ifeq ($(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE)),)
 endif
 endif
 
-REQUIRES_LIBS   += libc_minimal cxx_base cxx_io
+REQUIRES_LIBS   += libc_minimal cxx_base cxx_io libfdt
 DRV_LIBS-ppc32   = -ldrivers_of
 DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
 ifeq ($(INTERNAL_CRT0),y)
