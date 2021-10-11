@@ -203,6 +203,7 @@ do_cpuid:
 
 do_bootstrap:
 #ifdef __ARM_FP
+.fpu vfp
 	/* Prevent triggering 'undefined instruction' exceptions by enabling
          * the FPU. Newer gcc versions implicitly generate FP instructions. */
 	mrc	p15, 0, r8, c1, c0, 2     /* read CPACR */
