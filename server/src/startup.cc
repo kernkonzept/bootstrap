@@ -497,20 +497,6 @@ load_elf_module(Boot_modules::Module const &mod)
   return entry;
 }
 
-/**
- * Simple linear memory allocator.
- *
- * Allocate size bytes starting from *ptr and set *ptr to *ptr + size.
- */
-static inline void*
-lin_alloc(l4_size_t size, char **ptr)
-{
-  void *ret = *ptr;
-  *ptr += (size + 3) & ~3;;
-  return ret;
-}
-
-
 #ifdef ARCH_arm
 static inline l4_umword_t
 running_in_hyp_mode()
