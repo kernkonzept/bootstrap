@@ -71,7 +71,7 @@ _start:
 .set push
 .set noreorder
 	/* initialize GP */
-	.cpload $25
+	SETUP_GPX($0)
 	SETUP_GPX64($25, $0)
 
 #if defined(PLATFORM_TYPE_baikal_t) || defined(PLATFORM_TYPE_ci40)
@@ -112,8 +112,6 @@ _start:
 	nop
 7:
 
-
-	PTR_LA $gp, _gp
 	PTR_LA    $29, crt0_stack_high
 	PTR_SUBU  $29, (NARGSAVE * SZREG)
 	PTR_LA    $25, __main        // jump to USEG address space
