@@ -210,7 +210,7 @@ void Dt::setup_memory()
   // Add device tree to memory map
   mem_manager->regions->add(
     Region::n(_fdt, static_cast<l4_uint8_t const *>(_fdt) + fdt_totalsize(_fdt),
-              ".dtb", Region::Arch));
+              ".dtb", Region::Root));
 }
 
 void Dt::dump()

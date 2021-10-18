@@ -6,6 +6,8 @@
 #include "uncompress.h"
 #endif
 
+#include "dt.h"
+
 #include <l4/sys/types.h>
 
 static char const Mod_reg[] = ".Module";
@@ -793,6 +795,56 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
 }
 #endif // COMPRESS
 
+struct Internal_module_base
+{
+  Internal_module_base(const char *cmdline)
+  : _cmdline(cmdline)
+  {}
+
+  unsigned cmdline_size() { return strlen(_cmdline) + 1; }
+  Internal_module_base *next() const { return _next; }
+  void next(Internal_module_base *n) { _next = n; }
+  virtual void set_region(l4util_l4mod_mod *m) = 0;
+
+  void set(l4util_l4mod_mod *m, char *cmdline_store)
+  {
+    m->cmdline = (l4_addr_t)cmdline_store;
+    memcpy(cmdline_store, _cmdline, cmdline_size());
+    set_region(m);
+    m->flags = 0;
+  }
+
+private:
+  Internal_module_base *_next;
+  const char *_cmdline;
+};
+
+struct Internal_module_fdt : Internal_module_base
+{
+  Internal_module_fdt(const char *cmdline)
+  : Internal_module_base(cmdline)
+  {}
+
+  void set_region(l4util_l4mod_mod *m) override
+  {
+    m->mod_start = (unsigned long)dt.fdt();
+    m->mod_end   = (unsigned long)dt.fdt() + dt.fdt_size();
+  }
+};
+
+struct Internal_module_list
+{
+  void push_front(Internal_module_base *mod)
+  {
+    mod->next(root);
+    root = mod;
+    cnt++;
+  }
+
+  Internal_module_base *root = 0;
+  unsigned cnt = 0;
+};
+
 /**
  * Create the basic multi-boot structure in IMAGE_MODE
  */
@@ -800,6 +852,16 @@ l4util_l4mod_info *
 Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 {
   unsigned long mod_count = mod_header->num_mods;
+  Internal_module_list internal_mods;
+
+  Internal_module_fdt mod_fdt(".fdt");
+  if (dt.have_fdt())
+    internal_mods.push_front(&mod_fdt);
+
+  // No more modules after this point
+
+  mod_count += internal_mods.cnt;
+
   unsigned long mbi_size = sizeof(l4util_l4mod_info);
   mbi_size += sizeof(l4util_l4mod_mod) * mod_count;
 
@@ -807,6 +869,9 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
   for (Mod_info *mod = module_infos; mod != mod_end_iter(); ++mod)
     mbi_size += round_wordsize(strlen(mod_cmdline(mod)) + 1);
+
+  for (Internal_module_base *m = internal_mods.root; m; m = m->next())
+    mbi_size += round_wordsize(m->cmdline_size());
 
   // Round up to ensure mbi is on its own page
   unsigned long mbi_size_full = l4_round_page(mbi_size);
@@ -841,8 +906,8 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
     }
 
 #ifdef COMPRESS
-  if (mod_count > Num_base_modules)
-    decompress_mods(mod_count, total_size, mod_addr);
+  if (mod_header->num_mods > Num_base_modules)
+    decompress_mods(mod_header->num_mods, total_size, mod_addr);
   merge_mod_regions();
 #else // COMPRESS
   move_modules(mod_addr);
@@ -850,7 +915,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
   unsigned cnt = 0;
   for (unsigned run = 0; run < 2; ++run)
-    for (unsigned i = 0; i < mod_count; ++i)
+    for (unsigned i = 0; i < mod_header->num_mods; ++i)
       {
         Mod_info *mod = &module_infos[i];
 
@@ -874,6 +939,13 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
         mods[cnt].flags     = mod->flags & Mod_info_flag_mod_mask;
         cnt++;
       }
+
+  for (Internal_module_base *m = internal_mods.root; m; m = m->next())
+    {
+      m->set(&mods[cnt], mbi_strs);
+      mbi_strs += round_wordsize(m->cmdline_size());
+      ++cnt;
+    }
 
   return mbi;
 }
