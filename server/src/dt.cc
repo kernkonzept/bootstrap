@@ -100,8 +100,8 @@ bool Dt::Node::translate_reg(Node parent,
   if (!parent_parent.get_addr_size_cells(parent_addr_cells, parent_size_cells))
     return false;
 
-  auto ranges = parent.get_prop_array("ranges", {addr_cells, parent_addr_cells,
-                                                 size_cells});
+  auto ranges = parent.get_prop_array("ranges", { addr_cells, parent_addr_cells,
+                                                  size_cells });
 
   // If no ranges property is present, there exists no mapping between parent
   // and child address space.
@@ -109,10 +109,10 @@ bool Dt::Node::translate_reg(Node parent,
     return false; // no translation possible
 
   if (!ranges.is_valid())
-  {
-    parent.warn("Unexpected ranges property size.\n");
-    return false;
-  }
+    {
+      parent.warn("Unexpected ranges property size.\n");
+      return false;
+    }
 
   // Empty ranges property?
   if (ranges.elements() == 0)
@@ -137,7 +137,7 @@ bool Dt::Node::get_reg_array(Node parent, Reg_array_prop &regs) const
   if (!parent.get_addr_size_cells(addr_cells, size_cells))
     return false;
 
-  regs = get_prop_array("reg", {addr_cells, size_cells});
+  regs = get_prop_array("reg", { addr_cells, size_cells });
   return regs.is_valid();
 }
 
