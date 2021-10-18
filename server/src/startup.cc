@@ -66,6 +66,8 @@ Memory *mem_manager = &_mem_manager;
 L4_kernel_options::Uart kuart;
 unsigned int kuart_flags;
 
+Dt dt;
+
 /*
  * IMAGE_MODE means that all boot modules are linked together to one
  * big binary.
@@ -716,7 +718,7 @@ startup(char const *cmdline)
     print_cpu_info();
 
 #if defined(ARCH_arm) || defined(ARCH_arm64)
-  Dt::init(boot_args.r[0]);
+  dt.init(boot_args.r[0]);
 #endif
 
   regions.init(__regs, "regions");

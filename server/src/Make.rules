@@ -108,6 +108,10 @@ CXXFLAGS_arm64  += -mstrict-align
 CFLAGS_arm      += -mno-unaligned-access
 CXXFLAGS_arm    += -mno-unaligned-access
 
+DEFINES-arm     += -DUSE_DT
+DEFINES-arm64   += -DUSE_DT
+DEFINES         += $(DEFINES-$(ARCH))
+
 SRC_C           += memcpy_aligned.c
 CFLAGS_memcpy_aligned.c = -ffreestanding
 

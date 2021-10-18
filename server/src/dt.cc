@@ -12,8 +12,6 @@
 
 #include "dt.h"
 
-void const *Dt::_fdt;
-
 void Dt::init(unsigned long fdt_addr)
 {
   if (!fdt_addr)
@@ -30,7 +28,7 @@ void Dt::init(unsigned long fdt_addr)
       return;
     }
 
-    info("FDT available (size=%d)\n", fdt_totalsize(_fdt));
+  info("FDT available (size=%d)\n", fdt_totalsize(_fdt));
 }
 
 void Dt::check_for_dt()
@@ -41,17 +39,17 @@ void Dt::check_for_dt()
 
 Dt::Node Dt::node_by_path(char const *path)
 {
-  return Node(fdt_path_offset(_fdt, path));
+  return Node(_fdt, fdt_path_offset(_fdt, path));
 }
 
 Dt::Node Dt::node_by_phandle(uint32_t phandle)
 {
-  return Node(fdt_node_offset_by_phandle(_fdt, phandle));
+  return Node(_fdt, fdt_node_offset_by_phandle(_fdt, phandle));
 }
 
 Dt::Node Dt::node_by_compatible(char const *path)
 {
-  return Node(fdt_node_offset_by_compatible(_fdt, -1, path));
+  return Node(_fdt, fdt_node_offset_by_compatible(_fdt, -1, path));
 }
 
 char const *Dt::Node::get_prop_str(char const *name) const

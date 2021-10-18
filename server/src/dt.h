@@ -6,6 +6,7 @@
 
 #pragma once
 
+#ifdef USE_DT
 #include <assert.h>
 #include <stdio.h>
 
@@ -137,8 +138,8 @@ public:
   class Node
   {
   public:
-    Node() : _off(-1) {}
-    explicit Node(int off) : _off(off) {}
+    explicit Node(void const *fdt) : _fdt(fdt), _off(-1) {}
+    Node(void const *fdt, int off) : _fdt(fdt), _off(off) {}
 
     bool is_valid() const
     { return _off >= 0; }
@@ -147,7 +148,7 @@ public:
     { return _off == 0; }
 
     Node parent_node() const
-    { return Node(fdt_parent_offset(_fdt, _off)); }
+    { return Node(_fdt, fdt_parent_offset(_fdt, _off)); }
 
     char const *get_name(char const *default_name = nullptr) const
     {
@@ -259,7 +260,7 @@ public:
     {
       int node;
       fdt_for_each_subnode(node, _fdt, _off)
-        if (invoke_cb(cb, Node(node)) == Break)
+        if (invoke_cb(cb, Node(_fdt, node)) == Break)
           return;
     }
 
@@ -292,34 +293,39 @@ public:
     bool get_reg_val(Node parent, Reg_array_prop const &regs, unsigned index,
                      l4_uint64_t *out_addr, l4_uint64_t *out_size) const;
 
+    void const *_fdt;
     int _off;
   };
 
-  static void init(unsigned long fdt_addr);
-  static void check_for_dt();
+  void init(unsigned long fdt_addr);
+  void check_for_dt();
 
-  static Node node_by_path(char const *path);
-  static Node node_by_phandle(uint32_t phandle);
-  static Node node_by_compatible(char const *compatible);
+  bool have_fdt() { return _fdt; }
+  const void *fdt() { return _fdt; }
+  unsigned fdt_size() { return fdt_totalsize(_fdt); }
+
+  Node node_by_path(char const *path);
+  Node node_by_phandle(uint32_t phandle);
+  Node node_by_compatible(char const *compatible);
 
   template<typename CB, typename NEXT>
-  static void nodes_by(CB &&cb, NEXT &&next)
+  void nodes_by(CB &&cb, NEXT &&next)
   {
     for (int node = next(-1); node >= 0; node = next(node))
-      if (invoke_cb(cb, Node(node)) == Break)
+      if (invoke_cb(cb, Node(_fdt, node)) == Break)
         return;
   }
 
   template<typename CB>
-  static void nodes_by_prop_value(char const *name, void const *val, int len,
-                                  CB &&cb)
+  void nodes_by_prop_value(char const *name, void const *val, int len,
+                           CB &&cb)
   {
     nodes_by(cb, [=](int node)
       { return fdt_node_offset_by_prop_value(_fdt, node, name, val, len); });
   }
 
   template<typename CB>
-  static void nodes_by_compatible(char const *compatible, CB &&cb)
+  void nodes_by_compatible(char const *compatible, CB &&cb)
   {
     nodes_by(cb, [=](int node)
       { return fdt_node_offset_by_compatible(_fdt, node, compatible); });
@@ -339,9 +345,9 @@ public:
     return static_cast<T>(val);
   }
 
-  static void setup_memory();
+  void setup_memory();
 
-  static void dump();
+  void dump();
 
   template<typename... Args>
   static void warn(char const *format, Args &&... args)
@@ -379,5 +385,16 @@ protected:
       cb, cxx::forward<Args>(args)...);
   }
 
-  static void const *_fdt;
+  void const *_fdt;
 };
+#else // USE_DT
+class Dt
+{
+public:
+  static bool have_fdt() { return false; }
+  static const void *fdt() { return nullptr; }
+  static unsigned fdt_size() { return 0; }
+};
+#endif // USE_DT
+
+extern Dt dt;

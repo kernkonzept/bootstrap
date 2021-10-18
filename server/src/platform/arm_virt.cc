@@ -56,8 +56,8 @@ class Platform_arm_virt : public Platform_base, public Boot_modules_image_mode
 
   void setup_memory_map()
   {
-    Dt::check_for_dt();
-    Dt::setup_memory();
+    dt.check_for_dt();
+    dt.setup_memory();
   }
 
   void reboot()
