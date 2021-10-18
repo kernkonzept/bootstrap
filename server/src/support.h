@@ -150,6 +150,7 @@ public:
     register unsigned long r0 asm("r0") = 0x84000009;
     asm volatile(
 #ifdef ARCH_arm
+                 ".arch armv7-a\n"
                  ".arch_extension sec\n"
 #endif
                  "smc #0" : : "r" (r0));
