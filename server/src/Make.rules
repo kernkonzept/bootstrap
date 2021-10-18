@@ -117,8 +117,8 @@ SRC_CC		+= exec.cc module.cc region.cc startup.cc init_kip_f.cc \
 
 SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc base_critical.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc
-SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc
-SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc
+SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc dt.cc
+SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc dt.cc
 SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/efi.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc

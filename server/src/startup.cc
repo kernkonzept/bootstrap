@@ -48,6 +48,7 @@
 #include "support.h"
 #include "init_kip.h"
 #include "koptions.h"
+#include "dt.h"
 
 #undef getchar
 
@@ -729,6 +730,10 @@ startup(char const *cmdline)
 
   if (print_cpu_info)
     print_cpu_info();
+
+#if defined(ARCH_arm) || defined(ARCH_arm64)
+  Dt::init(boot_args.r[0]);
+#endif
 
   regions.init(__regs, "regions");
   ram.init(__ram, "RAM", get_memory_max_size(cmdline), get_memory_max_address());
