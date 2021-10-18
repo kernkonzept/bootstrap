@@ -604,6 +604,10 @@ startup(char const *cmdline)
 
   setup_memory_map(cmdline);
 
+  // No EFI services after this point. Must be done directly after we parsed
+  // the memory map to make sure the EFI memory map does not change anymore.
+  Platform_base::platform->exit_boot_services();
+
   /* basically add the bootstrap binary to the allocated regions */
   init_regions();
   plat->modules()->reserve();
