@@ -360,6 +360,7 @@ public:
   }
 
   void setup_memory();
+  l4_uint64_t cpu_release_addr();
 
   void dump();
 

@@ -213,6 +213,42 @@ void Dt::setup_memory()
               ".dtb", Region::Root));
 }
 
+l4_uint64_t Dt::cpu_release_addr()
+{
+  Node cpus = node_by_path("/cpus");
+  if (!cpus.is_valid())
+    return -1ULL;
+
+  l4_uint64_t cpu_release_addr = -1ULL;
+  cpus.for_each_subnode([&](Dt::Node cpu)
+    {
+      if (!cpu.check_device_type("cpu"))
+        return Dt::Continue; // Not a cpu node
+
+      if (!cpu.stringlist_search("enable-method", "spin-table"))
+        // Assume all cores use the same enable method.
+        return Dt::Break;
+
+      l4_uint64_t crel_addr = -1ULL;
+      cpu.get_prop_u64("cpu-release-addr", crel_addr);
+
+      if (Verbose_dt)
+        {
+          l4_uint64_t mpid = -1ULL;
+          cpu.get_reg(0, &mpid);
+          info("CPU[%llx]: %llx\n", mpid, crel_addr);
+        }
+
+      if (cpu_release_addr == -1ULL)
+        cpu_release_addr = crel_addr;
+      else if (cpu_release_addr != crel_addr)
+        cpu.warn("Sorry: Target uses core-specific CPU release addresses, but only one currently supported.\n");
+      return Dt::Continue;
+    });
+
+  return cpu_release_addr;
+}
+
 void Dt::dump()
 {
   auto size = fdt_totalsize(_fdt);
