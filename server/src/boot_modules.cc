@@ -121,7 +121,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
   if (src == dest)
     {
       mem_manager->regions->add(Region::n(dest, (char*)dest + size,
-                                          ::Mod_reg, Region::Root, i));
+                                          ::Mod_reg, Region::Root));
       return;
     }
 
@@ -169,7 +169,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
   char *x = vdest + size;
   memset(x, 0, l4_round_page(x) - x);
   mem_manager->regions->add(Region::n(dest, (char *)dest + size,
-                                      ::Mod_reg, Region::Root, i));
+                                      ::Mod_reg, Region::Root));
 }
 
 /// sorter data for up to 256 modules (stores module indexes)
