@@ -197,11 +197,9 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod, void *ki
   if (ko->magic != L4_kernel_options::Magic)
     panic("Could not find kernel options page");
 
-  unsigned long need_version = 1;
-
-  if (ko->version != need_version)
-    panic("Cannot boot kernel with incompatible options version: %lu, need %lu",
-          (unsigned long)ko->version, need_version);
+  if (ko->version != L4_kernel_options::Version_current)
+    panic("Cannot boot kernel with incompatible options version: %lu, need %u",
+          (unsigned long)ko->version, L4_kernel_options::Version_current);
 
   return ko;
 }
