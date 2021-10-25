@@ -130,6 +130,7 @@ struct Mbox_gen
   l4_uint32_t _m[8] __attribute__((aligned(128)));
 };
 
+// https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-revision-codes
 static constexpr const char *type_list[] = {
   "A",
   "B",
@@ -149,8 +150,8 @@ static constexpr const char *type_list[] = {
   "Internal use only",
   "CM3+",
   "4B",
-  "Unknown",
-  "400",
+  "Zero 2 W",
+  "Pi 400",
   "CM4",
 };
 
