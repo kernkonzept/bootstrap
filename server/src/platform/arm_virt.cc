@@ -14,7 +14,7 @@
 extern char _start;
 
 namespace {
-class Platform_arm_virt : public Platform_base, public Boot_modules_image_mode
+class Platform_arm_virt : public Platform_dt
 {
   bool probe() { return true; }
 
@@ -50,14 +50,6 @@ class Platform_arm_virt : public Platform_base, public Boot_modules_image_mode
         memmove((void *)dst, fdt, s);
         boot_args.r[0] = dst;
       }
-  }
-
-  Boot_modules *modules() { return this; }
-
-  void setup_memory_map()
-  {
-    dt.check_for_dt();
-    dt.setup_memory();
   }
 
   void reboot()
