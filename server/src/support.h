@@ -220,6 +220,17 @@ public:
   virtual void post_memory_hook() {}
 };
 
+#ifdef USE_DT
+class Platform_dt : public Platform_base,
+                    public Boot_modules_image_mode
+{
+public:
+  Boot_modules *modules() { return this; }
+  void setup_memory_map();
+  virtual void post_memory_hook() {}
+};
+#endif // USE_DT
+
 extern Memory *mem_manager;
 
 #endif /* __BOOTSTRAP__SUPPORT_H__ */
