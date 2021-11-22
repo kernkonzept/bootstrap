@@ -58,7 +58,7 @@ static Region __regs[300];
 
 /* management of conventional memory regions */
 static Region_list ram;
-static Region __ram[16];
+static Region __ram[32];
 
 static Memory _mem_manager = { &ram, &regions };
 Memory *mem_manager = &_mem_manager;
