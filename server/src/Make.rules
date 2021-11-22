@@ -185,7 +185,7 @@ CXXFLAGS          += -fpie
 LDFLAGS_arm64     += -shared -Bsymbolic --defsym=EFI_SUBSYSTEM=0xa
 LDFLAGS_amd64     += -pie -Bsymbolic
 LDFLAGS_x86       += -pie -Bsymbolic
-LDFLAGS		  += $(LDFLAGS_$(ARCH))
+LDFLAGS           += -z text $(LDFLAGS_$(ARCH))
 else
 LDFLAGS           += -static -Bstatic
 endif
