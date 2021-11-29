@@ -25,6 +25,9 @@ public:
   enum Subtype_info
   {
     Info_acpi_rsdp = 0,
+
+    Arch_acpi = 3,
+    Arch_nvs = 4,
   };
 
   /** Basic noop constructor, to be able to have array without ini code */

@@ -71,13 +71,6 @@ public:
     // Fiasco boot protocol requires interrupts to be disabled
     l4util_cli();
 
-    enum
-    {
-      Acpi      = 3,
-      Nvs       = 4,
-    };
-
-
     Region_list *ram = mem_manager->ram;
     Region_list *regions = mem_manager->regions;
 
@@ -96,10 +89,12 @@ public:
             ram->add(new_region(td, ".ram", Region::Ram));
             break;
           case EfiACPIReclaimMemory: // memory holds ACPI tables
-            regions->add(new_region(td, ".ACPI", Region::Arch, Acpi));
+            regions->add(new_region(td, ".ACPI", Region::Arch,
+                                    Region::Arch_acpi));
             break;
           case EfiACPIMemoryNVS: // memory reserved by firmware
-            regions->add(new_region(td, ".ACPI", Region::Arch, Nvs));
+            regions->add(new_region(td, ".ACPI", Region::Arch,
+                                    Region::Arch_nvs));
             break;
           }
       }
