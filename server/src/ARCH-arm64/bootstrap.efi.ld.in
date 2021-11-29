@@ -21,7 +21,6 @@ SECTIONS
    */
   .text 0x0 : {
     _text = .;
-    _start = .;
     *(.text.head)
     *(.text)
     *(.text.*)
