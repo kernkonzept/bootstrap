@@ -119,3 +119,4 @@ SUPPORT_CC_riscv-riscv_virt    := platform/riscv_virt.cc
 SUPPORT_CC_riscv-pfsoc         := platform/pfsoc.cc
 SUPPORT_CC_riscv-sifive_u      := platform/sifive_u.cc
 SUPPORT_CC_riscv-migv          := platform/migv.cc
+SUPPORT_CC_riscv-hifive_unmatched := platform/hifive_unmatched.cc
