@@ -198,9 +198,9 @@ Region::vprint() const
   if (name())
     {
       if (*name() == '.')
-	printf("%s", name() + 1);
+        printf("%s", name() + 1);
       else
-	print_module_name(name(), "");
+        print_module_name(name(), "");
     }
   putchar('\n');
 }
@@ -218,11 +218,11 @@ Region_list::dump()
       min = ~0;
       Region const *min_idx = 0;
       for (j = _reg; j < _end; ++j)
-	if (j->begin() < min && j->begin() >= mark)
-	  {
-	    min     = j->begin();
-	    min_idx = j;
-	  }
+        if (j->begin() < min && j->begin() >= mark)
+          {
+            min     = j->begin();
+            min_idx = j;
+          }
       if (!min_idx)
         {
           i->vprint();
@@ -247,19 +247,20 @@ Region_list::optimize()
   Region *c = begin();
   while (c < end())
     {
-      Region *n = c; ++n;
+      Region *n = c;
+      ++n;
       if (n == end())
-	return;
+        return;
 
       if (n->type() == c->type() && n->sub_type() == c->sub_type()
-	  && n->name() == c->name() &&
-	  l4_round_page(c->end()) >= l4_trunc_page(n->begin()))
-	{
-	  c->end(n->end());
-	  remove(n);
-	}
+          && n->name() == c->name() &&
+          l4_round_page(c->end()) >= l4_trunc_page(n->begin()))
+        {
+          c->end(n->end());
+          remove(n);
+        }
       else
-	++c;
+        ++c;
     }
 }
 
