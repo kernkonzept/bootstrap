@@ -169,7 +169,6 @@ LDSCRIPT	 = bootstrap.efi.ld
 else
 LDSCRIPT	 = bootstrap.ld
 endif
-LDNMAGIC	 =
 
 vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-$(ARCH)
 
