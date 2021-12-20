@@ -16,10 +16,24 @@
 	msr	\sctlr_reg, \tmp
 .endm
 
+#define MIMIC_A_VMLINUZ
+
 .section .text.init,"ax"
 .type _start,#function
 .globl _start
 _start:
+/* Some bootloaders like it this way, for others it won't harm */
+#ifdef MIMIC_A_VMLINUZ
+	nop
+	b 10f
+	.8byte 0x80000		/* text_offset */
+	.8byte 0		/* image_size */
+	.8byte 0		/* flags */
+	.8byte 0, 0, 0		/* reserved */
+	.ascii "ARM\x64"	/* magic */
+	.4byte 0		/* reserved */
+10:
+#endif
 	/*
 	 * It might be the case that we're not run at the position where we
 	 * have been linked to. If this is the case we copy ourselves to the
