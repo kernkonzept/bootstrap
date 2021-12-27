@@ -36,7 +36,7 @@ static void vga_putchar(unsigned char c)
   if (ofs < 0)
     {
       /* Called for the first time - initialize.  */
-      ofs = 80 * 2 * 24;
+      ofs = 0;
       vga_putchar('\n');
     }
 
