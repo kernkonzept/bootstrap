@@ -29,7 +29,7 @@ static void vga_init()
 static void vga_putchar(unsigned char c)
 {
   static int ofs = -1, esc, esc_val, attr = 0x07;
-  unsigned char *vidbase = (unsigned char *)0xb8000;
+  unsigned char * volatile vidbase = (unsigned char *)0xb8000;
 
   base_critical_enter();
 
