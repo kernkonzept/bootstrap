@@ -29,14 +29,14 @@ static void vga_init()
 static void vga_putchar(unsigned char c)
 {
   static int ofs = -1, esc, esc_val, attr = 0x07;
-  unsigned char *vidbase = (unsigned char*)0xb8000;
+  unsigned char *vidbase = (unsigned char *)0xb8000;
 
   base_critical_enter();
 
   if (ofs < 0)
     {
       /* Called for the first time - initialize.  */
-      ofs = 80*2*24;
+      ofs = 80 * 2 * 24;
       vga_putchar('\n');
     }
 
@@ -54,7 +54,7 @@ static void vga_putchar(unsigned char c)
     case 2:
       if (c >= '0' && c <= '9')
 	{
-	  esc_val = 10*esc_val + c - '0';
+	  esc_val = 10 * esc_val + c - '0';
 	  goto done;
 	}
       if (c == 'm')
@@ -69,8 +69,8 @@ static void vga_putchar(unsigned char c)
   switch (c)
     {
     case '\n':
-      memmove(vidbase, vidbase+80*2, 80*2*24);
-      memset(vidbase+80*2*24, 0, 80*2);
+      memmove(vidbase, vidbase + 80 * 2, 80 * 2 * 24);
+      memset(vidbase + 80 * 2 * 24, 0, 80 * 2);
       /* fall through... */
     case '\r':
       ofs = 0;
@@ -92,7 +92,7 @@ static void vga_putchar(unsigned char c)
 
       /* Stuff the character into the video buffer. */
 	{
-	  volatile unsigned char *p = vidbase + 80*2*24 + ofs*2;
+	  volatile unsigned char *p = vidbase + 80 * 2 * 24 + ofs * 2;
 	  p[0] = c;
 	  p[1] = attr;
 	  ofs++;
