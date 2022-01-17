@@ -47,7 +47,10 @@ class Platform_arm_virt : public Platform_dt
       {
         unsigned s = fdt_totalsize(fdt);
         unsigned long dst = l4_trunc_page((unsigned long)&_start - s);
+        _Pragma("GCC diagnostic push")
+        _Pragma("GCC diagnostic ignored \"-Wnonnull\"") // if RAM_BASE == 0
         memmove((void *)dst, fdt, s);
+        _Pragma("GCC diagnostic pop")
         boot_args.r[0] = dst;
       }
   }
