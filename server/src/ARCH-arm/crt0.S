@@ -9,6 +9,8 @@
  */
 /* -*- c -*- */
 
+#include <l4/bid_config.h>
+
 #define MIMIC_A_VMLINUZ
 
 .section .text.init,"ax"
@@ -16,7 +18,9 @@
 .globl _start
 _start:
 /* Some bootloaders like it this way, for others it won't harm */
-#ifdef MIMIC_A_VMLINUZ
+/* Only works on non-PIE builds because it leaves behind relocations in text
+ * segment. */
+#if defined(MIMIC_A_VMLINUZ) && !defined(CONFIG_BID_PIE)
 	nop
 	nop
 	nop
@@ -31,11 +35,14 @@ _start:
 	.word _module_data_end
 10:
 #endif
+
 	/*
 	 * It might be the case that we're not run at the position where we
 	 * have been linked to. If this is the case we copy ourselves to the
-	 * position we're linked to.
+	 * position we're linked to. If L4Re is built with PIE support we
+	 * can run from anywhere and there is no need to copy ourselves around.
 	 */
+#ifndef CONFIG_BID_PIE
 	adr	r4, run		/* Running version */
 	ldr	r5, .LCrun	/* supposed to be version */
 	cmp	r4, r5		/* If equal ... */
@@ -91,9 +98,10 @@ move_behind:
 crt_end_bin:     .word 0
 crt_end_bin_lsb: .word _module_data_end;
 
+run:
+#endif
 	.global cpu_bootup_code_start
 cpu_bootup_code_start:
-run:
 	mov	r5, #0x1000
 	sub	r5, r5, #1                 /* r5 == 0xfff */
 	mrc	p15, 0, r6, c0, c0, 0      /* Main ID */
@@ -224,11 +232,30 @@ do_bootstrap:
 no_fpu:
 #endif
 
+	adr	r8, do_bootstrap
 	ldr	sp, .LCstack
+	add	sp, sp, r8
+
+#ifdef CONFIG_BID_PIE
+	ldr a1, .L_GOT          /* Get value at .L_GOT + 0  (offset to GOT)*/
+	adr a2, .L_GOT          /* Get address of .L_GOT */
+	ldr a3, .L_GOT+4        /* Get value of _start(GOT) stored in .L_GOT */
+	adr a4, _start          /* Get address of _start after relocation (changes to pc - ~30 or so) */
+	add a1, a1, a2          /* Calculate where the GOT is */
+	ldr a2, [a1, a3]        /* GOT + _start(GOT) = offset of _start from begin of file */
+	sub a1, a4, a2          /* Current addr of _start - offset from beginning of file = load addr */
+	bl reloc_static_pie
+#endif
+
 	bl	__main
 1:	b	1b
 
-.LCstack: .word crt0_stack_high
+.LCstack: .word (crt0_stack_high - do_bootstrap)
+#ifdef CONFIG_BID_PIE
+.L_GOT:
+	.word _GLOBAL_OFFSET_TABLE_ - .L_GOT
+	.word _start(GOT)
+#endif
 
 .section ".bss"
 

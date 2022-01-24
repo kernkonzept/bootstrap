@@ -9,6 +9,8 @@
  */
 /* -*- c -*- */
 
+#include <l4/bid_config.h>
+
 .macro set_sctlr sctlr_reg, tmp
 	mrs	\tmp, \sctlr_reg
 	bic	\tmp, \tmp, #0x0004
@@ -34,10 +36,12 @@ _start:
 	.4byte 0		/* reserved */
 10:
 #endif
+#ifndef CONFIG_BID_PIE
 	/*
 	 * It might be the case that we're not run at the position where we
 	 * have been linked to. If this is the case we copy ourselves to the
-	 * position we're linked to.
+	 * position we're linked to. If L4Re is built with PIE support we
+	 * can run from anywhere and there is no need to copy ourselves around.
 	 */
 	adr	x4, run		/* Running version */
 	ldr	x5, .LCrun	/* supposed to be version */
@@ -104,9 +108,10 @@ move_behind:
 .LCstart_bin: .8byte _start
 crt_end_bin:  .8byte _module_data_end
 
+run:
+#endif
 	.global cpu_bootup_code_start
 cpu_bootup_code_start:
-run:
 	mrs	x9, MPIDR_EL1              /* CPU ID */
 	and	x9, x9, #0xf               /* CPU id */
 	cmp	x9, #0                     /* CPU0 continues with bootstrap */
@@ -138,6 +143,16 @@ do_bootstrap:
 	orr	x8, x8, #0x300000 // fpen
 	msr	cpacr_el1, x8
 
+#ifdef CONFIG_BID_PIE
+	/* Calculate load address... subtract link address from real one */
+	adrp    x0, :got:_start
+	ldr     x0, [x0, #:got_lo12:_start]
+	adr     x1, _start
+	sub     x0, x1, x0
+
+	/* Do relocations */
+	bl reloc_static_pie
+#endif
 
 	bl	__main
 1:	b	1b
