@@ -23,8 +23,10 @@ _start:
 	/*
 	 * It might be the case that we're not run at the position where we
 	 * have been linked to. If this is the case we copy ourselves to the
-	 * position we're linked to.
+	 * position we're linked to. If L4Re is built with PIE support we
+	 * can run from anywhere and there is no need to copy ourselves around.
 	 */
+#ifndef BOOTSTRAP_PIE
 	adr	x4, run		/* Running version */
 	ldr	x5, .LCrun	/* supposed to be version */
 	cmp	x4, x5		/* If equal ... */
@@ -91,6 +93,7 @@ move_behind:
 crt_end_bin:  .8byte _module_data_end
 
 run:
+#endif
 	mrs	x9, MPIDR_EL1              /* CPU ID */
 	and	x9, x9, #0xf               /* CPU id */
 	cmp	x9, #0                     /* CPU0 continues with bootstrap */

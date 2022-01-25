@@ -37,6 +37,11 @@ EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
 INCLUDE_MAKE_RULES   = $(SRC_DIR)/*/Make.rules
 BOOTSTRAP_LD_dep    := $(SRC_DIR)/ldscript.inc
 
+# Use PIE infrastructure where possible
+CAN_PIE_arm     := y
+CAN_PIE_arm64   := y
+BID_CAN_PIE      = $(CAN_PIE_$(ARCH))
+
 ifneq ($(BOOTSTRAP_CHECK_MD5),)
   REQUIRES_LIBS       += libbsd-lite
   DEFINES             += -DDO_CHECK_MD5
@@ -137,6 +142,7 @@ DEFINES         += -DPLATFORM_TYPE=\"$(PLATFORM_TYPE)\"
 DEFINES         += -DPLATFORM_TYPE_$(PLATFORM_TYPE)
 DEFINES         += -DPLATFORM_UART_NR=$(PLATFORM_UART_NR)
 DEFINES         += -DCPU_ABI=$(CPU_ABI)
+DEFINES         += $(if $(and $(CONFIG_BID_PIE),$(BID_CAN_PIE)),-DBOOTSTRAP_PIE=1)
 
 MOD_ADDR         = 0x02000000
 

@@ -21,6 +21,7 @@ void __main(unsigned long r0, unsigned long r1,
   r &= ~1UL;
   asm volatile("mcr p15, 0, %0, c1, c0, 0" : : "r" (r) : "memory");
 
+  _reloc_static_pie(); // Must be called before any global symbol is accessed!
   clear_bss();
 
   boot_args.r[0] = r0;

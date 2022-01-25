@@ -88,6 +88,8 @@ SECTIONS
   .dynsym  : { *(.dynsym)  }
   .dynstr  : { *(.dynstr)  }
   .rel.dyn : { *(.rel.dyn) }
+  .dynamic : { *(.dynamic) }
+  .got     : { *(.got.plt) *(.igot.plt) *(.got) *(.igot) }
 
 #if defined(PLACE_MODULES_AT_MODADDR)
   . = RAM_BASE + MODADDR;

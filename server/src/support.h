@@ -234,4 +234,10 @@ public:
 
 extern Memory *mem_manager;
 
+#ifdef BOOTSTRAP_PIE
+extern "C" void _reloc_static_pie(void); // defined by uclibc
+#else
+static inline void _reloc_static_pie() {}
+#endif
+
 #endif /* __BOOTSTRAP__SUPPORT_H__ */

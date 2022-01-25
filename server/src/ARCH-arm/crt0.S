@@ -16,7 +16,9 @@
 .globl _start
 _start:
 /* Some bootloaders like it this way, for others it won't harm */
-#ifdef MIMIC_A_VMLINUZ
+/* Only works on non-PIE builds because it leaves behind relocations in text
+ * segment. */
+#if defined(MIMIC_A_VMLINUZ) && !defined(BOOTSTRAP_PIE)
 	nop
 	nop
 	nop
@@ -31,11 +33,14 @@ _start:
 	.word _module_data_end
 10:
 #endif
+
 	/*
 	 * It might be the case that we're not run at the position where we
 	 * have been linked to. If this is the case we copy ourselves to the
-	 * position we're linked to.
+	 * position we're linked to. If L4Re is built with PIE support we
+	 * can run from anywhere and there is no need to copy ourselves around.
 	 */
+#ifndef BOOTSTRAP_PIE
 	adr	r4, run		/* Running version */
 	ldr	r5, .LCrun	/* supposed to be version */
 	cmp	r4, r5		/* If equal ... */
@@ -92,6 +97,7 @@ crt_end_bin:     .word 0
 crt_end_bin_lsb: .word _module_data_end;
 
 run:
+#endif
 	mov	r5, #0x1000
 	sub	r5, r5, #1                 /* r5 == 0xfff */
 	mrc	p15, 0, r6, c0, c0, 0      /* Main ID */
@@ -220,11 +226,13 @@ do_bootstrap:
 no_fpu:
 #endif
 
+	adr	r8, do_bootstrap
 	ldr	sp, .LCstack
+	add	sp, sp, r8
 	bl	__main
 1:	b	1b
 
-.LCstack: .word crt0_stack_high
+.LCstack: .word (crt0_stack_high - do_bootstrap)
 
 .section ".bss"
 

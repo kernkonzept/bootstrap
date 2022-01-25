@@ -12,6 +12,7 @@ void __main(unsigned long r0, unsigned long r1,
   // Ensure all is masked, irrespective of what our bootloader selected.
   asm("msr daif, %0" : : "r" (0x3c0));
 
+  _reloc_static_pie(); // Must be called before any global symbol is accessed!
   clear_bss();
 
   boot_args.r[0] = r0;
