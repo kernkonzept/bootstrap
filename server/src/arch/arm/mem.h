@@ -13,16 +13,20 @@ class Data
 public:
   static inline void clean();
   static inline void clean(unsigned long);
+  static inline void inv();
   static inline void inv(unsigned long);
+  static inline void flush();
   static inline void flush(unsigned long);
 
   static inline bool enabled();
+  static inline void enable();
   static inline void disable();
 };
 
 class Insn
 {
 public:
+  static inline void enable();
   static inline void disable();
 };
 
