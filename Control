@@ -1,2 +1,3 @@
-requires: drivers_uart drivers_of libc_minimal l4util cxx_io libfdt
+requires: drivers_uart drivers_of libc_minimal l4util cxx_io
+optional: libfdt
 Maintainer: adam@os.inf.tu-dresden.de warg@os.inf.tu-dresden.de

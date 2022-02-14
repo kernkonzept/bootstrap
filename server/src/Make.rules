@@ -16,7 +16,6 @@
 # - BOOTSTRAP_OUTPUT_DIR: Optional alternative output directory for all
 #                         images (and generated files), preferable some
 #                         tmpfs directory
-
 INTERNAL_CRT0       := y # the default is to use our internal crt0
 DEFAULT_RELOC_arm   := 0x01000000
 DEFAULT_RELOC_arm64 := 0x01000000
@@ -158,7 +157,10 @@ ifeq ($(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE)),)
 endif
 endif
 
-REQUIRES_LIBS   += libc_minimal cxx_base cxx_io libfdt
+REQUIRES_LIBS_arm   += libfdt
+REQUIRES_LIBS_arm64 += libfdt
+REQUIRES_LIBS       += libc_minimal cxx_base cxx_io
+
 DRV_LIBS-ppc32   = -ldrivers_of
 DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
 ifeq ($(INTERNAL_CRT0),y)
