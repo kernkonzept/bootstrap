@@ -27,6 +27,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef ARCH_amd64
+#include "cpu_info.h"
+#include "paging.h"
+#endif
+
 static char rsdp_tmp_buf[36];
 l4_uint32_t rsdp_start;
 l4_uint32_t rsdp_end;
@@ -538,6 +543,7 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
 #ifdef ARCH_amd64
   // remember this info to reserve the memory in setup_memory_map later
   _x86_pc_platform.boot32_info = boot32_info;
+  init_cpu_info();
 #else
   (void)boot32_info;
 #endif
