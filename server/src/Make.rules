@@ -456,8 +456,8 @@ SRC32_S		 = boot.S boot_idt.S ARCH-x86/mb2.S
 OBJ32		 = $(SRC32_S:.S=.o32) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32)
 CC32		 = $(filter-out -m64, $(CC)) -m32
 CXX32		 = $(filter-out -m64, $(CXX)) -m32
-CFLAGS32	 = $(filter-out -m64, $(CFLAGS) $(CFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
-CXXFLAGS32	 = $(filter-out -m64, $(CXXFLAGS) $(CXXFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
+CC32FLAGS	 = $(filter-out -m64, $(CFLAGS) $(CFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
+CXX32FLAGS	 = $(filter-out -m64, $(CXXFLAGS) $(CXXFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
 
 $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(ARCH)_$(CPU)/libc32.a: FORCE
 	$(VERBOSE)$(MAKE) O=$(OBJ_BASE) -C $(SRC_DIR)/ARCH-amd64/libc32
@@ -478,32 +478,32 @@ bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
 	$(VERBOSE)chmod -x bootstrap64.bin
 	$(VERBOSE)$(OBJCOPY) -B i386 -I binary -O elf32-i386 bootstrap64.bin $@
 
-%.o32: %.c $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
-	@$(COMP_MESSAGE)
-	$(VERBOSE)$(call create_dir,$(@D))
-	$(VERBOSE)$(CC32) -o $@ -c $(DEPFLAGS) \
-	  $(CPPFLAGS) $(CFLAGS32) $(call absfilename,$<)
-
-%.o32: %.cc $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
-	@$(COMP_MESSAGE)
-	$(VERBOSE)$(call create_dir,$(@D))
-	$(VERBOSE)$(CXX32) -o $@ -c $(DEPFLAGS) \
-	  $(CPPFLAGS) $(CXXFLAGS32) $(call absfilename,$<)
-
-%.o32: %.S $(SRC_DIR)/Makefile $(SRC_DIR)/Make.rules
-	@$(COMP_MESSAGE)
-	$(VERBOSE)$(call create_dir,$(@D))
-	$(VERBOSE)$(CC32) -o $@ -c $(DEPFLAGS) \
-	  $(CPPFLAGS) $(CFLAGS32) $(call absfilename,$<)
-
 clean cleanall::
 	$(VERBOSE)PWD=$(call absfilename,$(SRC_DIR)/ARCH-amd64/libc32) \
 	  $(MAKE) -C $(SRC_DIR)/ARCH-amd64/libc32 $@
 
--include $(foreach file,$(OBJ32), $(dir $(file)).$(notdir $(file)).d)
 else
 bootstrap: $(BOOTSTRAP_ELF_NAME)
 	$(VERBOSE)$(LN) -f $^ $@
 endif
 
 INSTALL_TARGET := $(if $(od),,$(INSTALL_FILES))
+
+ifeq ($(ARCH),amd64)
+DEPS += $(foreach file,$(OBJ32), $(call BID_dot_fname,$(file)).cmd)
+
+include $(L4DIR)/mk/prog.mk
+
+BID_CC32_COMPILER = CC32
+BID_CXX32_COMPILER = CXX32
+
+$(eval $(call BID_MAKE_RULE_template,%.o32,%.c,CC32))
+$(eval $(call BID_MAKE_RULE_template,%.o32,%.cc,CXX32))
+$(eval $(call BID_MAKE_RULE_template,%.o32,%.S,CC32))
+
+$(foreach svar,C CC S,\
+  $(foreach src,$(SRC32_$(svar)),\
+    $(eval $(call make_per_obj_vars,bootstrap32.elf,$(strip $(call gen_SRC_$(svar)_obj,$(src),))32,$(src))) \
+  ) \
+)
+endif
