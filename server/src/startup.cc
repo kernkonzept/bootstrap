@@ -670,9 +670,6 @@ load_elf_module(Boot_modules::Module const &mod, char const *n)
 void
 startup(char const *cmdline)
 {
-  unsigned presetmem_value = 0;
-  bool presetmem = false;
-
   if (!cmdline || !*cmdline)
     cmdline = builtin_cmdline;
 
@@ -739,6 +736,9 @@ startup(char const *cmdline)
     }
 
   _mod_addr = l4_round_page(_mod_addr);
+
+  unsigned presetmem_value = 0;
+  bool presetmem = false;
 
   if (char const *s = check_arg(cmdline, "-presetmem="))
     {
