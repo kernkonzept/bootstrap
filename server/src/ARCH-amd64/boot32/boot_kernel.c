@@ -12,7 +12,7 @@
 
 #include <l4/util/mb_info.h>
 #include "boot_cpu.h"
-#include "boot_paging.h"
+#include "paging.h"
 #include "load_elf.h"
 #include "support.h"
 

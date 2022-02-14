@@ -14,58 +14,12 @@
 
 #include "types.h"
 #include "boot_cpu.h"
-#include "boot_paging.h"
+#include "cpu_info.h"
+#include "paging.h"
 #include "support.h"
 
 
 unsigned  KERNEL_CS_64		= 0x20; // XXX
-
-enum
-{
-  PML4ESHIFT		= 38,
-  PML4EMASK		= 0x1ff,
-  PDPESHIFT		= 30,
-  PDPEMASK		= 0x1ff,
-  PDESHIFT		= 21,
-  PDEMASK		= 0x1ff,
-  PTESHIFT		= 12,
-  PTEMASK		= 0x1ff,
-
-  INTEL_PTE_VALID	= 0x0000000000000001LL,
-  INTEL_PTE_WRITE	= 0x0000000000000002LL,
-  INTEL_PTE_USER	= 0x0000000000000004LL,
-  INTEL_PTE_WTHRU	= 0x00000008,
-  INTEL_PTE_NCACHE      = 0x00000010,
-  INTEL_PTE_REF		= 0x00000020,
-  INTEL_PTE_MOD		= 0x00000040,
-  INTEL_PTE_GLOBAL	= 0x00000100,
-  INTEL_PTE_AVAIL	= 0x00000e00,
-  INTEL_PTE_PFN		= 0x000ffffffffff000LL,
-
-  INTEL_PDE_VALID	= 0x0000000000000001LL,
-  INTEL_PDE_WRITE	= 0x0000000000000002LL,
-  INTEL_PDE_USER	= 0x0000000000000004LL,
-  INTEL_PDE_WTHRU	= 0x00000008,
-  INTEL_PDE_NCACHE      = 0x00000010,
-  INTEL_PDE_REF		= 0x00000020,
-  INTEL_PDE_MOD		= 0x00000040,
-  INTEL_PDE_SUPERPAGE	= 0x0000000000000080LL,
-  INTEL_PDE_GLOBAL	= 0x00000100,
-  INTEL_PDE_AVAIL	= 0x00000e00,
-  INTEL_PDE_PFN		= 0x000ffffffffff000LL,
-
-  INTEL_PDPE_VALID	= 0x0000000000000001LL,
-  INTEL_PDPE_WRITE	= 0x0000000000000002LL,
-  INTEL_PDPE_USER	= 0x0000000000000004LL,
-  INTEL_PDPE_PFN	= 0x000ffffffffff000LL,
-
-  INTEL_PML4E_VALID	= 0x0000000000000001LL,
-  INTEL_PML4E_WRITE	= 0x0000000000000002LL,
-  INTEL_PML4E_USER	= 0x0000000000000004LL,
-  INTEL_PML4E_PFN	= 0x000ffffffffff000LL,
-
-  CPUF_4MB_PAGES	= 0x00000008,
-};
 
 // enum of 32-bit size members
 enum
@@ -157,8 +111,6 @@ struct trap_state
   l4_uint32_t eip, cs, eflags, esp, ss;
 };
 
-static l4_uint32_t      cpu_feature_flags_01_ecx;
-static l4_uint32_t      cpu_feature_flags_01_edx;
 static l4_uint32_t      base_pml4_pa;
 static struct x86_tss   base_tss;
 static struct x86_desc  base_gdt[GDTSZ];
@@ -179,18 +131,6 @@ static struct x86_tss dbf_tss =
     KERNEL_DS/*ds*/, KERNEL_DS/*fs*/, KERNEL_DS/*gs*/,
     0/*ldt*/, 0/*trace_trap*/, 0x8000/*io_bit_map_offset*/
   };
-
-static inline l4_uint64_t* find_pml4e(l4_uint32_t pml4_pa, l4_uint64_t la)
-{ return (&((l4_uint64_t*)pml4_pa)[(la >> PML4ESHIFT) & PML4EMASK]); }
-
-static inline l4_uint64_t* find_pdpe(l4_uint32_t pdp_pa, l4_uint64_t la)
-{ return (&((l4_uint64_t*)pdp_pa)[(la >> PDPESHIFT) & PDPEMASK]); }
-
-static inline l4_uint64_t* find_pde(l4_uint32_t pdir_pa, l4_uint64_t la)
-{ return (&((l4_uint64_t*)pdir_pa)[(la >> PDESHIFT) & PDEMASK]); }
-
-static inline l4_uint64_t* find_pte(l4_uint32_t ptab_pa, l4_uint64_t la)
-{ return (&((l4_uint64_t*)ptab_pa)[(la >> PTESHIFT) & PTEMASK]); }
 
 static inline l4_uint32_t get_eflags(void)
 { l4_uint32_t efl; asm volatile("pushf ; popl %0" : "=r" (efl)); return efl; }
@@ -311,20 +251,7 @@ cpuid(void)
       set_eflags(orig_eflags ^ EFL_ID);
       if ((get_eflags() ^ orig_eflags) & EFL_ID)
 	{
-	  int highest_val, dummy;
-	  asm volatile("cpuid"
-			: "=a" (highest_val)
-			: "a" (0) : "ebx", "ecx", "edx");
-
-	  if (highest_val >= 1)
-	    {
-	      asm volatile("cpuid"
-		           : "=a" (dummy),
-                             "=c" (cpu_feature_flags_01_ecx),
-                             "=d" (cpu_feature_flags_01_edx)
-			   : "a" (1)
-			   : "ebx");
-	    }
+          init_cpu_info();
 	}
     }
 
@@ -345,7 +272,7 @@ sse_enable(void)
    * So it seem that CPUID.01H/EDX.FXSR is sufficient to signal the presence of
    * CR4.OSFXSR while CPUID.01H/EDX.SSE is required to set this bit.
    */
-  if (cpu_feature_flags_01_edx & (1 << 25))
+  if (cpu_info.feature_flags & (1 << 25))
     set_cr4(get_cr4() | CR4_OSFXSR);
 }
 
@@ -456,7 +383,7 @@ base_cpu_setup(void)
 
 struct boot32_info_t boot32_info;
 
-static void
+void
 ptab_alloc(l4_uint32_t *out_ptab_pa)
 {
   static char pool[6 << 12] __attribute__((aligned(4096)));
@@ -479,117 +406,13 @@ ptab_alloc(l4_uint32_t *out_ptab_pa)
   pdirs += PAGE_SIZE;
 }
 
-static void
-pdir_map_range(l4_uint32_t pml4_pa, l4_uint64_t la, l4_uint64_t pa,
-               l4_uint64_t size, l4_uint32_t mapping_bits)
-{
-  assert(size);
-  assert(la+size-1 > la); // avoid 4GB wrap around
-
-  while (size > 0)
-    {
-      l4_uint64_t *pml4e = find_pml4e(pml4_pa, la);
-
-      /* Create new pml4e with corresponding pdp (page directory pointer)
-       * if no valid entry exists. */
-      if (!(*pml4e & INTEL_PML4E_VALID))
-	{
-	  l4_uint32_t pdp_pa;
-
-	  /* Allocate new page for pdp. */
-	  ptab_alloc(&pdp_pa);
-
-	  /* Set the pml4 to point to it. */
-	  *pml4e = (pdp_pa & INTEL_PML4E_PFN)
-	    | INTEL_PML4E_VALID | INTEL_PML4E_USER | INTEL_PML4E_WRITE;
-	}
-
-      do
-	{
-	  l4_uint64_t *pdpe = find_pdpe(*pml4e & INTEL_PML4E_PFN, la);
-
-	  /* Create new pdpe with corresponding pd (page directory)
-	   * if no valid entry exists. */
-	  if (!(*pdpe & INTEL_PDPE_VALID))
-	    {
-	      l4_uint32_t pd_pa;
-
-	      /* Allocate new page for pd. */
-	      ptab_alloc(&pd_pa);
-
-	      /* Set the pdpe to point to it. */
-	      *pdpe = (pd_pa & INTEL_PDPE_PFN)
-		| INTEL_PDPE_VALID | INTEL_PDPE_USER | INTEL_PDPE_WRITE;
-	    }
-
-	  do
-	    {
-	      l4_uint64_t *pde = find_pde(*pdpe & INTEL_PDPE_PFN, la);
-
-	      /* Use a 2MB page if we can.  */
-	      if (superpage_aligned(la) && superpage_aligned(pa)
-		  && (size >= SUPERPAGE_SIZE))
-		  //&& (cpu_feature_flags_01_edx & CPUF_4MB_PAGES)) XXX
-		{
-		  /* a failed assertion here may indicate a memory wrap
-		     around problem */
-		  assert(!(*pde & INTEL_PDE_VALID));
-		  /* XXX what if an empty page table exists
-		     from previous finer-granularity mappings? */
-		  *pde = pa | mapping_bits | INTEL_PDE_SUPERPAGE;
-		  la += SUPERPAGE_SIZE;
-		  pa += SUPERPAGE_SIZE;
-		  size -= SUPERPAGE_SIZE;
-		}
-	      else
-		{
-		  /* Find the page table, creating one if necessary.  */
-		  if (!(*pde & INTEL_PDE_VALID))
-		    {
-		      l4_uint32_t ptab_pa;
-
-		      /* Allocate a new page table.  */
-		      ptab_alloc(&ptab_pa);
-
-		      /* Set the pde to point to it.  */
-		      *pde = (ptab_pa & INTEL_PTE_PFN)
-			| INTEL_PDE_VALID | INTEL_PDE_USER | INTEL_PDE_WRITE;
-		    }
-		  assert(!(*pde & INTEL_PDE_SUPERPAGE));
-
-
-		  /* Use normal 4KB page mappings.  */
-		  do
-		    {
-		      l4_uint64_t *pte = find_pte(*pde & INTEL_PDE_PFN, la);
-		      assert(!(*pte & INTEL_PTE_VALID));
-
-		      /* Insert the mapping.  */
-		      *pte = pa | mapping_bits;
-
-		      /* Advance to the next page.  */
-		      //pte++;
-		      la += PAGE_SIZE;
-		      pa += PAGE_SIZE;
-		      size -= PAGE_SIZE;
-		    }
-		  while ((size > 0) && !superpage_aligned(la));
-		}
-	    }
-	  while ((size > 0) && !pd_aligned(la));
-	}
-      while ((size > 0) && !pdp_aligned(la));
-    }
-}
-
 void
 base_paging_init(l4_uint64_t phys_mem_max)
 {
   ptab_alloc(&base_pml4_pa);
 
   // Establish one-to-one mappings for the physical memory
-  pdir_map_range(base_pml4_pa, 0, 0, phys_mem_max,
-		 INTEL_PDE_VALID | INTEL_PDE_WRITE | INTEL_PDE_USER);
+  ptab_map_range(base_pml4_pa, 0, 0, phys_mem_max, PTAB_WRITE | PTAB_USER);
 
   //dbf_tss.cr3 = base_pml4_pa;
 
