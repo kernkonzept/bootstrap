@@ -796,6 +796,8 @@ startup(char const *cmdline)
   /* setup kernel PART TWO (special kernel initialization) */
   void *l4i = find_kip(mods->module(idx_kern));
 
+  plat->late_setup();
+
   regions.optimize();
   regions.dump();
 

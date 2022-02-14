@@ -157,6 +157,13 @@ public:
 
   virtual bool arm_switch_to_hyp() { return false; }
 
+  /**
+   * Invoked late during startup, when the memory map is already set up and all
+   * modules are loaded or moved. This allows allocating memory without the risk
+   * of conflicts.
+   */
+  virtual void late_setup() {};
+
   virtual void boot_kernel(unsigned long entry)
   {
     typedef void (*func)(void);
