@@ -73,7 +73,7 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   if (!mem_upper)
     mem_upper = 1024 * (1024 + mbi->mem_upper);
 
-  printf("Highest physical memory address found: %llx (%llxMiB)\n",
+  printf("Highest physical memory address found: 0x%llx (%lluMiB)\n",
          mem_upper, mem_upper >> 20);
   // our memory available for our initial identity mapped page table is
   // enough to cover 4GB of physical memory that must contain anything that
