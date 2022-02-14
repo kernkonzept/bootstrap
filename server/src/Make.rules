@@ -423,7 +423,7 @@ CPPFLAGS_startup.cc += -DBUILD_DATE="\"$(shell LC_ALL=C date)\"" -DBUILD_NR=\"$(
 clean::
 	$(VERBOSE)$(RM) mod.make.inc mod*.bin mbi_modules.bin $(LDSCRIPT)
 	$(VERBOSE)$(RM) mod*.bin
-	$(VERBOSE)$(RM) $(SRC32_C:.c=.o32) $(SRC32_S:.S=.o32)
+	$(VERBOSE)$(RM) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32) $(SRC32_S:.S=.o32)
 	$(VERBOSE)$(RM) .redo-change-tracker
 
 cleanall::
@@ -444,6 +444,7 @@ $(od)boot%.efi: $(od)$(BOOTSTRAP_ELF_NAME)
 ifeq ($(ARCH),amd64)
 
 vpath %.c              $(SRC_DIR)/ARCH-amd64
+vpath %.cc             $(SRC_DIR)/ARCH-amd64
 vpath %.S              $(SRC_DIR)/ARCH-amd64
 vpath %.c              $(SRC_DIR)/ARCH-amd64/boot32
 vpath %.S              $(SRC_DIR)/ARCH-amd64/boot32
