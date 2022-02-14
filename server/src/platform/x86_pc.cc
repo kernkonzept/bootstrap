@@ -38,6 +38,8 @@ l4_uint32_t rsdp_end;
 
 enum { Verbose_mbi = 1 };
 
+static void pci_quirks();
+
 namespace {
 
 struct Platform_x86_1 : Platform_x86
@@ -125,6 +127,11 @@ struct Platform_x86_1 : Platform_x86
       }
 
     regions->add(Region::n(0, 0x1000, ".BIOS", Region::Arch, 0));
+  }
+
+  void late_setup() override
+  {
+    pci_quirks();
   }
 };
 
@@ -472,6 +479,17 @@ do_handoff_cap(L4::Io_register_block const *base, unsigned cap)
 static void
 xhci_handoff(Pci_iterator const &dev)
 {
+  enum : l4_uint32_t
+  {
+    PCI_BAR_MEM_TYPE_MASK = 3 << 1,
+    PCI_BAR_MEM_TYPE_64   = 2 << 1,
+    PCI_BAR_MEM_ATTR_MASK = 0xf,
+
+    HC_MAX_CAPLENGTH             = 0x100,
+    HC_CAP_ID_MASK               = 0xff,
+    HC_CAP_ID_USB_LEGACY_SUPPORT = 1,
+  };
+
   unsigned v = dev.pci_read(0x04, 32);
 
   // no mmio enabled -> skip
@@ -494,14 +512,46 @@ xhci_handoff(Pci_iterator const &dev)
   if (v & 1)
     return;
 
-  L4::Io_register_block_mmio base(v & ~0xfUL);
+  l4_uint64_t bar = v & ~PCI_BAR_MEM_ATTR_MASK;
+  // 64-bit BAR?
+  if ((v & PCI_BAR_MEM_TYPE_MASK) == PCI_BAR_MEM_TYPE_64)
+    {
+      // read BAR[1] and set it as the upper 32-bits of the 64-bit address
+      bar |= ((l4_uint64_t)dev.pci_read(0x14, 32)) << 32;
+    }
+
+#ifdef ARCH_amd64
+  /*
+   * Ensure that the BAR is mapped into our linear address space.
+   *
+   * Mapping a single page is sufficient, because the CAPLENGTH property of the
+   * XHCI controller is an 8-byte value, i.e the XHCI capability registers can
+   * at most span 256 byte, so a single page is enough to cover all of them.
+   * And for XHCI handoff all we care for are the capability registers!
+   *
+   * The XHCI capability register set starts at offset zero from the base
+   * address. According to the PCI specification base addresses must be
+   * naturally aligned, so if we truncate the base address to a page boundary
+   * and map only a single page, we can be sure that we mapped all memory we
+   * want to access.
+   */
+  ptab_map_range(_x86_pc_platform.boot32_info->ptab64_addr, trunc_page(bar),
+                 trunc_page(bar), PAGE_SIZE, PTAB_WRITE | PTAB_USER);
+#else
+  // Skip if we cannot access the BAR. The cast to "unsigned long" is required
+  // as Io_register_block_mmio takes an "unsigned long".
+  if ((bar + HC_MAX_CAPLENGTH) != (unsigned long)(bar + HC_MAX_CAPLENGTH))
+    return;
+#endif
+
+  L4::Io_register_block_mmio base(bar);
 
   // Find the Legacy Support Capability register
   for (int cap = xhci_first_cap(&base); cap != 0;
        cap = xhci_next_cap(&base, cap))
     {
       l4_uint32_t v = base.read<l4_uint32_t>(cap);
-      if ((v & 0xff) == 1)
+      if ((v & HC_CAP_ID_MASK) == HC_CAP_ID_USB_LEGACY_SUPPORT)
         {
           do_handoff_cap(&base, cap);
           break;
@@ -553,7 +603,6 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
   _x86_pc_platform.mbi = mbi;
   cmdline = (char const *)(l4_addr_t)mbi->cmdline;
   _x86_pc_platform.setup_uart(cmdline);
-  pci_quirks();
 
   startup(cmdline);
 }
