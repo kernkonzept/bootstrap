@@ -76,7 +76,8 @@ init_kip(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
           sub_type = c->sub_type();
           break;
         }
-      (md++)->set(c->begin(), c->end() - 1, type, sub_type);
+      (md++)->set(c->begin(), c->end() - 1, type, sub_type, false,
+                  c->eager());
     }
 
   l4i->user_ptr = reinterpret_cast<unsigned long>(mbi);

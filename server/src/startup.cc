@@ -960,7 +960,8 @@ l4_exec_add_region(Elf_handle *handle,
   // in order to allow merging regions with the same subtype.
   Region n = Region::start_size(mem_addr + info.offset, mem_size,
                                 info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
-                                info.type, info.type == Region::Root ? rights : 0);
+                                info.type, info.type == Region::Root ? rights : 0,
+                                info.type != Region::Kernel);
 
   if (Region *r = find_region_overlap(n))
     {

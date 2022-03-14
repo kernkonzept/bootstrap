@@ -43,7 +43,7 @@ public:
 
   /** Create a 1byte region at begin, basically for lookups */
   Region(unsigned long long begin)
-  : _begin(begin), _end(begin), _name(0), _t(No_mem), _s(0)
+  : _begin(begin), _end(begin), _name(0), _t(No_mem), _s(0), _eager(false)
   {}
 
   /** Create a 1byte region for address \a ptr.
@@ -51,7 +51,8 @@ public:
    */
   Region(void const *ptr)
   : _begin(reinterpret_cast<l4_addr_t>(ptr)),
-    _end(reinterpret_cast<l4_addr_t>(ptr)), _name(0), _t(No_mem), _s(0)
+    _end(reinterpret_cast<l4_addr_t>(ptr)), _name(0), _t(No_mem), _s(0),
+    _eager(false)
   {}
 
   /** Create a fully fledged region.
@@ -60,10 +61,12 @@ public:
    * @param name The name for the region (usually the binary name).
    * @param t The type of the region.
    * @param sub The subtype of the region.
+   * @param eager Mark region as eagerly mapped by kernel
    */
   Region(unsigned long long begin, unsigned long long end,
-         char const *name = 0, Type t = No_mem, short sub = 0)
-  : _begin(begin), _end(end), _name(name), _t(t), _s(sub)
+         char const *name = 0, Type t = No_mem, short sub = 0,
+         bool eager = false)
+  : _begin(begin), _end(end), _name(name), _t(t), _s(sub), _eager(eager)
   {
     assert(_begin <= _end);
   }
@@ -75,7 +78,8 @@ public:
    * @param end the end address (inclusive) of the new region
    */
   Region(Region const &other, unsigned long long begin, unsigned long long end)
-  : _begin(begin), _end(end), _name(other._name), _t(other._t), _s(other._s)
+  : _begin(begin), _end(end), _name(other._name), _t(other._t), _s(other._s),
+    _eager(other._eager)
   {
     assert(_begin <= _end);
   }
@@ -87,13 +91,14 @@ public:
    * @param name the name of the region
    * @param t the type of the region
    * @param sub the subtype of the region
+   * @param eager Mark region as eagerly mapped by kernel
    */
   static Region start_size(unsigned long long begin, unsigned long size,
                            char const *name = 0, Type t = No_mem,
-                           short sub = 0)
+                           short sub = 0, bool eager = false)
   {
     assert(size > 0);
-    return Region(begin, begin + size - 1, name, t, sub);
+    return Region(begin, begin + size - 1, name, t, sub, eager);
   }
 
   /**
@@ -103,11 +108,15 @@ public:
    * @param name the name of the region
    * @param t the type of the region
    * @param sub the subtype of the region
+   * @param eager Mark region as eagerly mapped by kernel
    */
   static Region start_size(void const *begin, unsigned long size,
                            char const *name = 0, Type t = No_mem,
-                           short sub = 0)
-  { return start_size(reinterpret_cast<l4_addr_t>(begin), size, name, t, sub); }
+                           short sub = 0, bool eager = false)
+  {
+    return start_size(reinterpret_cast<l4_addr_t>(begin), size, name, t, sub,
+                      eager);
+  }
 
   /**
    * Create a region for the given object.
@@ -116,12 +125,13 @@ public:
    * @param name the name of the region
    * @param t the type of theregion
    * @param sub the subtype of the region
+   * @param eager Mark region as eagerly mapped by kernel
    */
   template< typename T >
   static Region from_ptr(T const *begin, char const *name = 0,
-                         Type t = No_mem, short sub = 0)
+                         Type t = No_mem, short sub = 0, bool eager = false)
   { return Region::start_size(reinterpret_cast<l4_addr_t>(begin), sizeof(T),
-                              name, t, sub); }
+                              name, t, sub, eager); }
 
   /**
    * Create a region for an array of objects.
@@ -131,13 +141,14 @@ public:
    * @param name the name of the region
    * @param t the type of the region
    * @param sub the subtype of the region
+   * @param eager Mark region as eagerly mapped by kernel
    */
   template< typename T >
   static Region array(T const *begin, unsigned long size, char const *name = 0,
-                      Type t = No_mem, short sub = 0)
+                      Type t = No_mem, short sub = 0, bool eager = false)
   {
     return Region::start_size(reinterpret_cast<l4_addr_t>(begin),
-                              sizeof(T) * size, name, t, sub);
+                              sizeof(T) * size, name, t, sub, eager);
   }
 
   /** Get the start address. */
@@ -206,10 +217,14 @@ public:
   /** Check if the region is invalid */
   bool invalid() const { return begin()==0 && end()==0; }
 
+  /** Get eager mapping flag. */
+  bool eager() const { return _eager; }
+
 private:
   unsigned long long _begin, _end;
   char const *_name;
-  short _t, _s;
+  unsigned char _t, _s;
+  bool _eager;
 };
 
 
