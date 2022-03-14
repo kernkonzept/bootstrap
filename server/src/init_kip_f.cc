@@ -80,7 +80,8 @@ init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
           sub_type = c->sub_type();
           break;
         }
-      (md++)->set(c->begin(), c->end() - 1, type, sub_type);
+      (md++)->set(c->begin(), c->end() - 1, type, sub_type, false,
+                  c->eager());
     }
 
   l4i->user_ptr = (unsigned long)mbi;

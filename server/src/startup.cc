@@ -1028,7 +1028,8 @@ l4_exec_add_region(Elf_handle *handle,
   Region n = Region::n(mem_addr + info.offset,
                        mem_addr + mem_size + info.offset,
                        info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
-                       info.type, info.type == Region::Root ? rights : 0);
+                       info.type, info.type == Region::Root ? rights : 0,
+                       info.type != Region::Kernel);
 
   for (Region *r = regions.begin(); r != regions.end(); ++r)
     if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg)
