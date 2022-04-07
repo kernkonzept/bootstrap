@@ -108,9 +108,6 @@ CXXFLAGS_arm64  += -mstrict-align
 CFLAGS_arm      += -mno-unaligned-access
 CXXFLAGS_arm    += -mno-unaligned-access
 
-DEFINES_arm     += -DUSE_DT
-DEFINES_arm64   += -DUSE_DT
-
 SRC_C           += memcpy_aligned.c
 CFLAGS_memcpy_aligned.c = -ffreestanding
 
@@ -120,8 +117,8 @@ SRC_CC		+= exec.cc module.cc region.cc startup.cc init_kip_f.cc \
 
 SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc base_critical.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc
-SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc dt.cc
-SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc dt.cc
+SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc
+SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc
 SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/efi.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc
@@ -157,9 +154,7 @@ ifeq ($(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE)),)
 endif
 endif
 
-REQUIRES_LIBS_arm   += libfdt
-REQUIRES_LIBS_arm64 += libfdt
-REQUIRES_LIBS       += libc_minimal cxx_base cxx_io
+REQUIRES_LIBS   += libc_minimal cxx_base cxx_io
 
 DRV_LIBS-ppc32   = -ldrivers_of
 DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
@@ -168,6 +163,11 @@ LDSCRIPT	 = bootstrap.efi.ld
 else
 LDSCRIPT	 = bootstrap.ld
 endif
+
+# optional libfdt dependency
+DEFINES-$(PLATFORM_USE_DT-$(ARCH)-$(PLATFORM_TYPE))       += -DUSE_DT
+SRC_CC-$(PLATFORM_USE_DT-$(ARCH)-$(PLATFORM_TYPE))        += dt.cc
+REQUIRES_LIBS-$(PLATFORM_USE_DT-$(ARCH)-$(PLATFORM_TYPE)) += libfdt
 
 vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-$(ARCH)
 

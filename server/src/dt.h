@@ -391,6 +391,7 @@ protected:
 class Dt
 {
 public:
+  static void init(unsigned long) {}
   static bool have_fdt() { return false; }
   static const void *fdt() { return nullptr; }
   static unsigned fdt_size() { return 0; }
