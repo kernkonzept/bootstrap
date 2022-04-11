@@ -9,6 +9,13 @@
  */
 /* -*- c -*- */
 
+#ifdef CRT0_PLATFORM_EARLY_INIT
+#include CRT0_PLATFORM_EARLY_INIT
+#else
+.macro crt0_platform_early_init
+.endm
+#endif
+
 #define MIMIC_A_VMLINUZ
 
 .section .text.init,#alloc,#execinstr
@@ -44,6 +51,8 @@ _start:
 	.word _module_data_end
 10:
 #endif
+
+	crt0_platform_early_init
 
 	/*
 	 * It might be the case that we're not run at the position where we
