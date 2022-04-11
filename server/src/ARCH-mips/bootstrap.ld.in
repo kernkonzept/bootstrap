@@ -73,7 +73,7 @@ SECTIONS
   .bss :
   {
    *(.dynbss)
-   *(.bss .gnu.linkonce.b.*)
+   *(.bss .bss.* .gnu.linkonce.b.*)
    *(COMMON)
   } : common
   _bss_end = .;

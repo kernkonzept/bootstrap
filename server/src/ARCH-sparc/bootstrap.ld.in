@@ -38,7 +38,7 @@ SECTIONS
   _bss_start = .;
   .bss :
   {
-   *(.bss)
+   *(.bss .bss.*)
    *(COMMON)
    *(.bss_memmap)
   } : common
