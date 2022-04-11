@@ -276,7 +276,7 @@ static
 unsigned long long
 get_memory_max_address()
 {
-#ifndef __LP64__
+#if !defined(__LP64__) && defined(CONFIG_MMU)
   /* Limit memory, we cannot really handle more right now. In fact, the
    * problem is roottask. It maps as many superpages/pages as it gets.
    * After that, the remaining pages are mapped using l4sigma0_map_anypage()
