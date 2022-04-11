@@ -11,6 +11,13 @@
 
 #include <l4/bid_config.h>
 
+#ifdef CRT0_PLATFORM_EARLY_INIT
+#include CRT0_PLATFORM_EARLY_INIT
+#else
+.macro crt0_platform_early_init
+.endm
+#endif
+
 #define MIMIC_A_VMLINUZ
 
 .section .text.init,"ax"
@@ -51,6 +58,8 @@ _start:
 	mrs r4, cpsr
 	orr r4, #0xc0
 	msr cpsr_c, r4
+
+	crt0_platform_early_init
 
 	/*
 	 * It might be the case that we're not run at the position where we
