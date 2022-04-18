@@ -16,6 +16,7 @@
 #include <l4/sys/kip.h>
 #include <l4/util/l4_macros.h>
 #include "panic.h"
+#include "assert.h"
 
 #include "macros.h"
 #include "init_kip.h"
@@ -40,6 +41,8 @@ init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
     panic("cannot load kernels other than Fiasco");
 
   Mem_desc *md = Mem_desc::first(_l4i);
+  assert((unsigned long)md - (unsigned long)l4i >= sizeof(*l4i));
+
   for (Region const* c = ram->begin(); c != ram->end(); ++c)
     (md++)->set(c->begin(), c->end(), Mem_desc::Conventional);
 
