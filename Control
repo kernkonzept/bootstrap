@@ -1,3 +1,4 @@
 requires: drivers_uart drivers_of libc_minimal l4util cxx_io
 requires[arch(arm) || arch(arm64)]: libfdt
+optional: libefi
 Maintainer: adam@os.inf.tu-dresden.de warg@os.inf.tu-dresden.de
