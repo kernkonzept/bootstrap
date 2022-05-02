@@ -97,11 +97,6 @@ endif
 
 INTERNAL_CRT0 := $(strip $(INTERNAL_CRT0))
 
-CXXFLAGS_amd64  += -mno-sse
-CXXFLAGS_x86    += -mno-sse
-CFLAGS_amd64    += -mno-sse
-CFLAGS_x86      += -mno-sse
-
 CFLAGS_arm64    += -mstrict-align
 CXXFLAGS_arm64  += -mstrict-align
 CFLAGS_arm      += -mno-unaligned-access
