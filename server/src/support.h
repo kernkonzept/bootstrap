@@ -144,6 +144,8 @@ public:
       ;
   }
 
+  virtual bool have_a_dt() { return false; }
+
 #if defined(ARCH_arm) || defined(ARCH_arm64)
   static void reboot_psci()
   {
@@ -228,6 +230,7 @@ public:
   Boot_modules *modules() { return this; }
   void setup_memory_map();
   virtual void post_memory_hook() {}
+  virtual bool have_a_dt() { return true; }
 };
 #endif // USE_DT
 

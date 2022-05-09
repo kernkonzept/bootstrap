@@ -715,7 +715,8 @@ startup(char const *cmdline)
     print_cpu_info();
 
 #if defined(ARCH_arm) || defined(ARCH_arm64)
-  dt.init(boot_args.r[0]);
+  if (plat->have_a_dt())
+    dt.init(boot_args.r[0]);
 #endif
 
   regions.init(__regs, "regions");
