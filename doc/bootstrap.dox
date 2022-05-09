@@ -1,9 +1,9 @@
 // vim: set ft=c: -*- mode: C; -*-
 /**
- * \page bootstrap Bootstrap, the L4 kernel bootstrapper
+ * \page bootstrap Bootstrap, the %L4 kernel bootstrapper
  *
- * \subpage Bootstrap Command Line Options
- * ---------------------------------------
+ * Bootstrap Command Line Options
+ * ------------------------------
  *
  * `bootstrap` and the kernel can be configured through command line switches.
  * `bootstrap` is responsible for parsing both command lines: `bootstrap`
