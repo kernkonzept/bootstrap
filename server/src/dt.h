@@ -8,6 +8,7 @@
 
 #ifdef USE_DT
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #include <l4/cxx/type_traits>
@@ -264,25 +265,38 @@ public:
           return;
     }
 
-    template<typename... Args>
-    void warn(char const *format, Args &&... args) const
+    __attribute__ ((format (printf, 2, 3)))
+    void warn(char const *format, ...) const
+    {
+      va_list args;
+      va_start(args, format);
+      log(format, args);
+      va_end(args);
+    }
+
+    __attribute__ ((format (printf, 2, 3)))
+    void info(char const *format, ...) const
+    {
+      if (!Verbose_dt)
+        return;
+
+      va_list args;
+      va_start(args, format);
+      log(format, args);
+      va_end(args);
+    }
+
+  private:
+    void log(char const *format, va_list args) const
     {
       if (auto name = get_name())
         printf("DT[%s]: ", name);
       else
         printf("DT[@%d]: ", _off);
 
-      printf(format, cxx::forward<Args>(args)...);
+      vprintf(format, args);
     }
 
-    template<typename... Args>
-    void info(char const *format, Args &&... args) const
-    {
-      if (Verbose_dt)
-        warn(format, cxx::forward<Args>(args)...);
-    }
-
-  private:
     using Reg_array_prop = Array_prop<2>;
 
     bool translate_reg(Node parent,
@@ -349,21 +363,34 @@ public:
 
   void dump();
 
-  template<typename... Args>
-  static void warn(char const *format, Args &&... args)
+  __attribute__ ((format (printf, 1, 2)))
+  static void warn(char const *format, ...)
   {
-    printf("DT: ");
-    printf(format, cxx::forward<Args>(args)...);
+    va_list args;
+    va_start(args, format);
+    log(format, args);
+    va_end(args);
   }
 
-  template<typename... Args>
-  static void info(char const *format, Args &&... args)
+  __attribute__ ((format (printf, 1, 2)))
+  static void info(char const *format, ...)
   {
-    if (Verbose_dt)
-      warn(format, cxx::forward<Args>(args)...);
+    if (!Verbose_dt)
+      return;
+
+    va_list args;
+    va_start(args, format);
+    log(format, args);
+    va_end(args);
   }
 
 protected:
+  static void log(char const *format, va_list args)
+  {
+    printf("DT: ");
+    vprintf(format, args);
+  }
+
   template<typename R, typename CB, typename... Args>
   struct invoke_cb_t
   {
