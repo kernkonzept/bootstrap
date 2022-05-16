@@ -38,16 +38,12 @@ public:
 
   void setup_kernel_options(L4_kernel_options::Options *lko) override
   {
-#if defined(ARCH_arm64) // disabled on arm32 until assembler support lands
     // If we do not get an spin address from DT, all cores might start
     // at the same time and are caught by bootstrap
     extern l4_umword_t mp_launch_spin_addr;
     asm volatile("" : : : "memory");
     Barrier::dmb_cores();
     lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
-#else
-    (void)lko;
-#endif // defined(ARCH_arm64)
   }
 
 
