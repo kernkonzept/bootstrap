@@ -339,7 +339,7 @@ public:
       val = (val << 32) | fdt32_to_cpu(cells[i]);
 
     if (size * sizeof(fdt32_t) > sizeof(T))
-      warn("Cell size %lu larger than provided storage type %lu!\n",
+      warn("Cell size %zu larger than provided storage type %zu!\n",
            size * sizeof(fdt32_t), sizeof(T));
 
     return static_cast<T>(val);
