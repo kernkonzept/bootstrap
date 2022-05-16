@@ -102,9 +102,8 @@ CXXFLAGS_arm64  += -mstrict-align
 CFLAGS_arm      += -mno-unaligned-access
 CXXFLAGS_arm    += -mno-unaligned-access
 
-DEFINES-arm     += -DUSE_DT
-DEFINES-arm64   += -DUSE_DT
-DEFINES         += $(DEFINES-$(ARCH))
+DEFINES_arm     += -DUSE_DT
+DEFINES_arm64   += -DUSE_DT
 
 SRC_C           += memcpy_aligned.c
 CFLAGS_memcpy_aligned.c = -ffreestanding
@@ -123,7 +122,7 @@ SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 SRC_CC_ppc32    += ARCH-ppc32/init_kip_v2-arch.cc \
 		   ARCH-ppc32/reboot.cc ARCH-ppc32/head.cc
 SRC_CC_sparc	+= ARCH-sparc/reboot.cc ARCH-sparc/head.cc
-SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE)) $(SRC_CC_$(ARCH)-y)
+SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE))
 
 SRC_S-$(INTERNAL_CRT0) += ARCH-$(ARCH)/crt0.S
 SRC_S_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/cache.S
@@ -140,7 +139,6 @@ DEFINES         += -DCPU_ABI=$(CPU_ABI)
 
 MOD_ADDR         = 0x02000000
 
-SRC_S           += $(SRC_S_$(ARCH)-y)
 CPPFLAGS        += $(CPPFLAGS_$(ARCH)-$(PLATFORM_TYPE))
 CPPFLAGS        += $(BID_PKG_CONFIG_CFLAGS)
 
@@ -181,14 +179,12 @@ CXXFLAGS          += -fpie
 LDFLAGS_arm64     += -shared -Bsymbolic --defsym=EFI_SUBSYSTEM=0xa
 LDFLAGS_amd64     += -pie -Bsymbolic
 LDFLAGS_x86       += -pie -Bsymbolic
-LDFLAGS           += -z text $(LDFLAGS_$(ARCH))
+LDFLAGS           += -z text
 else
 LDFLAGS           += -static -Bstatic
 endif
 
-ifeq ($(ARCH),arm)
-CPPFLAGS         += -DSINGLE_SECTION
-endif
+CPPFLAGS_arm      += -DSINGLE_SECTION
 
 # convenience
 ifneq ($(E),)
