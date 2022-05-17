@@ -129,16 +129,6 @@ do_cpuid:
 
 /* CPU1+ wait for bootup */
 
-	// I-cache on
-	mrc p15, 0, r4, c1, c0, 0
-	orr r4, r4, #(1 << 12)
-	mcr p15, 0, r4, c1, c0, 0
-
-	// IRQs off, SVC
-	mrs r4, cpsr
-	orr r4, #0xd3
-	msr cpsr_c, r4
-
 #if defined(PLATFORM_TYPE_rv) || defined(PLATFORM_TYPE_rv_pbx) || \
     defined(PLATFORM_TYPE_rv_vexpress) || defined(PLATFORM_TYPE_rv_vexpress_a15)
 
@@ -203,8 +193,16 @@ do_cpuid:
 	.word	0x1f000100
 
 #else
-1:	.word 0xe320f003 /* wfi */
-	b	1b
+	adr     r1, do_bootstrap
+	ldr     r0, .LCspin
+	add     r0, r0, r1
+
+1:	dsb
+	ldr	r1, [r0]
+	cmp	r1, #0
+	bxne	r1
+	wfe
+	b       1b
 #endif
 
 do_bootstrap:
@@ -233,6 +231,7 @@ no_fpu:
 1:	b	1b
 
 .LCstack: .word (crt0_stack_high - do_bootstrap)
+.LCspin: .word (mp_launch_spin_addr - do_bootstrap)
 
 .section ".bss"
 
@@ -242,3 +241,7 @@ crt0_stack_low:
 	.space	8192
 	.global crt0_stack_high
 crt0_stack_high:
+
+	.global mp_launch_spin_addr
+mp_launch_spin_addr:
+	.space 4

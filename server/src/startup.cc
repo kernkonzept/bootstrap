@@ -913,6 +913,8 @@ startup(char const *cmdline)
 #if defined(ARCH_arm)
   if (major == 0x87)
     setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
+  extern l4_uint32_t mp_launch_spin_addr;
+  lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
 #endif
 #if defined(ARCH_arm64)
   setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
