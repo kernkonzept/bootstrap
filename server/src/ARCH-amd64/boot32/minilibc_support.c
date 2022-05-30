@@ -132,7 +132,7 @@ direct_cons_putchar(unsigned char c)
   switch (c)
     {
     case '\n':
-      memcpy(vidbase, vidbase+80*2, 80*2*24);
+      memmove(vidbase, vidbase+80*2, 80*2*24);
       memset(vidbase+80*2*24, 0, 80*2);
       /* fall through... */
     case '\r':
