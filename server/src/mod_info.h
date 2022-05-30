@@ -12,15 +12,20 @@
  *            2:   sigma0
  *            3:   roottask
  *            4-7: reserved
+ *
+ * Bits 16..23: Node bit mask (Node 0..7)
  */
 
-enum Mod_info_flags
+enum Mod_info_flags : unsigned long long
 {
   Mod_info_flag_mod_unspec    = 0,
   Mod_info_flag_mod_kernel    = 1,
   Mod_info_flag_mod_sigma0    = 2,
   Mod_info_flag_mod_roottask  = 3,
   Mod_info_flag_mod_mask      = 7 << 0,
+
+  Mod_info_flag_nodes_offset  = 16,
+  Mod_info_flag_nodes_mask    = 0xffULL << Mod_info_flag_nodes_offset,
 };
 
 enum Mod_header_flags

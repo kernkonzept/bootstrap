@@ -559,10 +559,12 @@ Boot_modules_image_mode::reserve()
 }
 
 int
-Boot_modules_image_mode::base_mod_idx(Mod_info_flags mod_info_mod_type)
+Boot_modules_image_mode::base_mod_idx(Mod_info_flags mod_info_mod_type,
+                                      unsigned node)
 {
   for (Mod_info const &m : mod_header->mods())
-    if ((m.flags() & Mod_info_flag_mod_mask) == mod_info_mod_type)
+    if ((m.flags() & Mod_info_flag_mod_mask) == mod_info_mod_type
+        && (m.flags() & Mod_info_flag_nodes_mask) & (1UL << (Mod_info_flag_nodes_offset + node)))
       return &m - mod_header->mods().begin();
 
   return -1;
@@ -863,7 +865,8 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
 
   // Round up to ensure mbi is on its own page
   unsigned long mbi_size_full = l4_round_page(mbi_size);
-  auto *mbi = (l4util_l4mod_info *)mem_manager->find_free_ram(mbi_size_full);
+  auto *mbi = (l4util_l4mod_info *)mem_manager->find_free_ram(mbi_size_full,
+    0, ~0UL, L4_PAGESHIFT, 1U << Platform_base::platform->current_node());
   if (!mbi)
     panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size_full);
 

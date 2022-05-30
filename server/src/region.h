@@ -38,7 +38,8 @@ public:
 
   /** Create a 1byte region at begin, basically for lookups */
   Region(unsigned long long begin)
-  : _begin(begin), _end(begin), _name(0), _t(No_mem), _s(0), _eager(false)
+  : _begin(begin), _end(begin), _name(0), _t(No_mem), _s(0), _nodes(0),
+    _eager(false)
   {}
 
   /** Create a 1byte region for address \a ptr.
@@ -46,7 +47,7 @@ public:
    */
   Region(void const *ptr)
   : _begin((l4_addr_t)ptr), _end((l4_addr_t)ptr), _name(0), _t(No_mem), _s(0),
-    _eager(false)
+    _nodes(0), _eager(false)
   {}
 
   /** Create a fully fledged region.
@@ -58,8 +59,9 @@ public:
    */
   Region(unsigned long long begin, unsigned long long end,
          char const *name = 0, Type t = No_mem, short sub = 0,
-         bool eager = false)
-  : _begin(begin), _end(end), _name(name), _t(t), _s(sub), _eager(eager)
+         bool eager = false, unsigned char nodes = 0xff)
+  : _begin(begin), _end(end), _name(name), _t(t), _s(sub), _nodes(nodes),
+    _eager(eager)
   {}
 
   /**
@@ -70,7 +72,7 @@ public:
    */
   Region(Region const &other, unsigned long long begin, unsigned long long end)
   : _begin(begin), _end(end), _name(other._name), _t(other._t), _s(other._s),
-    _eager(other._eager)
+    _nodes(other._nodes), _eager(other._eager)
   {}
 
   /**
@@ -83,8 +85,9 @@ public:
    */
   static Region n(unsigned long long begin,
                   unsigned long long end, char const *name = 0,
-                  Type t = No_mem, short sub = 0, bool eager = false)
-  { return Region(begin, end - 1, name, t, sub, eager); }
+                  Type t = No_mem, short sub = 0, bool eager = false,
+                  unsigned char nodes = 0xff)
+  { return Region(begin, end - 1, name, t, sub, eager, nodes); }
 
   /**
    * Create a region (using start and end pointers)
@@ -96,8 +99,9 @@ public:
    */
   static Region n(void const *begin,
                   void const *end, char const *name = 0,
-                  Type t = No_mem, short sub = 0, bool eager = false)
-  { return Region((l4_addr_t)begin, (l4_addr_t)end - 1, name, t, sub, eager); }
+                  Type t = No_mem, short sub = 0, bool eager = false,
+                  unsigned char nodes = 0xff)
+  { return Region((l4_addr_t)begin, (l4_addr_t)end - 1, name, t, sub, eager, nodes); }
 
   /**
    * Create a region from start and size.
@@ -109,8 +113,9 @@ public:
    */
   static Region start_size(unsigned long long begin, unsigned long size,
                            char const *name = 0, Type t = No_mem,
-                           short sub = 0)
-  { return Region(begin, begin + size - 1, name, t, sub); }
+                           short sub = 0, bool eager = false,
+                           unsigned char nodes = 0xff)
+  { return Region(begin, begin + size - 1, name, t, sub, eager, nodes); }
 
   /**
    * Create a region for the given object.
@@ -198,11 +203,12 @@ public:
   bool invalid() const { return begin()==0 && end()==0; }
 
   bool eager() const { return _eager; }
+  unsigned char nodes() const { return _nodes; }
 
 private:
   unsigned long long _begin, _end;
   char const *_name;
-  unsigned char _t, _s;
+  unsigned char _t, _s, _nodes;
   bool _eager;
 };
 

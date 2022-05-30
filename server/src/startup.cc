@@ -91,6 +91,7 @@ struct Elf_info : Elf_handle
 {
   Region::Type type;
   l4_addr_t offset;
+  unsigned char nodes;
 };
 
 struct Hdr_info : Elf_handle
@@ -351,8 +352,8 @@ dump_ram_map(bool show_total = false)
   unsigned long long sum = 0;
   for (Region *i = ram.begin(); i < ram.end(); ++i)
     {
-      printf("  RAM: %016llx - %016llx: %lldkB\n",
-             i->begin(), i->end(), i->size() >> 10);
+      printf("  RAM: %016llx - %016llx: %lldkB [%x]\n",
+             i->begin(), i->end(), i->size() >> 10, i->nodes());
       sum += i->size();
     }
   if (show_total)
@@ -450,7 +451,7 @@ init_regions()
  */
 static void
 add_elf_regions(Boot_modules::Module const &m, Region::Type type,
-                l4_addr_t *offset)
+                l4_addr_t *offset, unsigned nodes = ~0U)
 {
   Section_info si;
   Elf_info info;
@@ -460,6 +461,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
   si.mod = m;
   info.type = type;
   info.mod = m;
+  info.nodes = nodes;
 
   printf("  Scanning %s\n", m.cmdline);
 
@@ -477,7 +479,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
                              - __builtin_clzl(si.align) - 1;
       l4_addr_t addr = _mem_manager.find_free_ram(si.end - si.start + 1U,
                                                   0, ~0UL,
-                                                  align_shift);
+                                                  align_shift, nodes);
       if (!addr)
         panic("OOM");
 
@@ -512,7 +514,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
  * memory region.
  */
 static l4_addr_t
-load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
+load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset, bool reclaim)
 {
   l4_addr_t entry;
   int r;
@@ -526,7 +528,7 @@ load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
 
   if (r)
     printf("  => can't load module (%s)\n", error_msg);
-  else
+  else if (reclaim)
     {
       Region m = Region::n(mod.start, l4_round_page(mod.end));
       if (!regions.sub(m))
@@ -710,7 +712,7 @@ search_and_setup_utest_feature(char const *cmdline, l4_kernel_info_t *info)
 }
 
 static unsigned long
-load_elf_module(Boot_modules::Module const &mod, char const *n, l4_addr_t offset)
+load_elf_module(Boot_modules::Module const &mod, char const *n, l4_addr_t offset, bool reclaim)
 {
   printf("  Loading ");
   print_module_name(mod.cmdline, n);
@@ -720,7 +722,7 @@ load_elf_module(Boot_modules::Module const &mod, char const *n, l4_addr_t offset
       printf(" (offset %c0x%lx)", neg?'-':'+', neg ? (~offset + 1U) : offset);
     }
   putchar('\n');
-  return load_elf_module(mod, offset);
+  return load_elf_module(mod, offset, reclaim);
 }
 
 /**
@@ -810,25 +812,29 @@ startup(char const *cmdline)
   Boot_modules *mods = plat->modules();
 
   int idx_kern = mods->base_mod_idx(Mod_info_flag_mod_kernel);
-  int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0);
-  int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask);
   l4_addr_t fiasco_offset = 0;
-  l4_addr_t sigma0_offset = 0;
-  l4_addr_t roottask_offset = 0;
+  unsigned num_nodes = plat->num_nodes();
+  l4_addr_t sigma0_offset[num_nodes] = { 0 };
+  l4_addr_t roottask_offset[num_nodes] = { 0 };
 
   if (idx_kern < 0)
     panic("No kernel module available");
   add_elf_regions(mods->module(idx_kern), Region::Kernel, &fiasco_offset);
 
-  if (idx_sigma0 >= 0)
-    add_elf_regions(mods->module(idx_sigma0), Region::Sigma0, &sigma0_offset);
-  else
-    printf("  WARNING: No sigma0 module specified -- setup might not boot!\n");
+  for (unsigned i = 0; i < num_nodes; i++)
+    {
+      int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, i);
+      if (idx_sigma0 >= 0)
+        add_elf_regions(mods->module(idx_sigma0), Region::Sigma0,
+                        &sigma0_offset[i], 1U << i);
+      else
+        continue;
 
-  if (idx_roottask >= 0)
-    add_elf_regions(mods->module(idx_roottask), Region::Root, &roottask_offset);
-  else
-    printf("  WARNING: No roottask module specified -- setup might not boot!\n");
+      int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, i);
+      if (idx_roottask >= 0)
+        add_elf_regions(mods->module(idx_roottask), Region::Root,
+                        &roottask_offset[i], 1U << i);
+    }
 
   l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr);
   cmdline = nullptr;
@@ -836,25 +842,33 @@ startup(char const *cmdline)
   assert(mbi->mods_count <= MODS_MAX);
 
   boot_info_t boot_info;
+  memset(&boot_info, 0, sizeof(boot_info));
   l4util_l4mod_mod *mb_mod = (l4util_l4mod_mod *)(unsigned long)mbi->mods_addr;
   regions.optimize();
 
   /* setup kernel PART ONE */
   boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]",
-                                           fiasco_offset);
+                                           fiasco_offset, true);
 
-  if (idx_sigma0 >= 0)
+  for (unsigned i = 0; i < num_nodes; i++)
     {
       /* setup sigma0 */
-      boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0),
-                                               "[SIGMA0]", sigma0_offset);
-    }
+      int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, i);
+      if (idx_sigma0 >= 0)
+        boot_info.sigma0_start[i] = load_elf_module(mods->module(idx_sigma0),
+                                                    "[SIGMA0]",
+                                                    sigma0_offset[i],
+                                                    i == num_nodes - 1);
+      else
+        continue;
 
-  if (idx_roottask >= 0)
-    {
       /* setup roottask */
-      boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
-                                                 "[ROOTTASK]", roottask_offset);
+      int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, i);
+      if (idx_roottask >= 0)
+        boot_info.roottask_start[i] = load_elf_module(mods->module(idx_roottask),
+                                                      "[ROOTTASK]",
+                                                      roottask_offset[i],
+                                                      i == num_nodes - 1);
     }
 
   /* setup kernel PART TWO (special kernel initialization) */
@@ -1031,7 +1045,8 @@ l4_exec_add_region(Elf_handle *handle,
                        mem_addr + mem_size + info.offset,
                        info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
                        info.type, info.type == Region::Root ? rights : 0,
-                       info.type != Region::Kernel);
+                       info.type != Region::Kernel,
+                       info.nodes);
 
   for (Region *r = regions.begin(); r != regions.end(); ++r)
     if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg)

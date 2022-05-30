@@ -48,7 +48,8 @@ init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
       // Exclude any non 1K-aligned conventional memory.
       unsigned long long begin = l4_round_size(c->begin(), 10);
       unsigned long long end = l4_trunc_size(c->end() + 1, 10) - 1;
-      (md++)->set(begin, end, Mem_desc::Conventional);
+      (md++)->set(begin, end, Mem_desc::Conventional, 0, false, false,
+                  c->nodes());
     }
 
   for (Region const *c = regions->begin(); c != regions->end(); ++c)
@@ -81,20 +82,29 @@ init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
           break;
         }
       (md++)->set(c->begin(), c->end() - 1, type, sub_type, false,
-                  c->eager());
+                  c->eager(), c->nodes());
     }
 
   l4i->user_ptr = (unsigned long)mbi;
 
-  /* set up sigma0 info */
-  l4i->sigma0_eip = bi->sigma0_start;
-  printf("  Sigma0 config    ip:" l4_addr_fmt " sp:" l4_addr_fmt "\n",
-         l4i->sigma0_eip, l4i->sigma0_esp);
+  for (int i = 0; i < boot_info_t::Max_nodes; i++)
+    {
+      if (!bi->sigma0_start[i])
+        continue;
 
-  /* set up roottask info */
-  l4i->root_eip          = bi->roottask_start;
-  printf("  Roottask config  ip:" l4_addr_fmt " sp:" l4_addr_fmt "\n",
-         l4i->root_eip, l4i->root_esp);
+      /* set up sigma0 info */
+      l4i->sigma0[i] = bi->sigma0_start[i];
+      printf("  Sigma0 config    node: %d   ip:" l4_addr_fmt "\n",
+             i, l4i->sigma0[i]);
+
+      if (!bi->roottask_start[i])
+        continue;
+
+      /* set up roottask info */
+      l4i->root[i] = bi->roottask_start[i];
+      printf("  Roottask config  node: %d   ip:" l4_addr_fmt "\n",
+             i, l4i->root[i]);
+    }
 
   /* Platform info */
   strncpy(l4i->platform_info.name, PLATFORM_TYPE,

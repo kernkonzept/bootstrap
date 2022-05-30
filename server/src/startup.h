@@ -19,10 +19,11 @@
 
 typedef struct
 {
+  enum { Max_nodes = 8 };
+
   unsigned long kernel_start;
-  unsigned long sigma0_start;
-  unsigned long roottask_start;
-  unsigned long mbi_low, mbi_high;
+  unsigned long sigma0_start[Max_nodes];
+  unsigned long roottask_start[Max_nodes];
 } boot_info_t;
 
 //const char * get_cmdline(l4util_mb_info_t *mbi);

@@ -253,7 +253,8 @@ Region_list::optimize()
         return;
 
       if (n->type() == c->type() && n->sub_type() == c->sub_type()
-          && n->name() == c->name() &&
+          && n->name() == c->name() && n->eager() == c->eager()
+          && n->nodes() == c->nodes() &&
           l4_round_page(c->end()) >= l4_trunc_page(n->begin()))
         {
           c->end(n->end());

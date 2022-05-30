@@ -229,9 +229,25 @@ sub build_objects(@)
 
   for (my $i = 0; $i < @mods; $i++) {
     my $flags = 0;
-    $flags = 1 if $i == 0; # kernel
-    $flags = 2 if $i == 1; # sigma0
-    $flags = 3 if $i == 2; # roottask
+    if (defined $mods[$i]->{type})
+      {
+        $flags = 1 if $mods[$i]->{type} eq "kernel";
+        $flags = 2 if $mods[$i]->{type} eq "sigma0";
+        $flags = 3 if $mods[$i]->{type} eq "roottask";
+      }
+
+    if (defined $mods[$i]->{opts}->{nodes})
+      {
+        foreach (split /\s*:\s*/, $mods[$i]->{opts}->{nodes})
+          {
+            $flags |= 0x10000 << ($_ + 0);
+          }
+      }
+    else
+      {
+        $flags |= 0x10000;
+      }
+
     $flags |= 1 << 4;
     $img{mods}[$i] =
       { build_obj($mods[$i]->{file}, $mods[$i]->{cmdline},

@@ -4,7 +4,8 @@ unsigned long
 Memory::find_free_ram(unsigned long size,
                       unsigned long min_addr,
                       unsigned long max_addr,
-                      unsigned align)
+                      unsigned align,
+                      unsigned nodes)
 {
   unsigned long min = min_addr;
   if (min < sizeof(unsigned long long))
@@ -15,6 +16,9 @@ Memory::find_free_ram(unsigned long size,
         continue;
 
       if (max_addr <= rr->begin())
+        continue;
+
+      if ((rr->nodes() & nodes) == 0)
         continue;
 
       if (min < rr->begin())

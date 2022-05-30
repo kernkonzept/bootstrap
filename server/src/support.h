@@ -67,7 +67,8 @@ struct Memory
   Region_list *regions;
   unsigned long find_free_ram(unsigned long size, unsigned long min_addr = 0,
                               unsigned long max_addr = ~0UL,
-                              unsigned align = L4_PAGESHIFT);
+                              unsigned align = L4_PAGESHIFT,
+                              unsigned nodes = ~0U);
   unsigned long find_free_ram_rev(unsigned long size, unsigned long min_addr = 0,
                                   unsigned long max_addr = ~0UL,
                                   unsigned align = L4_PAGESHIFT);
@@ -82,7 +83,7 @@ struct Memory
 class Boot_modules
 {
 public:
-  enum { Num_base_modules = 3 };
+  enum { Num_base_modules = 2 };
 
   /// Main information for each module.
   struct Module
@@ -102,7 +103,8 @@ public:
   virtual unsigned num_modules() const = 0;
   virtual l4util_l4mod_info *construct_mbi(unsigned long mod_addr) = 0;
   virtual void move_module(unsigned index, void *dest) = 0;
-  virtual int base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
+  virtual int base_mod_idx(Mod_info_flags mod_info_mod_type,
+                           unsigned node = 0) = 0;
   void move_modules(unsigned long modaddr);
   void scan_modules();
   Region mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
@@ -135,6 +137,12 @@ public:
 
   virtual l4_addr_t to_virt(l4_uint64_t phys_addr)
   { return phys_addr; }
+
+  virtual unsigned num_nodes()
+  { return 1; }
+
+  virtual unsigned current_node()
+  { return 0; }
 
   virtual void reboot()
   {
@@ -203,7 +211,7 @@ public:
   unsigned num_modules() const;
   void move_module(unsigned index, void *dest);
   l4util_l4mod_info *construct_mbi(unsigned long mod_addr);
-  int base_mod_idx(Mod_info_flags mod_info_module_flag);
+  int base_mod_idx(Mod_info_flags mod_info_module_flag, unsigned node = 0);
 
 private:
   void decompress_mods(unsigned mod_count,
