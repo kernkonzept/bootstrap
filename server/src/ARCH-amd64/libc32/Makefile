@@ -12,6 +12,7 @@ SRC_C	  = __assert_fail.c __lltostr.c __ltostr.c __v_printf.c \
 
 include $(L4DIR)/mk/lib.mk
 
-CFLAGS	 := $(filter-out $(CCXX_FLAGS) $(CARCHFLAGS), $(CFLAGS)) -mno-sse
+CFLAGS	 := $(filter-out $(CCXX_FLAGS) $(CARCHFLAGS), $(CFLAGS)) \
+            -mno-sse -fno-builtin
 CPPFLAGS := -nostdinc -I$(SRC_DIR)/include -m32
 OPTS     := -Os
