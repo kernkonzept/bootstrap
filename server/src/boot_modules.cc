@@ -507,10 +507,12 @@ Boot_modules_image_mode::reserve()
 }
 
 int
-Boot_modules_image_mode::base_mod_idx(Mod_info_flags mod_info_mod_type)
+Boot_modules_image_mode::base_mod_idx(Mod_info_flags mod_info_mod_type,
+                                      unsigned node)
 {
   for (Mod_info const &m : mod_header->mods())
-    if ((m.flags() & Mod_info_flag_mod_mask) == mod_info_mod_type)
+    if ((m.flags() & Mod_info_flag_mod_mask) == mod_info_mod_type
+        && m.is_for_node(node))
       return m.index();
 
   return -1;

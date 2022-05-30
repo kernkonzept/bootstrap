@@ -84,13 +84,13 @@ init_kip(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
 
   /* set up sigma0 info */
   l4i->sigma0_eip = bi->sigma0_start;
-  printf("  Sigma0 config    ip:" l4_addr_fmt " sp:" l4_addr_fmt "\n",
-         l4i->sigma0_eip, l4i->sigma0_esp);
+  printf("  Sigma0 config    node: %d   ip:" l4_addr_fmt "\n",
+         l4i->node, l4i->sigma0_eip);
 
   /* set up roottask info */
-  l4i->root_eip          = bi->roottask_start;
-  printf("  Roottask config  ip:" l4_addr_fmt " sp:" l4_addr_fmt "\n",
-         l4i->root_eip, l4i->root_esp);
+  l4i->root_eip = bi->roottask_start;
+  printf("  Roottask config  node: %d   ip:" l4_addr_fmt "\n",
+         l4i->node, l4i->root_eip);
 
   /* Platform info */
   strncpy(l4i->platform_info.name, PLATFORM_TYPE,

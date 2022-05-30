@@ -80,7 +80,8 @@ public:
   virtual unsigned num_modules() const = 0;
   virtual l4util_l4mod_info *construct_mbi(unsigned long mod_addr, Internal_module_list const &mods) = 0;
   virtual void move_module(unsigned index, void *dest) = 0;
-  virtual int base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
+  virtual int base_mod_idx(Mod_info_flags mod_info_mod_type,
+                           unsigned node = 0) = 0;
   void move_modules(unsigned long modaddr);
   Region mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                     Region::Type type = Region::Boot);
@@ -105,7 +106,7 @@ public:
   unsigned num_modules() const override;
   void move_module(unsigned index, void *dest) override;
   l4util_l4mod_info *construct_mbi(unsigned long mod_addr, Internal_module_list const &mods) override;
-  int base_mod_idx(Mod_info_flags mod_info_module_flag) override;
+  int base_mod_idx(Mod_info_flags mod_info_module_flag, unsigned node = 0) override;
 
 private:
   void decompress_mods(l4_addr_t total_size, l4_addr_t mod_addr);

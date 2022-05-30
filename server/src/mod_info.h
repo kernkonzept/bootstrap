@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <string.h>
+
+#include <l4/cxx/string>
 #include <l4/sys/l4int.h>
 #include <region.h>
 
@@ -53,6 +56,129 @@ protected:
   }
 };
 
+struct Mod_attr
+{
+  cxx::String key;
+  cxx::String val;
+};
+
+class Mod_attr_list
+{
+  char const *_head;
+
+  class Descriptor
+  {
+    enum : unsigned
+    {
+      Valid = 1 << 7,
+      Val_exp_shift = 2,
+      Key_exp_shift = 0,
+      Exp_mask = 3,
+    };
+    char const *_d;
+
+    unsigned key_len_exp() const { return (*_d >> Key_exp_shift) & Exp_mask; }
+    unsigned val_len_exp() const { return (*_d >> Val_exp_shift) & Exp_mask; }
+
+    unsigned key_len_size() const { return 1U << key_len_exp(); }
+    unsigned val_len_size() const { return 1U << val_len_exp(); }
+
+    unsigned long key_size() const
+    {
+      switch (key_len_exp())
+        {
+        case 0: return *reinterpret_cast<l4_uint8_t  const *>(_d + 1);
+        case 1: return *reinterpret_cast<l4_uint16_t const *>(_d + 1);
+        case 2: return *reinterpret_cast<l4_uint32_t const *>(_d + 1);
+        case 3: return *reinterpret_cast<l4_uint64_t const *>(_d + 1);
+        default: __builtin_unreachable();
+        }
+
+    }
+
+    unsigned long val_size() const
+    {
+      char const *d = _d + 1 + key_len_size();
+      switch (val_len_exp())
+        {
+        case 0: return *reinterpret_cast<l4_uint8_t  const *>(d);
+        case 1: return *reinterpret_cast<l4_uint16_t const *>(d);
+        case 2: return *reinterpret_cast<l4_uint32_t const *>(d);
+        case 3: return *reinterpret_cast<l4_uint64_t const *>(d);
+        default: __builtin_unreachable();
+        }
+    }
+
+    unsigned long header_size() const
+    { return 1 + key_len_size() + val_len_size(); }
+
+    unsigned long size() const
+    { return header_size() + key_size() + val_size(); }
+
+  public:
+    Descriptor() : _d(nullptr) {}
+    explicit Descriptor(char const *d) : _d(d && *d & Valid ? d : nullptr) {}
+
+    bool valid() const { return _d != nullptr; }
+    operator bool() const { return valid(); }
+
+    bool operator==(Descriptor const &o) { return _d == o._d; }
+
+    Descriptor next() const
+    { return valid() ? Descriptor(_d + size()) : Descriptor(); }
+
+    cxx::String key() const
+    { return cxx::String(_d + header_size(), key_size()); }
+
+    cxx::String val() const
+    { return cxx::String(_d + header_size() + key_size(), val_size()); }
+  };
+
+public:
+  class Iterator
+  {
+    friend Mod_attr_list;
+
+    Descriptor _i;
+
+    Iterator(char const *i) : _i(i) {}
+
+  public:
+    Iterator() = default;
+
+    Mod_attr operator*() const { return Mod_attr{_i.key(), _i.val()}; }
+    Mod_attr operator->() const { return Mod_attr{_i.key(), _i.val()}; }
+
+    bool operator==(Iterator const &o) { return _i == o._i; }
+    bool operator!=(Iterator const &o) { return !(*this == o); }
+
+    Iterator &operator++()
+    {
+      _i = _i.next();
+      return *this;
+    }
+  };
+
+  Mod_attr_list(char const *kvs)
+  : _head(nullptr)
+  {
+    if (memcmp(kvs, "ATTR", 4) == 0)
+      _head = kvs + 4;
+  }
+
+  Iterator begin() const { return Iterator(_head); }
+  Iterator end() const { return Iterator(); }
+
+  cxx::String find(cxx::String const &key)
+  {
+    for (auto const &i : *this)
+      if (i.key == key)
+        return i.val;
+
+    return cxx::String();
+  }
+};
+
 /// Info for each module
 class Mod_info : private Mod_base
 {
@@ -86,6 +212,9 @@ public:
   char const* md5sum_compr()   const { return rel2abs<char>(_md5sum_compr);   }
   char const* md5sum_uncompr() const { return rel2abs<char>(_md5sum_uncompr); }
 
+  Mod_attr_list attrs() const
+  { return Mod_attr_list(rel2abs<char>(_attrs)); }
+
   void start(unsigned long long start)
   { _start = start; }
 
@@ -100,6 +229,8 @@ public:
     unsigned v = _flags & Mod_info_flag_mod_mask;
     return v > 0 && v <= Num_base_modules;
   }
+
+  bool is_for_node(unsigned node) const;
 
   Region region(bool round = false, Region::Type type = Region::Boot) const
   {

@@ -29,6 +29,18 @@ public:
   virtual l4_addr_t to_virt(l4_uint64_t phys_addr)
   { return phys_addr; }
 
+  /** Number of AMP nodes on platform. */
+  virtual unsigned num_nodes()
+  { return 1; }
+
+  /** Id of first AMP node on platform. */
+  virtual unsigned first_node()
+  { return 0; }
+
+  /** Id of current AMP on platform. */
+  virtual unsigned current_node()
+  { return 0; }
+
   virtual void reboot()
   {
     l4_infinite_loop();

@@ -169,7 +169,7 @@ class Platform_x86_multiboot : public Platform_x86_1, public Boot_modules
 {
 public:
   Boot_modules *modules() override { return this; }
-  int base_mod_idx(Mod_info_flags mod_info_mod_type) override
+  int base_mod_idx(Mod_info_flags mod_info_mod_type, unsigned) override
   {
     switch (mod_info_mod_type)
       {

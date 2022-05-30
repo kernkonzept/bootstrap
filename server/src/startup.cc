@@ -180,10 +180,9 @@ dump_mbi(l4util_mb_info_t *mbi)
  * After loading the kernel we scan for the magic number at page boundaries.
  */
 static
-l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset)
+l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset,
+                           unsigned node)
 {
-  printf("  find kernel info page...\n");
-
   const char *error_msg;
   Hdr_info hdr;
   hdr.mod = mod;
@@ -193,8 +192,22 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset)
   if (r == 1)
     {
       hdr.start += offset;
-      printf("  found kernel info page (via ELF) at %lx\n", hdr.start);
-      return reinterpret_cast<l4_kernel_info_t *>(hdr.start);
+      auto *kip = reinterpret_cast<l4_kernel_info_t *>(hdr.start);
+      // AMP kernels have multiple KIPs that are L4_PAGESIZE spaced. On some UP
+      // or SMP kernels the KIP ELF region only covers the static part.
+      while (hdr.size >= sizeof(*kip))
+        {
+          if (kip->node == node)
+            {
+              printf("  found node %u kernel info page (via ELF) at %p\n", node, kip);
+              return kip;
+            }
+          kip = reinterpret_cast<l4_kernel_info_t *>(
+                  reinterpret_cast<char *>(kip) + L4_PAGESIZE);
+          hdr.size -= L4_PAGESIZE;
+        }
+
+      return nullptr;
     }
 
   for (Region const &m : regions)
@@ -222,10 +235,26 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset)
 }
 
 static
-L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
-                                       void *kip, l4_addr_t offset)
+void copy_kip_feature_string(l4_kernel_info_t *dst, l4_kernel_info_t const *src)
 {
-  L4_kernel_options::Options *ko;
+  // find last last KIP feature string
+  const char *src_version_str = l4_kip_version_string(src);
+  const char *features_end = src_version_str;
+  while (*features_end)
+    features_end += strlen(features_end) + 1;
+
+  // copy version and feature strings
+  dst->offset_version_strings = src->offset_version_strings;
+  memcpy(const_cast<char *>(l4_kip_version_string(dst)),
+         src_version_str, features_end - src_version_str);
+}
+
+static
+L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
+                                       void *kip, l4_addr_t offset,
+                                       unsigned node)
+{
+  L4_kernel_options::Options *ko = nullptr;
   const char *error_msg;
   Hdr_info hdr;
   hdr.mod = mod;
@@ -235,8 +264,20 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
   if (r == 1)
     {
       hdr.start += offset;
-      printf("  found kernel options (via ELF) at %lx\n", hdr.start);
       ko = reinterpret_cast<L4_kernel_options::Options *>(hdr.start);
+      while (hdr.size >= sizeof(*ko))
+        {
+          if (ko->node == node)
+            {
+              printf("  found node %u kernel options (via ELF) at %p\n", node, ko);
+              break;
+            }
+          ko++;
+          hdr.size -= sizeof(*ko);
+        }
+
+      if (!ko)
+        panic("Cannot find node in kernel options page");
     }
   else
     {
@@ -570,20 +611,13 @@ load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
   r = exec_load_elf(l4_exec_read_exec, &info, &error_msg, &entry);
 
   if (r)
-    printf("  => can't load module (%s)\n", error_msg);
-  else
+    panic("Can't load module (%s)\n", error_msg);
+
+  Region m = Region::start_size(mod.start, l4_round_page(mod.end) - mod.start);
+  if (!regions.sub(m))
     {
-      Region m = Region::start_size(mod.start, l4_round_page(mod.end) - mod.start);
-      if (!regions.sub(m))
-        {
-          Region m = Region::start_size(mod.start, mod.end - mod.start);
-          if (!regions.sub(m))
-            {
-              m.vprint();
-              regions.dump();
-              panic ("could not free region for load ELF module");
-            }
-        }
+      Region m = Region::start_size(mod.start, mod.end - mod.start);
+      regions.sub(m);
     }
 
   return entry + offset;
@@ -745,11 +779,11 @@ startup(char const *cmdline)
   Boot_modules *mods = plat->modules();
 
   int idx_kern = mods->base_mod_idx(Mod_info_flag_mod_kernel);
-  int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0);
-  int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask);
   l4_addr_t fiasco_offset = 0;
-  l4_addr_t sigma0_offset = 0;
-  l4_addr_t roottask_offset = 0;
+  unsigned first_node = plat->first_node();
+  unsigned num_nodes = plat->num_nodes();
+  l4_addr_t sigma0_offset[num_nodes] = { 0 };
+  l4_addr_t roottask_offset[num_nodes] = { 0 };
 
   if (idx_kern < 0)
     panic("No kernel module available");
@@ -759,20 +793,27 @@ startup(char const *cmdline)
   add_elf_regions(mods->module(idx_kern), Region::Kernel, &fiasco_offset,
                   L4_SUPERPAGESIZE);
 
-  if (idx_sigma0 >= 0)
-    add_elf_regions(mods->module(idx_sigma0), Region::Sigma0, &sigma0_offset);
-  else
-    printf("  WARNING: No sigma0 module specified -- setup might not boot!\n");
+  for (unsigned i = 0; i < num_nodes; i++)
+    {
+      unsigned n = first_node + i;
+      int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, n);
+      if (idx_sigma0 >= 0)
+        add_elf_regions(mods->module(idx_sigma0), Region::Sigma0,
+                        &sigma0_offset[i]);
+      else
+        continue;
 
-  if (idx_roottask >= 0)
-    add_elf_regions(mods->module(idx_roottask), Region::Root, &roottask_offset);
-  else
-    printf("  WARNING: No roottask module specified -- setup might not boot!\n");
+      int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, n);
+      if (idx_roottask >= 0)
+        add_elf_regions(mods->module(idx_roottask), Region::Root,
+                        &roottask_offset[i]);
+    }
 
   l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr, internal_mods);
   cmdline = nullptr;
 
   assert(mbi->mods_count <= MODS_MAX);
+  assert(plat->current_node() == first_node);
 
   boot_info_t boot_info;
   l4util_l4mod_mod *mb_mod
@@ -784,32 +825,70 @@ startup(char const *cmdline)
   boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]",
                                            fiasco_offset);
 
-  /* setup kernel PART TWO (special kernel initialization) */
-  l4_kernel_info_t *l4i = find_kip(mods->module(idx_kern), fiasco_offset);
+  l4_kernel_info_t *kip = find_kip(mods->module(idx_kern), fiasco_offset,
+                                   first_node);
+  if (!kip)
+    panic("No KIP found!");
 
-  plat->setup_kernel_config(l4i);
-
-  if (idx_sigma0 >= 0)
+  /* setup kernel PART TWO (sigma0 and root task initialization) */
+  for (unsigned i = 0; i < num_nodes; i++)
     {
+      unsigned n = first_node + i;
+      l4_kernel_info_t *l4i = find_kip(mods->module(idx_kern), fiasco_offset, n);
+      if (!l4i)
+        continue;
+
+      // Additional KIPs are missing the version and feature strings.
+      if (l4i != kip)
+        copy_kip_feature_string(l4i, kip);
+
+      plat->setup_kernel_config(l4i);
+      boot_info.sigma0_start = 0;
+      boot_info.roottask_start = 0;
+
       /* setup sigma0 */
-      boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0),
-                                               "[SIGMA0]", sigma0_offset);
-    }
+      int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, n);
+      if (idx_sigma0 >= 0)
+        boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0),
+                                                 "[SIGMA0]",
+                                                 sigma0_offset[i]);
+      else
+        printf("  WARNING: No sigma0 module for node %d -- setup might not boot!\n", n);
 
-  if (idx_roottask >= 0)
-    {
       /* setup roottask */
-      boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
-                                                 "[ROOTTASK]", roottask_offset);
-    }
+      int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, n);
+      if (idx_roottask >= 0)
+        boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
+                                                   "[ROOTTASK]",
+                                                   roottask_offset[i]);
+      else
+        printf("  WARNING: No roottask module for node %d -- setup might not boot!\n", n);
 
-  plat->late_setup(l4i);
+      plat->late_setup(l4i);
+
+      L4_kernel_options::Options *lko = find_kopts(mods->module(idx_kern), l4i,
+                                                   fiasco_offset, n);
+
+      kcmdline_parse(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), lko);
+      lko->uart   = kuart;
+      lko->flags |= kuart_flags;
+
+      search_and_setup_utest_feature(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), l4i);
+
+      // setup the L4 kernel info page before booting the L4 microkernel:
+      init_kip(l4i, &boot_info, mbi, &ram, &regions);
+      plat->setup_kernel_options(lko);
+#if defined(ARCH_ppc32)
+      init_kip_v2_arch((l4_kernel_info_t*)l4i);
+
+      printf("CPU at %lu Khz/Bus at %lu Hz\n",
+             ((l4_kernel_info_t*)l4i)->frequency_cpu,
+             ((l4_kernel_info_t*)l4i)->frequency_bus);
+#endif
+    }
 
   regions.optimize();
   regions.dump();
-
-  L4_kernel_options::Options *lko = find_kopts(mods->module(idx_kern), l4i,
-                                               fiasco_offset);
 
   // Note: we have to ensure that the original ELF binaries are not modified
   // or overwritten up to this point. However, the memory regions for the
@@ -822,21 +901,11 @@ startup(char const *cmdline)
   if (presetmem)
     fill_mem(presetmem_value);
 
-  kcmdline_parse(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), lko);
-  lko->uart   = kuart;
-  lko->flags |= kuart_flags;
-
-  search_and_setup_utest_feature(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), l4i);
-
-  // setup the L4 kernel info page before booting the L4 microkernel:
-  init_kip(l4i, &boot_info, mbi, &ram, &regions);
-
   printf("  Starting kernel ");
   print_module_name(L4_CONST_CHAR_PTR(mb_mod[0].cmdline),
 		    "[KERNEL]");
   printf(" at " l4_addr_fmt "\n", boot_info.kernel_start);
 
-  plat->setup_kernel_options(lko);
 #if defined(ARCH_mips)
   {
     printf("  Flushing caches ...\n");
@@ -850,13 +919,6 @@ startup(char const *cmdline)
       }
     printf("  done\n");
   }
-#endif
-#if defined(ARCH_ppc32)
-  init_kip_v2_arch((l4_kernel_info_t*)l4i);
-
-  printf("CPU at %lu Khz/Bus at %lu Hz\n",
-         ((l4_kernel_info_t*)l4i)->frequency_cpu,
-         ((l4_kernel_info_t*)l4i)->frequency_bus);
 #endif
 
   plat->boot_kernel(boot_info.kernel_start);
