@@ -2,7 +2,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-extern void _exit(int rc);
+extern void _exit(int rc) __attribute__((noreturn));
 
 void
 __assert_fail (const char *__assertion, const char *__file,
