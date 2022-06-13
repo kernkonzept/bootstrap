@@ -12,7 +12,13 @@
 	.globl	_start
 	.p2align 4
 _start:
-	leal	_stack,%esp
+	/* The called function expects that the caller had a 16-byte aligned
+	 * stack, has pushed the parameters, re-aligned the stack and then
+         * performs the call pushing the return address.
+         * Here we push the 3 parameters, hence we need to subtract 4 from the
+         * actual value of the stack pointer so that the stack is properly
+         * aligned before executing the 'call' (push + jmp). */
+	leal	_stack - 4,%esp
 
 	pushl	%esi			/* ptr to real mode */
 	pushl	%eax
@@ -28,6 +34,7 @@ _start:
 	.long   0 - 0x1BADB002
 
 	.bss
+	.p2align 4
 	.space	8192
 .globl _stack
 _stack:
