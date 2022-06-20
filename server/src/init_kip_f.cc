@@ -44,7 +44,12 @@ init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
   assert((unsigned long)md - (unsigned long)l4i >= sizeof(*l4i));
 
   for (Region const* c = ram->begin(); c != ram->end(); ++c)
-    (md++)->set(c->begin(), c->end(), Mem_desc::Conventional);
+    {
+      // Exclude any non 1K-aligned conventional memory.
+      unsigned long long begin = l4_round_size(c->begin(), 10);
+      unsigned long long end = l4_trunc_size(c->end() + 1, 10) - 1;
+      (md++)->set(begin, end, Mem_desc::Conventional);
+    }
 
   for (Region const *c = regions->begin(); c != regions->end(); ++c)
     {
