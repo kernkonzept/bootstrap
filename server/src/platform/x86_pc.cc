@@ -142,8 +142,20 @@ class Platform_x86_multiboot : public Platform_x86_1, public Boot_modules
 {
 public:
   Boot_modules *modules() { return this; }
-  unsigned base_mod_idx(Mod_info_flags mod_info_mod_type)
-  { return mod_info_mod_type - 1; }
+  int base_mod_idx(Mod_info_flags mod_info_mod_type)
+  {
+    switch (mod_info_mod_type)
+      {
+      case Mod_info_flag_mod_kernel:
+      case Mod_info_flag_mod_sigma0:
+      case Mod_info_flag_mod_roottask:
+        if (mod_info_mod_type - 1 < (int)num_modules())
+          return mod_info_mod_type - 1;
+        // fall through
+      default:
+        return -1;
+      }
+  }
 
   Module module(unsigned index, bool) const
   {

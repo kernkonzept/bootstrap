@@ -568,15 +568,14 @@ Boot_modules_image_mode::reserve()
     }
 }
 
-unsigned
+int
 Boot_modules_image_mode::base_mod_idx(Mod_info_flags mod_info_mod_type)
 {
   for (Mod_info *m = module_infos; m != mod_end_iter(); ++m)
     if ((m->flags & Mod_info_flag_mod_mask) == mod_info_mod_type)
       return m - module_infos;
 
-  panic("Did not find requested module");
-  return 0;
+  return -1;
 }
 
 /// Get module at index (decompress if needed)

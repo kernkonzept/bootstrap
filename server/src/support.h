@@ -101,7 +101,7 @@ public:
   virtual unsigned num_modules() const = 0;
   virtual l4util_l4mod_info *construct_mbi(unsigned long mod_addr) = 0;
   virtual void move_module(unsigned index, void *dest) = 0;
-  virtual unsigned base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
+  virtual int base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
   void move_modules(unsigned long modaddr);
   Region mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                     Region::Type type = Region::Boot);
@@ -111,10 +111,6 @@ public:
     unsigned v = mod->flags & Mod_info_flag_mod_mask;
     return v > 0 && v <= Num_base_modules;
   };
-
-  Module mod_kern() { return module(base_mod_idx(Mod_info_flag_mod_kernel)); }
-  Module mod_sigma0() { return module(base_mod_idx(Mod_info_flag_mod_sigma0)); }
-  Module mod_roottask() { return module(base_mod_idx(Mod_info_flag_mod_roottask)); }
 
 protected:
   void _move_module(unsigned index, void *dest, void const *src,
@@ -205,7 +201,7 @@ public:
   unsigned num_modules() const;
   void move_module(unsigned index, void *dest);
   l4util_l4mod_info *construct_mbi(unsigned long mod_addr);
-  unsigned base_mod_idx(Mod_info_flags mod_info_module_flag);
+  int base_mod_idx(Mod_info_flags mod_info_module_flag);
 
 private:
   void decompress_mods(unsigned mod_count,

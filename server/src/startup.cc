@@ -749,9 +749,20 @@ startup(char const *cmdline)
 
   Boot_modules *mods = plat->modules();
 
-  add_elf_regions(mods->mod_kern(), Region::Kernel);
-  add_elf_regions(mods->mod_sigma0(), Region::Sigma0);
-  add_elf_regions(mods->mod_roottask(), Region::Root);
+  int idx_kern = mods->base_mod_idx(Mod_info_flag_mod_kernel);
+  int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0);
+  int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask);
+
+  if (idx_kern < 0)
+    panic("No kernel module available");
+  if (idx_sigma0 < 0)
+    panic("No sigma0 module available");
+  if (idx_roottask < 0)
+    panic("No roottask module available");
+
+  add_elf_regions(mods->module(idx_kern), Region::Kernel);
+  add_elf_regions(mods->module(idx_sigma0), Region::Sigma0);
+  add_elf_regions(mods->module(idx_roottask), Region::Root);
 
   l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr);
   cmdline = nullptr;
@@ -766,22 +777,22 @@ startup(char const *cmdline)
   regions.optimize();
 
   /* setup kernel PART ONE */
-  boot_info.kernel_start = load_elf_module(mods->mod_kern(), "[KERNEL]");
+  boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]");
 
   /* setup sigma0 */
-  boot_info.sigma0_start = load_elf_module(mods->mod_sigma0(), "[SIGMA0]");
+  boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0), "[SIGMA0]");
 
   /* setup roottask */
-  boot_info.roottask_start = load_elf_module(mods->mod_roottask(),
+  boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
                                              "[ROOTTASK]");
 
   /* setup kernel PART TWO (special kernel initialization) */
-  void *l4i = find_kip(mods->mod_kern());
+  void *l4i = find_kip(mods->module(idx_kern));
 
   regions.optimize();
   regions.dump();
 
-  L4_kernel_options::Options *lko = find_kopts(mods->mod_kern(), l4i);
+  L4_kernel_options::Options *lko = find_kopts(mods->module(idx_kern), l4i);
 
   // Note: we have to ensure that the original ELF binaries are not modified
   // or overwritten up to this point. However, the memory regions for the
