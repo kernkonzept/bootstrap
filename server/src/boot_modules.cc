@@ -864,7 +864,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
   unsigned long mbi_size = sizeof(l4util_l4mod_info);
   mbi_size += sizeof(l4util_l4mod_mod) * mod_count;
 
-  assert(mod_count >= Num_base_modules);
+  assert(mod_count >= 1);
 
   for (Mod_info *mod = module_infos; mod != mod_end_iter(); ++mod)
     mbi_size += round_wordsize(strlen(mod_cmdline(mod)) + 1);

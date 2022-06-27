@@ -755,21 +755,21 @@ startup(char const *cmdline)
 
   if (idx_kern < 0)
     panic("No kernel module available");
-  if (idx_sigma0 < 0)
-    panic("No sigma0 module available");
-  if (idx_roottask < 0)
-    panic("No roottask module available");
-
   add_elf_regions(mods->module(idx_kern), Region::Kernel);
-  add_elf_regions(mods->module(idx_sigma0), Region::Sigma0);
-  add_elf_regions(mods->module(idx_roottask), Region::Root);
+
+  if (idx_sigma0 >= 0)
+    add_elf_regions(mods->module(idx_sigma0), Region::Sigma0);
+  else
+    printf("  WARNING: No sigma0 module specified -- setup might not boot!\n");
+
+  if (idx_roottask >= 0)
+    add_elf_regions(mods->module(idx_roottask), Region::Root);
+  else
+    printf("  WARNING: No roottask module specified -- setup might not boot!\n");
 
   l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr);
   cmdline = nullptr;
 
-  /* We need at least two boot modules */
-  /* We have at least the L4 kernel and the first user task */
-  assert(mbi->mods_count >= 2);
   assert(mbi->mods_count <= MODS_MAX);
 
   boot_info_t boot_info;
@@ -779,12 +779,19 @@ startup(char const *cmdline)
   /* setup kernel PART ONE */
   boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]");
 
-  /* setup sigma0 */
-  boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0), "[SIGMA0]");
+  if (idx_sigma0 >= 0)
+    {
+      /* setup sigma0 */
+      boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0),
+                                               "[SIGMA0]");
+    }
 
-  /* setup roottask */
-  boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
-                                             "[ROOTTASK]");
+  if (idx_roottask >= 0)
+    {
+      /* setup roottask */
+      boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
+                                                 "[ROOTTASK]");
+    }
 
   /* setup kernel PART TWO (special kernel initialization) */
   void *l4i = find_kip(mods->module(idx_kern));
