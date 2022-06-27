@@ -170,7 +170,8 @@ public:
     return m;
   }
 
-  unsigned num_modules() const { return l4mi->mods_count; }
+  unsigned num_modules() const
+  { return l4mi ? l4mi->mods_count : mbi->mods_count; }
 
   void reserve()
   {
