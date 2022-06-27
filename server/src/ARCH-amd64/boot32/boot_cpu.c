@@ -71,8 +71,9 @@ enum
 enum
 {
   CR0_PG		= 0x80000000,
-  CR4_PSE		= 0x00000010,
-  CR4_PAE		= 0x00000020,
+  CR4_PSE		= 1U << 4,
+  CR4_PAE		= 1U << 5,
+  CR4_OSFXSR		= 1U << 9,
   EFL_AC		= 0x00040000,
   EFL_ID		= 0x00200000,
   EFER_LME		= 0x00000100,
@@ -156,8 +157,9 @@ struct trap_state
   l4_uint32_t eip, cs, eflags, esp, ss;
 };
 
-static l4_uint32_t       cpu_feature_flags;
-static l4_uint32_t        base_pml4_pa;
+static l4_uint32_t      cpu_feature_flags_01_ecx;
+static l4_uint32_t      cpu_feature_flags_01_edx;
+static l4_uint32_t      base_pml4_pa;
 static struct x86_tss   base_tss;
 static struct x86_desc  base_gdt[GDTSZ];
 static struct x86_gate  base_idt[IDTSZ];
@@ -318,14 +320,33 @@ cpuid(void)
 	    {
 	      asm volatile("cpuid"
 		           : "=a" (dummy),
-                             "=d" (cpu_feature_flags)
+                             "=c" (cpu_feature_flags_01_ecx),
+                             "=d" (cpu_feature_flags_01_edx)
 			   : "a" (1)
-			   : "ebx", "ecx");
+			   : "ebx");
 	    }
 	}
     }
 
   set_eflags(orig_eflags);
+}
+
+static void
+sse_enable(void)
+{
+  /*
+   * Intel manual:
+   * - "SSE instructions cannot be used unless XR4.OSFXSR = 1.
+   * - CPUID.01H: EDX.FXSR[bit 24]: "... Presence of this bit also indicates
+   *   that CR4.OSFXSR is available for an operating system to indicate that it
+   *   supports the FXSAVE/FXRSTOR instructions."
+   * - CPUID.01H: EDX.SSE[bit 25]: "The processor supports SSE extensions."
+   *
+   * So it seem that CPUID.01H/EDX.FXSR is sufficient to signal the presence of
+   * CR4.OSFXSR while CPUID.01H/EDX.SSE is required to set this bit.
+   */
+  if (cpu_feature_flags_01_edx & (1 << 25))
+    set_cr4(get_cr4() | CR4_OSFXSR);
 }
 
 extern struct gate_init_entry boot_idt_inittab[];
@@ -422,6 +443,7 @@ void
 base_cpu_setup(void)
 {
   cpuid();
+  sse_enable();
   base_idt_init();
   base_gdt_init();
   base_tss_init();
@@ -507,7 +529,7 @@ pdir_map_range(l4_uint32_t pml4_pa, l4_uint64_t la, l4_uint64_t pa,
 	      /* Use a 2MB page if we can.  */
 	      if (superpage_aligned(la) && superpage_aligned(pa)
 		  && (size >= SUPERPAGE_SIZE))
-		  //&& (cpu_feature_flags & CPUF_4MB_PAGES)) XXX
+		  //&& (cpu_feature_flags_01_edx & CPUF_4MB_PAGES)) XXX
 		{
 		  /* a failed assertion here may indicate a memory wrap
 		     around problem */
