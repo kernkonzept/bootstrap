@@ -27,7 +27,7 @@ DEFAULT_RELOC_mips   = $(DEFAULT_RELOC_mips$(CPU_ABI))
 DEFAULT_RELOC_ppc32 := 0x002d0000
 DEFAULT_RELOC_sparc := 0x00800000
 RELOC_PHYS          := y
-LDFLAGS              = -nostdlib -nocrt
+LDFLAGS              = -nostdlib -nocrt $(LDNOWARNRWX)
 EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
 		       $(wildcard $(L4DIR)/conf/Makeconf.boot $(OBJ_BASE)/conf/Makeconf.boot) \
 		       $(SRC_DIR)/build.pl $(BOOTSTRAP_MODULES_LIST) \
