@@ -99,14 +99,12 @@ run:
 	cmp	x9, #0                     /* CPU0 continues with bootstrap */
 	beq	do_bootstrap
 
-1:	ldr	x9, mp_launch_spin_addr
+1:	dsb	sy
+	ldr	x9, mp_launch_spin_addr
 	cmp	x9, #0
 	beq	2f                         /* Not yet */
-	ldr	x9, [x9]
-	cmp	x9, #0
-	beq	2f                         /* Still not set */
 	blr	x9
-2:	wfi
+2:	wfe
 	b	1b
 
 do_bootstrap:
