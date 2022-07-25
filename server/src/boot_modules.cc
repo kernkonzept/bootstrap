@@ -110,7 +110,8 @@ Boot_modules::merge_mod_regions()
  * \param src      The source address.
  * \param size     The size of the module in bytes.
  * \param name     Region name of the new module region. Usually this is
- *                 '.Module' (Mod_info::Mod_reg).
+ *                 '.Module' (Mod_info::Mod_reg) but this can be different for
+ *                 special modules (so far, '.cpu_firmware').
  * \param type     Type of the new module region (see Region::Type).
  * \param subtype  Subtype of the new module region (see Region::Subtype_info).
  *

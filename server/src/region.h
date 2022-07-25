@@ -45,6 +45,7 @@ public:
     // Type Arch: Sub types are used as L4::Kip::Mem_desc sub type!
     Arch_acpi = L4::Kip::Mem_desc::Arch_acpi_tables,
     Arch_nvs = L4::Kip::Mem_desc::Arch_acpi_nvs,
+    Arch_cpu_fw = L4::Kip::Mem_desc::Arch_cpu_fw,
 
     // Type Boot:
     /** Regions that are reserved early and discarded before any ELF loading */

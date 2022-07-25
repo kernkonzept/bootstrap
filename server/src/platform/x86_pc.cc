@@ -282,10 +282,27 @@ public:
   /* Not used in image mode */
   void move_module(unsigned index, void *dest) override
   {
-    l4util_l4mod_mod *mod = (l4util_l4mod_mod *)(unsigned long)l4mi->mods_addr + index;
+    auto *mod = reinterpret_cast<l4util_l4mod_mod *>(
+                  static_cast<unsigned long>(l4mi->mods_addr)) + index;
     unsigned long size = mod->mod_end - mod->mod_start;
-    _move_module(index, dest, (char const *)(l4_addr_t)mod->mod_start, size,
-                 Mod_info::Mod_reg, Region::Root, Region::No_subtype);
+    char const *name;
+    Region::Type type;
+    Region::Subtype_info subtype;
+    if (mod->flags == L4util_l4mod_mod_flag_cpu_fw)
+      {
+        name = ".cpu_firmware";
+        type = Region::Arch;
+        subtype = Region::Arch_cpu_fw;
+      }
+    else
+      {
+        name = Mod_info::Mod_reg;
+        type = Region::Root;
+        subtype = Region::No_subtype;
+      }
+    auto *src = reinterpret_cast<void const *>(
+                  static_cast<unsigned long>(mod->mod_start));
+    _move_module(index, dest, src, size, name, type, subtype);
 
     assert ((l4_addr_t)dest < 0xfffffff0);
     assert ((l4_addr_t)dest < 0xfffffff0 - size);
@@ -391,12 +408,20 @@ public:
             l4m_mods[i].flags = L4util_l4mod_mod_flag_roottask;
             break;
           default:
-            l4m_mods[i].flags = L4util_l4mod_mod_flag_unspec;
+            // Special case: Detect modules where the command line contains the
+            // string "cpu_firmware" and mark those as "CPU firmware" module.
+            if (strstr(reinterpret_cast<char const*>(
+                         static_cast<l4_addr_t>(mods[i].cmdline)),
+                       "cpu_firmware"))
+              l4m_mods[i].flags = L4util_l4mod_mod_flag_cpu_fw;
+            else
+              l4m_mods[i].flags = L4util_l4mod_mod_flag_unspec;
             break;
           };
         l4m_mods[i].mod_start = mods[i].mod_start;
         l4m_mods[i].mod_end   = mods[i].mod_end;
-        if (char const *c = (char const *)(l4_addr_t)(mods[i].cmdline))
+        if (char const *c = reinterpret_cast<char const *>(
+                              static_cast<l4_addr_t>(mods[i].cmdline)))
           {
             unsigned l = strlen(c) + 1;
             l4m_mods[i].cmdline = (l4_addr_t)_mb;
