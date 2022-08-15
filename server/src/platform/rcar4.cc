@@ -25,11 +25,10 @@ class Platform_arm_rcar4 : public Platform_dt
 
   void init()
   {
-    kuart.base_address = 0xe6e88000;
     kuart.reg_shift    = 0;
     kuart.base_baud    = 14745600;
-    kuart.base_address = 0xe6e60000;
-    kuart.irqno        = 283;
+    kuart.base_address = 0xe6e60000; // SCIF0
+    kuart.irqno        = 283; // SCIF0
 
     kuart.access_type  = L4_kernel_options::Uart_type_mmio;
     kuart_flags       |=   L4_kernel_options::F_uart_base
