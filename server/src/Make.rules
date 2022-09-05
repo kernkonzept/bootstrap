@@ -65,8 +65,8 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
   EFI_BIN_FMT         := efi-app-$(EFI_ARCH)
   CRTN_dyn_bin        :=
   CRTEND_dyn_bin      :=
+  # Use crt0 provided by the gnu-efi lib via PC_EXTRA.
   INTERNAL_CRT0       := n
-  CRT0                 = $(OBJ_BASE)/lib/$(SYSTEM)/crt0-efi-$(EFI_ARCH).o
   CXXFLAGS            += -fshort-wchar
   CFLAGS              += -fshort-wchar
   DEFINES             += -DGNU_EFI_USE_MS_ABI
@@ -156,9 +156,6 @@ REQUIRES_LIBS       += libc_minimal cxx_base cxx_io
 
 DRV_LIBS-ppc32   = -ldrivers_of
 DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
-ifeq ($(INTERNAL_CRT0),y)
-CRT0		 =
-endif
 ifeq ($(BOOTSTRAP_DO_UEFI)-$(ARCH),y-arm64)
 LDSCRIPT	 = bootstrap.efi.ld
 else
