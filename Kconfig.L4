@@ -21,4 +21,12 @@ config BOOTSTRAP_ROOTTASK_NX
 	
 	  If in doubt, choose n.
 
+config BOOTSTRAP_THUMB_ENTRY
+	bool "Thumb mode entry point"
+	depends on BUILD_ARCH_arm
+	help
+	  Assume that bootstrap is started in Thumb mode.
+
+	  If in doubt, choose n.
+
 endmenu

@@ -16,7 +16,18 @@
 .section .text.init,"ax"
 .type _start,#function
 .globl _start
+
+#ifdef CONFIG_BOOTSTRAP_THUMB_ENTRY
+.thumb
 _start:
+	adr r4, 1f
+	bx  r4
+1:
+.arm
+#else
+_start:
+#endif
+
 /* Some bootloaders like it this way, for others it won't harm */
 /* Only works on non-PIE builds because it leaves behind relocations in text
  * segment. */
