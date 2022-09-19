@@ -61,7 +61,7 @@ static Region __regs[300];
 static Region_list ram;
 static Region __ram[32];
 
-static Memory _mem_manager = { &ram, &regions };
+static Memory _mem_manager = { &ram, &regions, nullptr };
 Memory *mem_manager = &_mem_manager;
 
 L4_kernel_options::Uart kuart;
@@ -536,7 +536,7 @@ finalize_regions()
  */
 static void
 add_elf_regions(Boot_modules::Module const &m, Region::Type type,
-                l4_addr_t *offset, l4_addr_t min_align = 0)
+                l4_addr_t *offset, unsigned node, l4_addr_t min_align = 0)
 {
   Section_info si;
   Elf_info info;
@@ -572,7 +572,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
       unsigned align_shift = sizeof(unsigned long) * 8
                              - __builtin_clzl(si.align) - 1;
       l4_addr_t addr = _mem_manager.find_free_ram(si.end - si.start + 1U,
-                                                  0, ~0UL, align_shift);
+                                                  0, ~0UL, align_shift, node);
       if (!addr)
         panic("Not enough free memory to load binary");
 
@@ -801,7 +801,7 @@ startup(char const *cmdline)
   // The kernel must be loaded super-page aligned, even if the ELF file PHDRs
   // do not require it!
   add_elf_regions(mods->module(idx_kern), Region::Kernel, &fiasco_offset,
-                  L4_SUPERPAGESIZE);
+                  first_node, L4_SUPERPAGESIZE);
 
   for (unsigned i = 0; i < num_nodes; i++)
     {
@@ -809,14 +809,14 @@ startup(char const *cmdline)
       int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, n);
       if (idx_sigma0 >= 0)
         add_elf_regions(mods->module(idx_sigma0), Region::Sigma0,
-                        &sigma0_offset[i]);
+                        &sigma0_offset[i], n);
       else
         continue;
 
       int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, n);
       if (idx_roottask >= 0)
         add_elf_regions(mods->module(idx_roottask), Region::Root,
-                        &roottask_offset[i]);
+                        &roottask_offset[i], n);
     }
 
   l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr, internal_mods);
