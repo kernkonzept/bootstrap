@@ -63,6 +63,9 @@ SUPPORT_CRT0_arm-arm_fvp_base  := ARCH-arm/spin_addr_boot-generic.S
 SUPPORT_CC_arm-arm_fvp_base_r  := platform/arm_fvp_base_r.cc
 SUPPORT_CRT0_arm-arm_fvp_base_r := ARCH-arm/spin_addr_boot-generic.S
 DEFAULT_RELOC_arm-arm_fvp_base_r := 0
+SUPPORT_CC_arm-s32z            := platform/s32z.cc
+SUPPORT_CRT0_arm-s32z          := platform/s32z-crt0.S
+DEFAULT_RELOC_arm-s32z         := 0x00500000
 
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc platform_single_ram_region.cc

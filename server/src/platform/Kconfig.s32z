@@ -1,0 +1,58 @@
+if PLATFORM_TYPE_s32z
+
+choice
+	prompt "RTU0 configuration"
+	default BOOTSTRAP_PF_S32Z_RTU0_LOCKSTEP
+
+config BOOTSTRAP_PF_S32Z_RTU0_DISABLED
+	bool "disabled"
+
+config BOOTSTRAP_PF_S32Z_RTU0_LOCKSTEP
+	bool "lockstep"
+
+config BOOTSTRAP_PF_S32Z_RTU0_SPLIT
+	bool "split mode"
+
+endchoice
+
+choice
+	prompt "RTU1 configuration"
+	default BOOTSTRAP_PF_S32Z_RTU1_LOCKSTEP
+
+config BOOTSTRAP_PF_S32Z_RTU1_DISABLED
+	bool "disabled"
+
+config BOOTSTRAP_PF_S32Z_RTU1_LOCKSTEP
+	bool "lockstep"
+
+config BOOTSTRAP_PF_S32Z_RTU1_SPLIT
+	bool "split mode"
+
+endchoice
+
+config BOOTSTRAP_PF_S32Z_DYN_ALLOC_OVERRIDE
+	bool "Override dynamic allocation region"
+	help
+	  Specify region of dynamic allocations manually. By default the whole
+	  CRAM region of the respective cluster is used.
+
+if BOOTSTRAP_PF_S32Z_DYN_ALLOC_OVERRIDE
+
+config BOOTSTRAP_PF_S32Z_DYN_ALLOC_START
+	hex "Dynamic alloction base address"
+	default 0x32100000
+	help
+	  Lower address of region where dynamic allocations are done. This
+	  includes the multiboot information and possibly dynamic placement
+	  of the initial tasks.
+
+config BOOTSTRAP_PF_S32Z_DYN_ALLOC_END
+	hex "Dynamic allocations end address"
+	default 0x327fffff
+	help
+	  Upper address (inclusive) of region where dynamic allocations are
+	  done.
+
+endif
+
+endif

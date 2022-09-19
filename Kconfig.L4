@@ -42,5 +42,6 @@ config BOOTSTRAP_COMPRESS
 comment "GZIP/ZLIB decompression not available due to missing zlib package"
 	depends on !HAVE_BIDPC_ZLIB
 
+source "server/src/platform/Kconfig.s32z"
 
 endmenu
