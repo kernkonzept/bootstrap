@@ -53,6 +53,8 @@ DEFAULT_RELOC_arm-s32z         := 0x00500000
 SUPPORT_CC_arm-rcar4_r52       := platform/rcar4_r52.cc
 DEFAULT_RELOC_arm-rcar4_r52    := 0x00100000
 DEFINES-arm-rcar4_r52          := -DCRT0_PLATFORM_EARLY_INIT=\"platform/rcar4_r52_crt0_init.h\"
+SUPPORT_CC_arm-sr6p7g7         := platform/sr6p7g7.cc
+DEFAULT_RELOC_arm-sr6p7g7      ?= 0x00000000
 
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc
