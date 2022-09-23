@@ -6,4 +6,6 @@ config BOOTSTRAP_THUMB_ENTRY
 	bool "Thumb mode entry point"
 	depends on BUILD_ARCH_arm
 
+source "server/src/platform/Kconfig.s32z"
+
 endmenu
