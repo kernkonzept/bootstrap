@@ -72,6 +72,8 @@ struct Memory
   unsigned long find_free_ram_rev(unsigned long size, unsigned long min_addr = 0,
                                   unsigned long max_addr = ~0UL,
                                   unsigned align = L4_PAGESHIFT);
+
+  bool (*validate)(Region *search_area);
 };
 
 /**

@@ -60,7 +60,7 @@ static Region __regs[300];
 static Region_list ram;
 static Region __ram[16];
 
-static Memory _mem_manager = { &ram, &regions };
+static Memory _mem_manager = { &ram, &regions, nullptr };
 Memory *mem_manager = &_mem_manager;
 
 L4_kernel_options::Uart kuart;

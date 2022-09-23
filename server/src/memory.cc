@@ -29,6 +29,9 @@ Memory::find_free_ram(unsigned long size,
         max = rr->end();
 
       Region search_area(min, max, "ram for modules");
+      if (validate && !validate(&search_area))
+        continue;
+
       unsigned long long to = regions->find_free(search_area, size, align);
       if (to)
         return to;
