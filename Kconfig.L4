@@ -1,0 +1,9 @@
+# All help TBD
+
+menu "bootstrap"
+
+config BOOTSTRAP_THUMB_ENTRY
+	bool "Thumb mode entry point"
+	depends on BUILD_ARCH_arm
+
+endmenu
