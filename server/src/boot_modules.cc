@@ -386,8 +386,8 @@ void init_modules_infos()
 {
 #if defined(__PIC__) || defined(__PIE__)
   // Fixup header addresses when being compiled position independent
-  extern int _start;      /* begin of image -- defined in crt0.S */
-  l4_uint64_t off = (l4_uint64_t)&_start - image_info.start_of_binary;
+  extern int _stext;      /* begin of image -- defined in bootstrap.ld.in */
+  l4_uint64_t off = (l4_uint64_t)&_stext - image_info.start_of_binary;
   image_info.start_of_binary   += off;
   image_info.end_of_binary     += off;
   image_info.module_data_start += off;

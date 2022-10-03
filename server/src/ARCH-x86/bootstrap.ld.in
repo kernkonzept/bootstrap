@@ -55,6 +55,7 @@ SECTIONS
 
   .text :
   {
+    _stext = .;
     *(.init)
     KEEP(*(.multiboot2))
     *(.text .text.* .gnu.linkonce.t*)

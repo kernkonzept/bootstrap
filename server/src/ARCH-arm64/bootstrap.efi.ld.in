@@ -20,6 +20,7 @@ SECTIONS
    * image is concerned.
    */
   .text 0x0 : {
+    _stext = .;
     _text = .;
     *(.text.head)
     *(.text)
