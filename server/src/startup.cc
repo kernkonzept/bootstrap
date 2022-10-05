@@ -619,6 +619,9 @@ setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
   if (!is_hyp_kernel && running_in_hyp_mode())
     {
       printf("  Non-HYP kernel detected but running in HYP mode, switching back.\n");
+      asm volatile("mov r0, #0x0f                 \n"
+                   "mcr p15, 4, r0, c12, c9, 5    \n" // ICC_HSRE
+                   : : : "r0");
       asm volatile("mov r3, lr                    \n"
                    "mcr p15, 0, sp, c13, c0, 2    \n"
                    "mrs r0, cpsr                  \n"
