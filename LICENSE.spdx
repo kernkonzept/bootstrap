@@ -27,15 +27,8 @@ LicenseConcluded: GPL-2.0-only
 LicenseInfoInFile: NOASSERTION
 FileCopyrightText: NOASSERTION
 
-FileName: ./server/src/gunzip.h
-SPDXID: SPDXRef-gunzip.h
-FileChecksum: SHA1: d88d30e3622cc212a2f4c96db7d20ab295c93c1a
-LicenseConcluded: GPL-2.0-only
-LicenseInfoInFile: NOASSERTION
-FileCopyrightText: NOASSERTION
-
-FileName: ./server/src/gunzip.c
-SPDXID: SPDXRef-gunzip.c
+FileName: ./server/src/gunzip.cc
+SPDXID: SPDXRef-gunzip.cc
 FileChecksum: SHA1: 0f97d279031c3ef413cb06cd15ee5959f4f4678b
 LicenseConcluded: GPL-2.0-only
 LicenseInfoInFile: NOASSERTION
@@ -52,3 +45,5 @@ If you require a different licensing scheme please contact us at
 info@kernkonzept.com.
 </text>
 LicenseName: Kernkonzept Custom License
+LicenseComment: <text>If this file is part of a delivery, the license may be
+concretised in a superordinate LICENSE.spdx file.</text>
