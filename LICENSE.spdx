@@ -8,7 +8,7 @@ SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
 DocumentNamespace: spdx:kernkonzept/bootstrap-06ed57d1-8b41-4651-88f2-3665d521c08f
-DocumentName: LICENSE.spdx
+DocumentName: bootstrap
 
 Creator: Organization: Kernkonzept GmbH (info@kernkonzept.com)
 
