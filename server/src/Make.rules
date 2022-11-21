@@ -154,10 +154,9 @@ endif
 
 REQUIRES_LIBS_arm   += libfdt
 REQUIRES_LIBS_arm64 += libfdt
-REQUIRES_LIBS       += libc_minimal cxx_base cxx_io
+REQUIRES_LIBS_ppc32 += drivers_of
+REQUIRES_LIBS       += drivers_uart libc_minimal cxx_base cxx_io
 
-DRV_LIBS-ppc32   = -ldrivers_of
-DRV_LIBS         = -ldrivers_uart $(DRV_LIBS-$(ARCH))
 ifeq ($(BOOTSTRAP_DO_UEFI)-$(ARCH),y-arm64)
 LDSCRIPT	 = bootstrap.efi.ld
 else
@@ -171,8 +170,6 @@ COMPRESS	?= 0
 BUILD_PIE	?= 0
 
 ifeq ($(BUILD_PIE),1)
-DRV_LIBS          := $(patsubst -l%,-l%.p,$(DRV_LIBS))
-BOOTSTRAP_L4_LIBS := $(patsubst -l%,-l%.p,$(BOOTSTRAP_L4_LIBS))
 CFLAGS            += -fpie
 CXXFLAGS          += -fpie
 LDFLAGS_arm64     += -shared -Bsymbolic --defsym=EFI_SUBSYSTEM=0xa
@@ -346,9 +343,6 @@ mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) \
 endif
 
 CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
-
-LIBS             =
-LIBS             = $(DRV_LIBS) $(BOOTSTRAP_L4_LIBS)
 
 all:: $(BOOTSTRAP_RAW)
 
