@@ -181,8 +181,6 @@ else
 LDFLAGS           += -static -Bstatic
 endif
 
-CPPFLAGS_arm      += -DSINGLE_SECTION
-
 # convenience
 ifneq ($(E),)
 ENTRY		:= $(E)
