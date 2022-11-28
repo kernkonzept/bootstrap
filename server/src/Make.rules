@@ -409,7 +409,7 @@ CPPFLAGS_startup.cc += -DBUILD_DATE="\"$(shell LC_ALL=C date)\"" -DBUILD_NR=\"$(
 %.ld: %.ld.in $(GENERAL_D_LOC) $(BOOTSTRAP_LD_dep)
 	@$(GEN_MESSAGE)
 	$(VERBOSE)$(MKDIR) $(@D)
-	$(VERBOSE)$(CPP) -P $(CPPFLAGS) -DLINKADDR=$(strip $(call default_reloc,$(ARCH))) $< $@
+	$(VERBOSE)$(CPP) -P $(CPPFLAGS) -DLINKADDR=$(strip $(call default_reloc,$(ARCH))) $< -o $@
 
 clean::
 	$(VERBOSE)$(RM) mod.make.inc mod*.bin mbi_modules.bin $(LDSCRIPT)
