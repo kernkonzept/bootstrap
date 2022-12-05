@@ -38,7 +38,7 @@ SECTIONS
 
   .data.elf64 :
   {
-    bootstrap32.bin (.data)
+    KEEP(bootstrap32.bin (.data))
   } :rodata
 
   _image_end = .;
