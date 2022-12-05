@@ -22,23 +22,23 @@ enum
   PTAB_ENTRY_MASK = PTAB_ENTRY_NUM - 1,
 };
 
-static constexpr l4_uint32_t ptab_shift(l4_uint32_t level)
+static inline l4_uint32_t ptab_shift(l4_uint32_t level)
 { return 12 + (level * PTAB_SHIFT_PER_LEVEL); }
 
-static constexpr l4_uint64_t ptab_size(l4_uint32_t level)
-{ return static_cast<l4_uint64_t>(1) << ptab_shift(level); }
+static inline l4_uint64_t ptab_size(l4_uint32_t level)
+{ return ((l4_uint64_t)1) << ptab_shift(level); }
 
-static constexpr l4_uint64_t ptab_mask(l4_uint32_t level)
+static inline l4_uint64_t ptab_mask(l4_uint32_t level)
 { return ptab_size(level) - 1; }
 
 static inline l4_uint64_t* find_ptabe(l4_addr_t ptab_pa, l4_uint32_t level,
                                       l4_uint64_t la)
 {
   unsigned entry_idx = (la >> ptab_shift(level)) & PTAB_ENTRY_MASK;
-  return &reinterpret_cast<l4_uint64_t *>(ptab_pa)[entry_idx];
+  return &((l4_uint64_t *)ptab_pa)[entry_idx];
 }
 
-static constexpr int is_ptab_aligned(l4_uint32_t level, l4_uint64_t addr)
+static inline int is_ptab_aligned(l4_uint32_t level, l4_uint64_t addr)
 { return (addr & ptab_mask(level)) == 0; }
 
 static inline int allow_leaf(l4_uint32_t level)
@@ -59,16 +59,16 @@ static inline l4_uint32_t leaf_bit(l4_uint32_t level)
   return 0;
 }
 
-static constexpr int is_leaf(l4_uint32_t level, l4_uint64_t ptabe)
+static inline int is_leaf(l4_uint32_t level, l4_uint64_t ptabe)
 { return level == PTAB_LEVEL_PTE || (ptabe & leaf_bit(level)); }
 
 static inline void
-ptab_map_level(l4_uint32_t level, l4_uint32_t ptab_pa, l4_uint64_t &la,
-               l4_uint64_t &pa, l4_uint64_t &size, l4_uint32_t mapping_bits)
+ptab_map_level(l4_uint32_t level, l4_uint32_t ptab_pa, l4_uint64_t *la,
+               l4_uint64_t *pa, l4_uint64_t *size, l4_uint32_t mapping_bits)
 {
   do
     {
-      l4_uint64_t *ptabe = find_ptabe(ptab_pa, level, la);
+      l4_uint64_t *ptabe = find_ptabe(ptab_pa, level, *la);
       l4_uint64_t ptab_page_size = ptab_size(level);
       // Map ptab entry as leaf page if possible.
       if (allow_leaf(level))
@@ -76,10 +76,10 @@ ptab_map_level(l4_uint32_t level, l4_uint32_t ptab_pa, l4_uint64_t &la,
           // If no mapping exists for the ptab entry, plus the alignment and
           // remaining size allow it, map the ptab entry as a leaf page.
           if (!(*ptabe & PTAB_VALID)
-              && is_ptab_aligned(level, la) && is_ptab_aligned(level, pa)
-              && (size >= ptab_page_size))
+              && is_ptab_aligned(level, *la) && is_ptab_aligned(level, *pa)
+              && (*size >= ptab_page_size))
             {
-              *ptabe = pa | PTAB_VALID | mapping_bits | leaf_bit(level);
+              *ptabe = *pa | PTAB_VALID | mapping_bits | leaf_bit(level);
             }
 
           // If the ptab entry either was already mapped as a leaf page or we
@@ -87,11 +87,11 @@ ptab_map_level(l4_uint32_t level, l4_uint32_t ptab_pa, l4_uint64_t &la,
           // the remaining size according to the leaf page size.
           if ((*ptabe & PTAB_VALID) && is_leaf(level, *ptabe))
             {
-              la += ptab_page_size;
-              pa += ptab_page_size;
+              *la += ptab_page_size;
+              *pa += ptab_page_size;
               // Be careful to avoid an underflow of size, in case we
               // encountered an existing leaf page.
-              size -= ptab_page_size <= size  ? ptab_page_size : size;
+              *size -= ptab_page_size <= *size  ? ptab_page_size : *size;
               // We are done with this ptab entry.
               continue;
             }
@@ -119,10 +119,10 @@ ptab_map_level(l4_uint32_t level, l4_uint32_t ptab_pa, l4_uint64_t &la,
 
       // Stop mapping at this level if either all requested memory is mapped or
       // we reached the end of this ptab.
-    } while ((size > 0) && !is_ptab_aligned(level + 1, la));
+    } while ((*size > 0) && !is_ptab_aligned(level + 1, *la));
 }
 
-extern "C" void
+void
 ptab_map_range(l4_uint32_t pml4_pa, l4_uint64_t la, l4_uint64_t pa,
                l4_uint64_t size, l4_uint32_t mapping_bits)
 {
@@ -135,5 +135,5 @@ ptab_map_range(l4_uint32_t pml4_pa, l4_uint64_t la, l4_uint64_t pa,
   la = trunc_page(la);
   pa = trunc_page(pa);
 
-  ptab_map_level(PTAB_LEVEL_PML4E, pml4_pa, la, pa, size, mapping_bits);
+  ptab_map_level(PTAB_LEVEL_PML4E, pml4_pa, &la, &pa, &size, mapping_bits);
 }
