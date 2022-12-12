@@ -48,6 +48,11 @@ INCLUDE_BOOT_CONFIG := required
 
 include $(L4DIR)/mk/Makeconf
 -include $(OBJ_DIR)/Makeconf.local
+include $(SRC_DIR)/Makefile.platform
+
+ifeq ($(IS_EFI_$(ARCH)-$(PLATFORM_TYPE)),y)
+  BOOTSTRAP_DO_UEFI := y
+endif
 
 ifeq ($(BOOTSTRAP_DO_UEFI),y)
   # link to 0x0
@@ -98,8 +103,6 @@ MODE		 = sigma0
 BOOTSTRAP_RAW     ?= $(od)bootstrap.raw
 BOOTSTRAP_UIMAGE  ?= $(od)bootstrap.uimage
 BOOTSTRAP_ITB     ?= $(od)bootstrap.itb
-
-include $(SRC_DIR)/Makefile.platform
 
 ifneq ($(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE)),)
 DEFAULT_RELOC_$(ARCH) := $(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE))
