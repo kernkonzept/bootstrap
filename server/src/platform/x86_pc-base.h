@@ -359,7 +359,7 @@ struct Bs_uart : L4::Uart_16550
         uart_regs.io.construct(base);
         if (!startup(uart_regs.io))
           {
-            printf("Could not find or enable UART\n");
+            printf("Could not find or enable UART (I/O bar)\n");
             return;
           }
       }
@@ -369,14 +369,14 @@ struct Bs_uart : L4::Uart_16550
         uart_regs.mem.construct(base, board->reg_shift);
         if (!startup(uart_regs.mem))
           {
-            printf("Could not find or enable UART\n");
+            printf("Could not find or enable UART (memory bar)\n");
             return;
           }
       }
 
     if (!change_mode(L4::Uart_16550::MODE_8N1, baudrate))
       {
-        printf("Could not find or enable UART\n");
+        printf("Could not find or enable UART (change mode)\n");
         return;
       }
 
@@ -672,6 +672,7 @@ Pci_com_dev _devs[] = {
   { PCI_DEVICE_ID(0x5372, 0x6872), &_agestar },
   { PCI_DEVICE_ID(0x1c00, 0x3253), &_wch_chip }, // dual port card
   { PCI_DEVICE_ID(0x8086, 0x8c3d), &_default_pci_com },
+  { PCI_DEVICE_ID(0x8086, 0x9d3d), &_default_pci_com },
   { PCI_ANY_DEVICE, &_fallback_pci_com },
 };
 
