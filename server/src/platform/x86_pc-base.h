@@ -189,15 +189,15 @@ struct Serial_board
     F_bar_per_port = 0x10,
   };
 
-  unsigned short flags;
-  unsigned short base_bar;
-  unsigned num_ports;
-  unsigned base_baud;
-  unsigned port_offset;
-  unsigned base_offset;
-  unsigned reg_shift;
+  unsigned short flags = 0;
+  unsigned short base_bar = 0;
+  unsigned num_ports = 0;
+  unsigned base_baud = 0;
+  unsigned port_offset = 0;
+  unsigned base_offset = 0;
+  unsigned reg_shift = 0;
 
-  Resource bars[NUM_BARS];
+  Resource bars[NUM_BARS] = {};
 
   unsigned num_mem_bars() const
   {
