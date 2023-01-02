@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include <l4/drivers/uart_16550.h>
+#include <l4/sys/compiler.h>
 #include "support.h"
 #include "macros.h"
 #include "startup.h"
@@ -54,9 +55,7 @@ public:
   {
     L4::Io_register_block_mmio wdg(Mips::KSEG1 + 0x18102100);
     wdg.write(0, 1);
-
-    for (;;)
-      ;
+    l4_infinite_loop();
   }
 
   const char *get_platform_name()

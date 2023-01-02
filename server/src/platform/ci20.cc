@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include <l4/drivers/uart_16550.h>
+#include <l4/sys/compiler.h>
 #include "support.h"
 #include "macros.h"
 #include "startup.h"
@@ -83,8 +84,7 @@ public:
   void reboot()
   {
     printf("MIPS CI20 reboot not implemented\n");
-    for (;;)
-      ;
+    l4_infinite_loop();
   }
 
   const char *get_platform_name()

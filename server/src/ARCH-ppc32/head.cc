@@ -2,6 +2,7 @@
 #include "startup.h"
 
 #include <l4/drivers/of.h>
+#include <l4/sys/compiler.h>
 
 extern "C" void __main(unsigned long p1, unsigned long p2, unsigned long p3);
 void __main(unsigned long, unsigned long, unsigned long p3)
@@ -14,6 +15,5 @@ void __main(unsigned long, unsigned long, unsigned long p3)
   printf("PPC platform initialized\n");
   init_modules_infos();
   startup(mod_info_mbi_cmdline(mod_header));
-  while(1)
-    ;
+  l4_infinite_loop();
 }

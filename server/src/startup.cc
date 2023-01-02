@@ -683,8 +683,7 @@ startup(char const *cmdline)
     {
       // will we ever see this?
       printf("No platform found, hangup.");
-      while (1)
-        ;
+      l4_infinite_loop();
     }
 
   Platform_base *plat = Platform_base::platform;

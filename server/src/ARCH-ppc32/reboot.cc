@@ -6,12 +6,13 @@
  * Please see the COPYING-LGPL-2.1 file for details.
  */
 
+#include <l4/sys/compiler.h>
+
 void
 reboot_arch(void) __attribute__((noreturn));
 
 void
 reboot_arch(void)
 {
-  for (;;)
-    ;
+  l4_infinite_loop();
 }

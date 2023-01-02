@@ -14,6 +14,8 @@
  * Please see the COPYING-GPL-2 file for details.
  */
 
+#include <l4/sys/compiler.h>
+
 #include "support.h"
 #include "mmio_16550.h"
 
@@ -68,9 +70,7 @@ class Platform_arm_ls10xxa : public Platform_single_region_ram
   {
     L4::Io_register_block_mmio r(0x02ad0000);
     r.write16(0x0, 1 << 2);
-
-    while (1)
-      ;
+    l4_infinite_loop();
   }
 };
 }

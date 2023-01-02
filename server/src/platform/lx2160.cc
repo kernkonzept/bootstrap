@@ -15,6 +15,7 @@
  */
 
 #include <l4/drivers/uart_pl011.h>
+#include <l4/sys/compiler.h>
 #include "support.h"
 #include "startup.h"
 
@@ -44,8 +45,7 @@ class Platform_arm_lx2160 : public Platform_dt
   void reboot()
   {
     reboot_psci();
-    while (1)
-      ;
+    l4_infinite_loop();
   }
 };
 }

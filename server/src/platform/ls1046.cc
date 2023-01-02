@@ -15,6 +15,7 @@
  */
 
 #include <l4/drivers/uart_16550.h>
+#include <l4/sys/compiler.h>
 #include "support.h"
 #include "startup.h"
 
@@ -53,8 +54,7 @@ class Platform_arm_ls1046 : public Platform_base,
   void reboot()
   {
     reboot_psci();
-    while (1)
-      ;
+    l4_infinite_loop();
   }
 };
 }

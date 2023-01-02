@@ -16,6 +16,7 @@
  */
 
 #include <l4/drivers/uart_pl011.h>
+#include <l4/sys/compiler.h>
 #include "support.h"
 #include "mmio_16550.h"
 #include "arch/arm/mem.h"
@@ -388,8 +389,7 @@ class Platform_arm_rpi : public Platform_base,
     r.write(Wdog, pw | 8);
     r.write(Rstc, (r.read<l4_uint32_t>(Rstc) & ~0x30) | pw | 0x20);
 
-    while (1)
-      ;
+    l4_infinite_loop();
   }
 private:
   l4_addr_t _base;

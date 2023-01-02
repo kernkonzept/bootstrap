@@ -26,6 +26,7 @@
 #include "panic.h"
 
 #include <l4/cxx/basic_ostream>
+#include <l4/sys/compiler.h>
 
 #include "support.h"
 
@@ -128,8 +129,7 @@ __assert(const char *assertion, const char * filename,
 				assertion
 				);
   panic("Assertion");
-  while(1)
-    ;
+  l4_infinite_loop();
 }
 
 ssize_t

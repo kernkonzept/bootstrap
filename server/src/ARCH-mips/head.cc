@@ -1,3 +1,5 @@
+#include <l4/sys/compiler.h>
+
 #include "support.h"
 #include "startup.h"
 
@@ -10,6 +12,5 @@ void __main()
 
   init_modules_infos();
   startup(mod_info_mbi_cmdline(mod_header));
-  while(1)
-    ;
+  l4_infinite_loop();
 }

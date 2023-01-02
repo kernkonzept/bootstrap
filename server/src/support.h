@@ -19,6 +19,7 @@
 
 #include <l4/drivers/uart_base.h>
 #include <l4/util/l4mod.h>
+#include <l4/sys/compiler.h>
 #include "mod_info.h"
 #include "region.h"
 
@@ -136,8 +137,7 @@ public:
 
   virtual void reboot()
   {
-    while (1)
-      ;
+    l4_infinite_loop();
   }
 
   virtual bool have_a_dt() { return false; }

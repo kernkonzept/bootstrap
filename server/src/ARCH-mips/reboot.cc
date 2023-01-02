@@ -13,6 +13,8 @@
  * Please see the COPYING-LGPL-2.1 file for details.
  */
 
+#include <l4/sys/compiler.h>
+
 #include "support.h"
 
 void
@@ -22,7 +24,5 @@ void
 reboot_arch(void)
 {
   Platform_base::platform->reboot();
-
-  for (;;)
-    ;
+  l4_infinite_loop();
 }
