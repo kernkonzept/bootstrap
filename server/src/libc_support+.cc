@@ -116,11 +116,11 @@ void exit(int c) throw()
 void (*__exit_cleanup) (int) = 0;
 
 extern "C" void __attribute__((noreturn))
-__assert(const char *, const char *, int, register const char *);
+__assert(const char *, const char *, int, const char *);
 
 extern "C" void __attribute__((noreturn))
 __assert(const char *assertion, const char * filename,
-         int linenumber, register const char * function)
+         int linenumber, const char * function)
 {
   printf("%s:%d: %s: Assertion `%s' failed.\n",
 				filename,
