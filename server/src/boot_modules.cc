@@ -203,10 +203,12 @@ mod_insert_sorted(unsigned short v, CMP const &cmp)
   ++mod_sorter_end;
 }
 
+#ifdef COMPRESS
 static inline unsigned mod_sorter_num()
 {
   return mod_sorter_end - mod_sorter;
 }
+#endif
 
 /// Compare start addresses for two modules
 struct Mbi_mod_cmp
@@ -482,6 +484,7 @@ drop_mod_region(Mod_info *mod)
 }
 #endif
 
+#ifdef COMPRESS
 static inline void
 print_mod(Mod_info *mod)
 {
@@ -490,6 +493,7 @@ print_mod(Mod_info *mod)
          index, mod_start(mod), mod_start(mod) + mod->size,
          mod_name(mod));
 }
+#endif
 
 #ifdef DO_CHECK_MD5
 #include <bsd/md5.h>
@@ -909,6 +913,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr)
     decompress_mods(mod_header->num_mods, total_size, mod_addr);
   merge_mod_regions();
 #else // COMPRESS
+  (void)total_size;
   move_modules(mod_addr);
 #endif // ! COMPRESS
 
