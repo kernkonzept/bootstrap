@@ -61,10 +61,13 @@ public:
       = LibGetSystemConfigurationTable(&Acpi20TableGuid, &table);
 
     if (exit_status != EFI_SUCCESS)
-        exit_status = LibGetSystemConfigurationTable(&AcpiTableGuid, &table);
+      exit_status = LibGetSystemConfigurationTable(&AcpiTableGuid, &table);
 
     if (exit_status != EFI_SUCCESS)
-      printf("No RSDP found in EFI system table\n");
+      {
+        table = NULL;
+        printf("No RSDP found in EFI system table\n");
+      }
 
     exit_status = (EFI_STATUS)uefi_call_wrapper((void*)(BS->ExitBootServices), 2, efi_image, key);
     if (exit_status != EFI_SUCCESS)
@@ -105,10 +108,11 @@ public:
       }
 
     // add region for ACPI tables
-    regions->add(Region::n(l4_trunc_page((l4_addr_t)table),
-                           l4_trunc_page((l4_addr_t)table) + L4_PAGESIZE,
-                           ".ACPI", Region::Info, Region::Info_acpi_rsdp),
-                 true);
+    if (table)
+      regions->add(Region::n(l4_trunc_page((l4_addr_t)table),
+                             l4_trunc_page((l4_addr_t)table) + L4_PAGESIZE,
+                             ".ACPI", Region::Info, Region::Info_acpi_rsdp),
+                   true);
 
     // merge adjacent regions
     ram->optimize();
