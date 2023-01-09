@@ -11,7 +11,7 @@
 
 #define MIMIC_A_VMLINUZ
 
-.section .text.init,#alloc,#execinstr
+.section .text.init,"ax"
 .type _start,#function
 .globl _start
 _start:
