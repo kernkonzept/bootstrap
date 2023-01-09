@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only or License-Ref-kk-custom */
 /*
- * Copyright (C) 2009-2020 Kernkonzept GmbH.
+ * Copyright (C) 2009-2021, 2023 Kernkonzept GmbH.
  * Authors: Alexander Warg <warg@os.inf.tu-dresden.de>
  *          Frank Mehnert <fm3@os.inf.tu-dresden.de>
  *          Marcus Haehnel <marcus.haehnel@kernkonzept.com>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Kernkonzept GmbH.
+ * Copyright (C) 2017, 2020 Kernkonzept GmbH.
  * Author: Jakub Jermar <jakub.jermar@kernkonzept.com>
  *
  * This file is distributed under the terms of the GNU General Public

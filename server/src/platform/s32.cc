@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Kernkonzept GmbH.
+ * Copyright (C) 2018, 2022 Kernkonzept GmbH.
  * Author(s): Adam Lackorzynski <adam@l4re.org>
  *
  * This file is distributed under the terms of the GNU General Public

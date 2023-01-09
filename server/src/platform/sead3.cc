@@ -4,7 +4,7 @@
  * Copyright (C) 2013 Imagination Technologies Ltd.
  * Author: Sanjay Lal <sanjayl@kymasys.com>
  *
- * Copyright (C) 2015 Kernkonzept GmbH
+ * Copyright (C) 2015-2016 Kernkonzept GmbH
  * Author: Adam Lackorzynski <adam@l4re.org>
  *
  */
