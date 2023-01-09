@@ -264,7 +264,7 @@ sub build_objects(@)
   my $section_attr = ($arch ne 'sparc' && $arch ne 'arm'
        ? #'"a", @progbits' # Not Xen
          '\"awx\", @progbits' # Xen
-       : '#alloc' );
+       : '\"a\"' );
 
   my $alignment = 12;
   $alignment = 16 if $arch eq 'mips';
