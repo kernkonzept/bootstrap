@@ -35,7 +35,8 @@ static l4_uint64_t find_upper_mem(l4util_mb_info_t *mbi)
   l4util_mb_addr_range_t *mmap;
   l4util_mb_for_each_mmap_entry(mmap, mbi)
     {
-      if (max < mmap->addr + mmap->size)
+      if (max < mmap->addr + mmap->size
+          && mmap->type == MB_ARD_MEMORY)
         max = mmap->addr + mmap->size;
     }
   return max;
