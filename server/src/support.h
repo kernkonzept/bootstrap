@@ -68,9 +68,11 @@ struct Memory
   Region_list *ram;
   Region_list *regions;
   unsigned long find_free_ram(unsigned long size, unsigned long min_addr = 0,
-                              unsigned long max_addr = ~0UL);
+                              unsigned long max_addr = ~0UL,
+                              unsigned align = L4_PAGESHIFT);
   unsigned long find_free_ram_rev(unsigned long size, unsigned long min_addr = 0,
-                                  unsigned long max_addr = ~0UL);
+                                  unsigned long max_addr = ~0UL,
+                                  unsigned align = L4_PAGESHIFT);
 };
 
 extern Memory *mem_manager;
