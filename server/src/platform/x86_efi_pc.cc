@@ -58,26 +58,19 @@ public:
     // EFI is already exited in setup_memory_map which is called much too
     // early
 
-    Region *r = mem_manager->regions->begin();
-    for (; r != mem_manager->regions->end(); ++r)
-      if (!strcmp(r->name(), ".mbi_rt"))
-        {
-          break;
-        }
-
-    unsigned long long a_sz = sizeof(l4util_mb_vbe_ctrl_t) + sizeof(l4util_mb_vbe_mode_t);
-    Region appendreg(*r, r->end() + 1, r->end() + 1 + a_sz);
-
-    if (!mem_manager->regions->find_free(appendreg, a_sz, 1))
+    unsigned long long vbe_sz = sizeof(l4util_mb_vbe_ctrl_t) + sizeof(l4util_mb_vbe_mode_t);
+    l4_addr_t vbe_addr = mem_manager->find_free_ram(vbe_sz);
+    if (!vbe_addr)
       {
-        printf("Not enough space to append to MBI (should not happen?).\n");
+        printf("EFI: Unable to reserve region to hold VBE config.\n");
         return mbi;
       }
 
-    mbi->vbe_ctrl_info = r->end() + 1;
-    mbi->vbe_mode_info = mbi->vbe_ctrl_info + sizeof(l4util_mb_vbe_ctrl_t);
+    mem_manager->regions->add(Region::start_size(vbe_addr, vbe_sz, ".vbe",
+                                                 Region::Root, L4_FPAGE_RW));
 
-    r->end(r->end() + a_sz);
+    mbi->vbe_ctrl_info = vbe_addr;
+    mbi->vbe_mode_info = vbe_addr + sizeof(l4util_mb_vbe_ctrl_t);
 
     l4util_mb_vbe_ctrl_t *vbe = (l4util_mb_vbe_ctrl_t *)(l4_addr_t)mbi->vbe_ctrl_info;
     l4util_mb_vbe_mode_t *vbi = (l4util_mb_vbe_mode_t *)(l4_addr_t)mbi->vbe_mode_info;
