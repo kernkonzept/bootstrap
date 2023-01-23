@@ -11,6 +11,8 @@
 #include "startup.h"
 #include "panic.h"
 #include "platform_dt-arm.h"
+#include "qemu_fw_cfg.h"
+#include "qemu_ramfb.h"
 
 extern char _start;
 
@@ -59,6 +61,23 @@ class Platform_arm_virt : public Platform_dt_arm
         boot_args.r[2] = dst;
 #endif
       }
+  }
+
+  void setup_fw_cfg()
+  {
+    Dt::Node fw_cfg = dt.node_by_compatible("qemu,fw-cfg-mmio");
+    l4_uint64_t fw_cfg_addr;
+    if (fw_cfg.is_valid() && fw_cfg.get_reg(0, &fw_cfg_addr))
+      Fw_cfg::init_mmio(fw_cfg_addr);
+  }
+
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr,
+                                   Internal_module_list const &mods) override
+  {
+    l4util_l4mod_info *mbi = Platform_dt::construct_mbi(mod_addr, mods);
+    setup_fw_cfg();
+    setup_ramfb(mbi);
+    return mbi;
   }
 
   void late_setup(l4_kernel_info_t *kip) override
