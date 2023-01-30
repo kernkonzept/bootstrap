@@ -194,13 +194,6 @@ _exit(int /*rc*/)
   reboot();
 }
 
-/** for assert */
-void
-abort(void) throw()
-{
-  _exit(1);
-}
-
 void
 panic(const char *fmt, ...)
 {
