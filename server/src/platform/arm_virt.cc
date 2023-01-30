@@ -52,7 +52,11 @@ class Platform_arm_virt : public Platform_dt
         unsigned long dst = l4_trunc_page((unsigned long)&_start - s);
         memmove((void *)dst, fdt, s);
         _Pragma("GCC diagnostic pop")
+#if defined(ARCH_arm64)
         boot_args.r[0] = dst;
+#elif defined(ARCH_arm)
+        boot_args.r[2] = dst;
+#endif
       }
   }
 
