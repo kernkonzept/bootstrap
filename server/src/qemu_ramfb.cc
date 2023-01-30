@@ -33,9 +33,28 @@ enum
   Ramfb_format = 0x34325258, // DRM_FORMAT_XRGB8888
   Ramfb_stride = 4,
 
-  Ramfb_width  = 1280,
-  Ramfb_height = 720,
+  Ramfb_default_width  = 1280,
+  Ramfb_default_height = 720,
 };
+
+void detect_ramfb_size(l4_uint32_t *width, l4_uint32_t *height)
+{
+  *width = Ramfb_default_width;
+  *height = Ramfb_default_height;
+
+  if (l4_uint32_t fbe_res_len = Fw_cfg::select_file("opt/org.l4re/fb_res"))
+    {
+      char fbe_res[32];
+      Fw_cfg::read_str(fbe_res_len, fbe_res);
+
+      char *sep = strchr(fbe_res, 'x');
+      if (!sep)
+        return;
+
+      *width = strtoul(fbe_res, &sep, 10);
+      *height = strtoul(sep + 1, nullptr, 10);
+    }
+}
 
 }
 
@@ -58,8 +77,10 @@ bool setup_ramfb(l4util_l4mod_info *mbi)
       return false;
     }
 
-  l4_uint32_t width = Ramfb_width;
-  l4_uint32_t height = Ramfb_height;
+  l4_uint32_t width, height;
+  detect_ramfb_size(&width, &height);
+  printf("  ramfb: Resolution configured to %ux%u.\n", width, height);
+
   // Must be super-page aligned.
   l4_uint32_t fb_size = l4_round_size(width * height * Ramfb_stride,
                                       L4_SUPERPAGESHIFT);
