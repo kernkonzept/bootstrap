@@ -45,10 +45,11 @@ class Platform_arm_virt : public Platform_dt
     void *fdt = (void *)RAM_BASE;
     if (fdt_check_header(fdt) == 0)
       {
-        unsigned s = fdt_totalsize(fdt);
-        unsigned long dst = l4_trunc_page((unsigned long)&_start - s);
         _Pragma("GCC diagnostic push")
         _Pragma("GCC diagnostic ignored \"-Wnonnull\"") // if RAM_BASE == 0
+        _Pragma("GCC diagnostic ignored \"-Warray-bounds\"") // if RAM_BASE == 0
+        unsigned s = fdt_totalsize(fdt);
+        unsigned long dst = l4_trunc_page((unsigned long)&_start - s);
         memmove((void *)dst, fdt, s);
         _Pragma("GCC diagnostic pop")
         boot_args.r[0] = dst;
