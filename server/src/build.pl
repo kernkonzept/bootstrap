@@ -235,6 +235,7 @@ sub build_objects(@)
     if $ENV{L4IMAGE_LICENSE};
 
   $img{attrs}{"l4i:loadaddr"} = $ENV{BOOTSTRAP_LINKADDR};
+  $img{attrs}{"l4i:rambase"} = $ENV{OPT_RAM_BASE};
 
   my $volatile_data = 1;
 
