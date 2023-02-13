@@ -16,6 +16,7 @@
 
 #include <l4/drivers/uart_pl011.h>
 #include <l4/sys/compiler.h>
+#include "dt.h"
 #include "support.h"
 #include "startup.h"
 
@@ -40,6 +41,34 @@ class Platform_arm_lx2160 : public Platform_dt
     static L4::Uart_pl011 _uart(kuart.base_baud);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
+  }
+
+  enum
+  {
+    MC_GCR1 = 0x00, // General Control Register 1
+
+    MC_GCR1_P1_STOP = 1UL << 31, // Processor 1 Stop
+    MC_GCR1_P2_STOP = 1UL << 30, // Processor 2 Stop
+  };
+
+  void late_setup() override
+  {
+    dt.check_for_dt();
+
+    // Pause the DPAA2 management complex (MC) firmware to avoid faults once
+    // Fiasco enables the IOMMU. If then later someone wants to use the MC, they
+    // have to resume it.
+    l4_uint64_t mc_addr;
+    Dt::Node mc = dt.node_by_compatible("fsl,qoriq-mc");
+    if (!mc.is_valid() || !mc.get_reg(1, &mc_addr))
+    {
+      printf("  Could not find and pause DPAA2 management complex.\n");
+      return;
+    }
+
+    L4::Io_register_block_mmio mc_reg(mc_addr);
+    mc_reg.set<l4_uint32_t>(MC_GCR1, MC_GCR1_P1_STOP | MC_GCR1_P2_STOP);
+    printf("  Paused DPAA2 management complex.\n");
   }
 
   void reboot()
