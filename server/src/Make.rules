@@ -83,6 +83,7 @@ BOOTSTRAP_MODULES_LIST       ?= $(SRC_DIR)/modules.list
 BOOTSTRAP_MODULE_PATH_BINLIB ?= $(OBJ_BASE)/bin/$(SYSTEM)/$(BUILD_ABI):$(OBJ_BASE)/lib/$(SYSTEM)/$(BUILD_ABI):$(OBJ_BASE)/lib/$(SYSTEM)
 BOOTSTRAP_ELF_NAME           ?= bootstrap.elf
 MKIMAGE                      ?= mkimage
+MKIMAGE_PRESENT              := $(if $(shell command -v $(MKIMAGE)),y)
 BOOTSTRAP_UIMAGE_COMPRESSION ?= none
 
 od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(if $(wildcard $(BOOTSTRAP_OUTPUT_DIR)),,$(shell mkdir -p $(BOOTSTRAP_OUTPUT_DIR))))
@@ -93,6 +94,10 @@ PRIVATE_INCDIR	 = $(SRC_DIR) $(SRC_DIR)/ARCH-$(ARCH)
 TARGET		:= $(od)$(BOOTSTRAP_ELF_NAME)
 TARGET_BIN	 = $(od)$(BOOTSTRAP_ELF_NAME)
 MODE		 = sigma0
+
+BOOTSTRAP_RAW     ?= $(od)bootstrap.raw
+BOOTSTRAP_UIMAGE  ?= $(od)bootstrap.uimage
+BOOTSTRAP_ITB     ?= $(od)bootstrap.itb
 
 include $(SRC_DIR)/Makefile.platform
 
@@ -260,15 +265,12 @@ $(od)bootstrap_$(ENTRY_FN).%: $(od)bootstrap.%
       $(if $(BOOTSTRAP_NO_STRIP),,$(STRIP) $@)
 
    ifneq ($(BOOTSTRAP_DO_RAW_IMAGE)$(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
-     BOOTSTRAP_RAW      := $(od)bootstrap.raw
      INSTALL_FILES      += bootstrap.raw bootstrap_$(ENTRY_FN).raw
      ifneq ($(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
-       ifneq ($(shell command -v $(MKIMAGE)),)
+       ifeq ($(MKIMAGE_PRESENT),y)
          ifneq ($(BOOTSTRAP_DO_UIMAGE),)
-           BOOTSTRAP_UIMAGE := $(od)bootstrap.uimage
            INSTALL_FILES    += bootstrap.uimage bootstrap_$(ENTRY_FN).uimage
          else
-           BOOTSTRAP_ITB    := $(od)bootstrap.itb
            INSTALL_FILES    += bootstrap.itb bootstrap_$(ENTRY_FN).itb
          endif
        else
@@ -294,7 +296,17 @@ $(IMAGES_DIR)/%: $(od)%
 	$(VERBOSE)(cd $(dir $@) && $(LN) -sf $(if $(od),,$(PWD)/)$<)
 
 else
-  INSTALL_FILES = bootstrap
+  INSTALL_FILES = bootstrap $(BOOTSTRAP_ELF_NAME) $(BOOTSTRAP_RAW)
+
+  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips))
+    ifeq ($(MKIMAGE_PRESENT),y)
+      INSTALL_FILES += $(BOOTSTRAP_UIMAGE) $(BOOTSTRAP_ITB)
+    else
+      ifneq ($(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
+        $(error mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage/itb)
+      endif
+    endif
+  endif
 endif # ENTRY
 
 ifneq ($(COMPRESS),0)
