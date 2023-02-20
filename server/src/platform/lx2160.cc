@@ -61,10 +61,10 @@ class Platform_arm_lx2160 : public Platform_dt
     l4_uint64_t mc_addr;
     Dt::Node mc = dt.node_by_compatible("fsl,qoriq-mc");
     if (!mc.is_valid() || !mc.get_reg(1, &mc_addr))
-    {
-      printf("  Could not find and pause DPAA2 management complex.\n");
-      return;
-    }
+      {
+        printf("  Could not find and pause DPAA2 management complex.\n");
+        return;
+      }
 
     L4::Io_register_block_mmio mc_reg(mc_addr);
     mc_reg.set<l4_uint32_t>(MC_GCR1, MC_GCR1_P1_STOP | MC_GCR1_P2_STOP);
