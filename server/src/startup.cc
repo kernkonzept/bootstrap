@@ -50,6 +50,10 @@
 #include "koptions.h"
 #include "dt.h"
 
+#if defined(ARCH_arm) || defined(ARCH_arm64)
+#include "arch/arm/mem.h"
+#endif
+
 #undef getchar
 
 /* management of allocated memory regions */
@@ -852,9 +856,31 @@ startup(char const *cmdline)
 #if defined(ARCH_arm)
   if (major == 0x87)
     setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
+  lko->core_spin_addr = dt.cpu_release_addr();
+#if 0
+  if (lko->core_spin_addr == -1ULL)
+    {
+      // If we do not get an spin address from DT, all cores might start
+      // at the same time and are caught by bootstrap
+      extern l4_uint32_t mp_launch_spin_addr;
+      asm volatile("" : : : "memory");
+      Barrier::dmb_cores();
+      lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
+    }
+#endif
 #endif
 #if defined(ARCH_arm64)
   setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
+  lko->core_spin_addr = dt.cpu_release_addr();
+  if (lko->core_spin_addr == -1ULL)
+    {
+      // If we do not get an spin address from DT, all cores might start
+      // at the same time and are caught by bootstrap
+      extern l4_uint64_t mp_launch_spin_addr;
+      asm volatile("" : : : "memory");
+      Barrier::dmb_cores();
+      lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
+    }
 #endif
 #if defined(ARCH_mips)
   {

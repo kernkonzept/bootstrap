@@ -117,8 +117,13 @@ run:
 	cmp	x9, #0
 	beq	2f                         /* Still not set */
 	blr	x9
-2:	wfi
+2:	wfe
 	b	1b
+
+	.align 3
+	.global mp_launch_spin_addr
+mp_launch_spin_addr:
+	.space 8
 
 do_bootstrap:
 	adr	x9, crt0_stack_high
@@ -140,7 +145,3 @@ crt0_stack_low:
 	.space	8192
 	.global crt0_stack_high
 crt0_stack_high:
-
-	.global mp_launch_spin_addr
-mp_launch_spin_addr:
-	.space 8
