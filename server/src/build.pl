@@ -336,6 +336,8 @@ sub postprocess
 
   error("Need a bootstrap ELF file") unless $type == L4::Image::FILE_TYPE_ELF;
 
+  my $is32bit = (L4::Image::Elf->new($fn)->{class} == L4::Image::Elf::ELFCLASS32);
+
   my $magic = L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC');
   my $count = `grep -c "$magic" $fn`;
   chomp $count;
@@ -374,6 +376,21 @@ sub postprocess
   error("Did not find _start symbol in binary") unless defined $_start;
   error("Did not find _module_data_start symbol in binary")
     unless defined $_module_data_start;
+
+  my $compensate_nm_bug = sub {
+    # In some binutils distributions nm has a bug where it sign-extends 32-bit
+    # addresses to 64-bit addresses before printing, which can lead to incorrect
+    # addresses in the mod header. To compensate for this, we cut down the
+    # addresses to the lower 32 bits if we're processing a 32-bit image.
+    my $adr = shift;
+    $adr = $adr->band(Math::BigInt->from_hex("FFFFFFFF")) if $is32bit;
+    return $adr;
+  };
+
+  $_start             = $compensate_nm_bug->($_start);
+  $_end               = $compensate_nm_bug->($_end);
+  $_module_data_start = $compensate_nm_bug->($_module_data_start);
+  $bin_addr_end_bin   = $compensate_nm_bug->($bin_addr_end_bin);
 
   open(my $fd, "+<$fn") || error("Could not open '$fn': $!");
   binmode $fd;
