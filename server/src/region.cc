@@ -180,16 +180,6 @@ Region_list::contains(Region const &o)
   return 0;
 }
 
-Region *
-Region_list::find_by_name(char const *name) const
-{
-  for (Region *c = _reg; c < _end; ++c)
-    if (!strcmp(c->name(), name))
-      return c;
-
-  return 0;
-}
-
 void
 Region::print() const
 {

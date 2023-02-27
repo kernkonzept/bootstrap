@@ -260,9 +260,6 @@ public:
   /** Search for the region that contains o. */
   Region *contains(Region const &o);
 
-  /** Search for a region with the specified name. */
-  Region *find_by_name(char const *name) const;
-
   /**
    * Search for a memory region not overlapping any known region,
    * within search.
