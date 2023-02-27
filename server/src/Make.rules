@@ -345,6 +345,12 @@ mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) \
   BOOTSTRAP_LD_dep             += mod.make.inc
   STARTUP_C_dep                := mod.make.inc
   OBJS_$(od)$(BOOTSTRAP_ELF_NAME)   += $(MODULE_OBJECT_FILES)
+
+  # We need the default images to be ready for image mode on these architectures
+  # as they are populated using the l4image tool.
+  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips))
+    CPPFLAGS                   += -DIMAGE_MODE
+  endif
 endif
 
 CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
