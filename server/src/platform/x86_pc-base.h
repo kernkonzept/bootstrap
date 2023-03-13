@@ -91,12 +91,12 @@ static void vga_putchar(unsigned char c)
 	vga_putchar('\n');
 
       /* Stuff the character into the video buffer. */
-	{
-	  volatile unsigned char *p = vidbase + 80 * 2 * 24 + ofs * 2;
-	  p[0] = c;
-	  p[1] = attr;
-	  ofs++;
-	}
+      {
+        volatile unsigned char *p = vidbase + 80 * 2 * 24 + ofs * 2;
+        p[0] = c;
+        p[1] = attr;
+        ofs++;
+      }
       break;
     }
 

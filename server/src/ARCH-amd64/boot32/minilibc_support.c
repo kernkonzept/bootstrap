@@ -95,11 +95,10 @@ direct_cons_putchar(unsigned char c)
   static int attr = 0x07;
   unsigned char *vidbase = (unsigned char*)0xb8000;
 
-
   if (ofs < 0)
     {
       /* Called for the first time - initialize.  */
-      ofs = 80*2*24;
+      ofs = 80 * 2 * 24;
       direct_cons_putchar('\n');
     }
 
@@ -117,7 +116,7 @@ direct_cons_putchar(unsigned char c)
     case 2:
       if (c >= '0' && c <= '9')
 	{
-	  esc_val = 10*esc_val + c - '0';
+	  esc_val = 10 * esc_val + c - '0';
 	  goto done;
 	}
       if (c == 'm')
@@ -132,8 +131,8 @@ direct_cons_putchar(unsigned char c)
   switch (c)
     {
     case '\n':
-      memmove(vidbase, vidbase+80*2, 80*2*24);
-      memset(vidbase+80*2*24, 0, 80*2);
+      memmove(vidbase, vidbase + 80 * 2, 80 * 2 * 24);
+      memset(vidbase + 80 * 2 * 24, 0, 80 * 2);
       /* fall through... */
     case '\r':
       ofs = 0;
@@ -154,12 +153,12 @@ direct_cons_putchar(unsigned char c)
 	direct_cons_putchar('\n');
 
       /* Stuff the character into the video buffer. */
-	{
-	  volatile unsigned char *p = vidbase + 80*2*24 + ofs*2;
-	  p[0] = c;
-  	  p[1] = attr;
-	  ofs++;
-	}
+      {
+        volatile unsigned char *p = vidbase + 80 * 2 * 24 + ofs * 2;
+        p[0] = c;
+        p[1] = attr;
+        ofs++;
+      }
       break;
     }
 
