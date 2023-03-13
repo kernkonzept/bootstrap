@@ -30,17 +30,13 @@ using L4::Kip::Mem_desc;
  * setup Kernel Info Page
  */
 void
-init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
-           Region_list *ram, Region_list *regions)
+init_kip(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
+         Region_list *ram, Region_list *regions)
 {
-  l4_kernel_info_t *l4i = (l4_kernel_info_t *)_l4i;
-
-  unsigned char l4_api = l4i->version >> 24;
-
-  if (l4_api != 0x87 /*VERSION_FIASCO*/)
+  if (L4_KIP_VERSION_FIASCO != l4_kip_version(l4i))
     panic("cannot load kernels other than Fiasco");
 
-  Mem_desc *md = Mem_desc::first(_l4i);
+  Mem_desc *md = Mem_desc::first(l4i);
   assert((unsigned long)md - (unsigned long)l4i >= sizeof(*l4i));
 
   for (Region const* c = ram->begin(); c != ram->end(); ++c)

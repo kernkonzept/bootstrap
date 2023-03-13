@@ -33,6 +33,7 @@
 /* L4 stuff */
 #include <l4/sys/compiler.h>
 #include <l4/sys/consts.h>
+#include <l4/sys/kip.h>
 #include <l4/util/mb_info.h>
 #include <l4/util/l4_macros.h>
 #include <l4/util/kip.h>
@@ -138,7 +139,7 @@ dump_mbi(l4util_mb_info_t *mbi)
  * After loading the kernel we scan for the magic number at page boundaries.
  */
 static
-void *find_kip(Boot_modules::Module const &mod)
+l4_kernel_info_t *find_kip(Boot_modules::Module const &mod)
 {
   printf("  find kernel info page...\n");
 
@@ -151,7 +152,7 @@ void *find_kip(Boot_modules::Module const &mod)
   if (r == 1)
     {
       printf("  found kernel info page (via ELF) at %lx\n", hdr.start);
-      return (void *)hdr.start;
+      return (l4_kernel_info_t *)hdr.start;
     }
 
   for (Region const &m : regions)
@@ -170,7 +171,7 @@ void *find_kip(Boot_modules::Module const &mod)
           if ( *(l4_uint32_t *)p == L4_KERNEL_INFO_MAGIC)
             {
               printf("  found kernel info page at %lx\n", p);
-              return (void *)p;
+              return (l4_kernel_info_t *)p;
             }
         }
     }
@@ -209,16 +210,6 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod, void *ki
 
   return ko;
 }
-
-/**
- * Get the API version from the KIP.
- */
-static inline
-unsigned long get_api_version(void *kip)
-{
-  return ((unsigned long *)kip)[1];
-}
-
 
 static char const *
 check_arg_str(char const *cmdline, const char *arg)
@@ -800,7 +791,7 @@ startup(char const *cmdline)
     }
 
   /* setup kernel PART TWO (special kernel initialization) */
-  void *l4i = find_kip(mods->module(idx_kern));
+  l4_kernel_info_t *l4i = find_kip(mods->module(idx_kern));
 
   plat->late_setup();
 
@@ -824,64 +815,31 @@ startup(char const *cmdline)
   lko->uart   = kuart;
   lko->flags |= kuart_flags;
 
-  search_and_setup_utest_feature(L4_CONST_CHAR_PTR(mb_mod[0].cmdline),
-                                 (l4_kernel_info_t *)l4i);
+  search_and_setup_utest_feature(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), l4i);
 
-  /* setup the L4 kernel info page before booting the L4 microkernel:
-   * patch ourselves into the booter task addresses */
-  unsigned long api_version = get_api_version(l4i);
-  unsigned major = api_version >> 24;
-  switch (major)
-    {
-    case 0x87: // Fiasco
-      init_kip_f(l4i, &boot_info, mbi, &ram, &regions);
-      break;
-    case 0x02:
-      panic("cannot boot V.2 API kernels: %lx\n", api_version);
-    case 0x03:
-      panic("cannot boot X.0 and X.1 API kernels: %lx\n", api_version);
-    case 0x84:
-      panic("cannot boot Fiasco V.4 API kernels: %lx\n", api_version);
-    case 0x04:
-      panic("cannot boot V.4 API kernels: %lx\n", api_version);
-    default:
-      panic("cannot boot a kernel with unknown api version %lx\n", api_version);
-    }
+  // setup the L4 kernel info page before booting the L4 microkernel:
+  init_kip(l4i, &boot_info, mbi, &ram, &regions);
 
   printf("  Starting kernel ");
   print_module_name(L4_CONST_CHAR_PTR(mb_mod[0].cmdline),
 		    "[KERNEL]");
   printf(" at " l4_addr_fmt "\n", boot_info.kernel_start);
 
-#if defined(ARCH_arm)
-  if (major == 0x87)
-    setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
-  lko->core_spin_addr = dt.cpu_release_addr();
-#if 0
-  if (lko->core_spin_addr == -1ULL)
-    {
-      // If we do not get an spin address from DT, all cores might start
-      // at the same time and are caught by bootstrap
-      extern l4_uint32_t mp_launch_spin_addr;
-      asm volatile("" : : : "memory");
-      Barrier::dmb_cores();
-      lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
-    }
-#endif
-#endif
-#if defined(ARCH_arm64)
+#if defined(ARCH_arm) || defined(ARCH_arm64)
   setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
   lko->core_spin_addr = dt.cpu_release_addr();
+#if defined(ARCH_arm64) // disabled on arm32 until assembler support lands
   if (lko->core_spin_addr == -1ULL)
     {
       // If we do not get an spin address from DT, all cores might start
       // at the same time and are caught by bootstrap
-      extern l4_uint64_t mp_launch_spin_addr;
+      extern l4_umword_t mp_launch_spin_addr;
       asm volatile("" : : : "memory");
       Barrier::dmb_cores();
       lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
     }
-#endif
+#endif // defined(ARCH_arm64)
+#endif // defined(ARCH_arm) || defined(ARCH_arm64)
 #if defined(ARCH_mips)
   {
     printf("  Flushing caches ...\n");

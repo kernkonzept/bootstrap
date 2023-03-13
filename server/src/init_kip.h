@@ -1,24 +1,22 @@
+/* SPDX-License-Identifier: GPL-2.0-only OR License-Ref-kk-custom */
 /*
- * (c) 2008-2009 Adam Lackorzynski <adam@os.inf.tu-dresden.de>,
+ * Copyright (C) 2008-2009 Technische Universität Dresden
+ * Copyright (C) 2023 Kernkonzept GmbH
+ * Authors:
+ *               Adam Lackorzynski <adam@os.inf.tu-dresden.de>,
  *               Alexander Warg <warg@os.inf.tu-dresden.de>,
  *               Frank Mehnert <fm3@os.inf.tu-dresden.de>
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * This file is part of TUD:OS and distributed under the terms of the
- * GNU General Public License 2.
- * Please see the COPYING-GPL-2 file for details.
  */
-#ifndef INIT_KIP_H__
-#define INIT_KIP_H__
+#pragma once
+
+#include <l4/sys/kip.h>
 
 #include "startup.h"
-#include "init_kip-arch.h"
+#include "region.h"
 
-#ifdef __cplusplus
-class Region_list;
+void init_kip(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
+              Region_list *ram, Region_list *regions);
 
-void init_kip_f(void *_l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
-                Region_list *ram, Region_list *regions);
-#endif
-
+#if defined(ARCH_ppc32)
+void init_kip_v2_arch(l4_kernel_info_t *);
 #endif
