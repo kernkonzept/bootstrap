@@ -827,7 +827,7 @@ startup(char const *cmdline)
 
 #if defined(ARCH_arm) || defined(ARCH_arm64)
   setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
-  lko->core_spin_addr = dt.cpu_release_addr();
+  lko->core_spin_addr = plat->have_a_dt() ? dt.cpu_release_addr() : -1ULL;
 #if defined(ARCH_arm64) // disabled on arm32 until assembler support lands
   if (lko->core_spin_addr == -1ULL)
     {
