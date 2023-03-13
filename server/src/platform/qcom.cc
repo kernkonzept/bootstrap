@@ -38,7 +38,7 @@ class Platform_arm_qcom : public Platform_dt
 #elif defined(PLATFORM_TYPE_msm8974)
     kuart.base_address = 0xf991e000; // UART1
     kuart.irqno        = 32 + 107;
-    static L4::Uartdm _uart(kuart.base_baud);
+    static L4::Uart_dm _uart(kuart.base_baud);
 #elif defined(PLATFORM_TYPE_sm8150)
     kuart.base_address = 0x00a90000; // UART2
     kuart.irqno        = 32 + 357;
