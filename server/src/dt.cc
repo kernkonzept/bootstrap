@@ -166,6 +166,11 @@ void Dt::setup_memory()
   // Iterate all memory nodes
   nodes_by_prop_value("device_type", "memory", 7, [](Dt::Node mem)
     {
+      // One example for this is 'secram' with 'status = "disabled' and
+      // secure-status = "okay".
+      if (!mem.is_enabled())
+        return;
+
       mem.for_each_reg([](l4_uint64_t start, l4_uint64_t sz)
         {
           // Ignore multiple similar given regions
