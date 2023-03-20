@@ -22,9 +22,9 @@
 namespace {
 class Platform_arm_ls10xxa : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     switch (PLATFORM_UART_NR)
       {
@@ -66,7 +66,7 @@ class Platform_arm_ls10xxa : public Platform_single_region_ram
     setup_16550_mmio_uart(&_uart);
   }
 
-  void reboot()
+  void reboot() override
   {
     L4::Io_register_block_mmio r(0x02ad0000);
     r.write16(0x0, 1 << 2);

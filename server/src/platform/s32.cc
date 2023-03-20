@@ -14,9 +14,9 @@
 namespace {
 class Platform_s32 : public Platform_dt
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.baud         = 115200;
     kuart.reg_shift    = 0;
@@ -34,7 +34,7 @@ class Platform_s32 : public Platform_dt
     set_stdio_uart(&_uart);
   }
 
-  void reboot()
+  void reboot() override
   {
     if (0)
       reboot_psci();

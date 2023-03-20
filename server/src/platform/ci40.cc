@@ -18,10 +18,10 @@ namespace {
 class Platform_mips_ci40 : public Platform_single_region_ram
 {
 public:
-  bool probe()
+  bool probe() override
   { return true; }
 
-  void init()
+  void init() override
   {
     unsigned long uart_base;
 
@@ -45,13 +45,13 @@ public:
     kuart_flags |= L4_kernel_options::F_uart_irq;
   }
 
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr)
+  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
   { return bootstrap_addr - Mips::KSEG0; }
 
-  l4_addr_t to_virt(l4_uint64_t phys_addr)
+  l4_addr_t to_virt(l4_uint64_t phys_addr) override
   { return phys_addr + Mips::KSEG0; }
 
-  void reboot()
+  void reboot() override
   {
     L4::Io_register_block_mmio wdg(Mips::KSEG1 + 0x18102100);
     wdg.write(0, 1);

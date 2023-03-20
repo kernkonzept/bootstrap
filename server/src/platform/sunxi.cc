@@ -22,9 +22,9 @@
 namespace {
 class Platform_arm_sunxi : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0x01c28000;
     kuart.reg_shift    = 2;

@@ -23,9 +23,9 @@ namespace {
 class Platform_arm_armada37xx : public Platform_base,
                                 public Boot_modules_image_mode
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0xd0012000;
     kuart.base_baud    = 25804800;
@@ -41,9 +41,9 @@ class Platform_arm_armada37xx : public Platform_base,
     set_stdio_uart(&_uart);
   }
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     mem_manager->ram->add(Region(0x00000000, 0x03ffffff, ".ram", Region::Ram));
     mem_manager->ram->add(Region(0x04200000, 0x3fffffff, ".ram", Region::Ram));

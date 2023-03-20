@@ -24,9 +24,9 @@ namespace {
 class Platform_arm_ls1046 : public Platform_base,
                             public Boot_modules_image_mode
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0x21c0500;
     kuart.base_baud    = 0;
@@ -43,15 +43,15 @@ class Platform_arm_ls1046 : public Platform_base,
     set_stdio_uart(&_uart);
   }
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     mem_manager->ram->add(Region(0x080000000, 0x0fbdfffff, ".ram", Region::Ram));
     mem_manager->ram->add(Region(0x880000000, 0x8ffffffff, ".ram", Region::Ram));
   }
 
-  void reboot()
+  void reboot() override
   {
     reboot_psci();
     l4_infinite_loop();

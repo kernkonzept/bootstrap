@@ -16,9 +16,9 @@ extern char _start;
 namespace {
 class Platform_arm_virt : public Platform_dt
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     // set defaults for reg_shift and baud_rate
     kuart.baud      = 115200;
@@ -60,7 +60,7 @@ class Platform_arm_virt : public Platform_dt
       }
   }
 
-  void reboot()
+  void reboot() override
   {
     reboot_psci();
   }

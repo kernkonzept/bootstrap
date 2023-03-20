@@ -29,9 +29,9 @@ class Platform_arm_tegra2 : public Platform_single_region_ram
         asm volatile("":::"memory");
     }
 
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     volatile unsigned long *addr;
 

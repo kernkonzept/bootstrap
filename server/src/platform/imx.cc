@@ -31,9 +31,9 @@ class Platform_arm_imx
   : public Platform_single_region_ram
 #endif
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     _wdog_phys = 0;
 
@@ -318,7 +318,7 @@ class Platform_arm_imx
   Boot_modules *modules() { return this; }
 #endif
 
-  void reboot()
+  void reboot() override
   {
     if (_wdog_phys)
       {

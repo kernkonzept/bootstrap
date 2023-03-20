@@ -18,12 +18,12 @@ namespace {
 class Platform_mips_ci20 : public Platform_single_region_ram
 {
 public:
- bool probe()
+ bool probe() override
   {
     return true;
   }
 
-  void init()
+  void init() override
   {
     kuart.base_baud    = 3000000;
     kuart.reg_shift    = 2;
@@ -68,20 +68,20 @@ public:
     kuart_flags |= L4_kernel_options::F_uart_irq;
   }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     mem_manager->ram->add(Region(0x0,        0x0fffffff, ".ram", Region::Ram));
     // Note, the first 256MB are mirrored at 0x20000000
     mem_manager->ram->add(Region(0x30000000, 0x5fffffff, ".ram", Region::Ram));
   }
 
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr)
+  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
   { return bootstrap_addr - Mips::KSEG0; }
 
-  l4_addr_t to_virt(l4_uint64_t phys_addr)
+  l4_addr_t to_virt(l4_uint64_t phys_addr) override
   { return phys_addr + Mips::KSEG0; }
 
-  void reboot()
+  void reboot() override
   {
     printf("MIPS CI20 reboot not implemented\n");
     l4_infinite_loop();

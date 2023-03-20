@@ -20,9 +20,9 @@ namespace {
 class Platform_arm_fvp_base : public Platform_base,
                               public Boot_modules_image_mode
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_baud    = 24019200;
     kuart.base_address = 0x1c090000;
@@ -39,9 +39,9 @@ class Platform_arm_fvp_base : public Platform_base,
     set_stdio_uart(&_uart);
   }
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     // FVP is a virtual platform, so be flexible wrt our memory
     // configuration

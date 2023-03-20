@@ -24,9 +24,9 @@ namespace {
 class Platform_mips_sead3 : public Platform_single_region_ram
 {
 public:
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     switch (PLATFORM_UART_NR)
       {
@@ -61,13 +61,13 @@ public:
                          | L4_kernel_options::F_uart_irq;
   }
 
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr)
+  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
   { return bootstrap_addr - Mips::KSEG0; }
 
-  l4_addr_t to_virt(l4_uint64_t phys_addr)
+  l4_addr_t to_virt(l4_uint64_t phys_addr) override
   { return phys_addr + Mips::KSEG0; }
 
-  void reboot()
+  void reboot() override
   {
     L4::Io_register_block_mmio r(0xbf000000);
     enum { SOFTRES_REGISTER = 0x50, GORESET = 0x4d };

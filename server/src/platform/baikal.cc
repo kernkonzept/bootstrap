@@ -23,9 +23,9 @@ class Platform_mips_baikal_t :
   public Boot_modules_image_mode
 {
 public:
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_baud = 781250;
     kuart.reg_shift = 2;
@@ -58,13 +58,13 @@ public:
                          | L4_kernel_options::F_uart_irq;
   }
 
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr)
+  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
   { return bootstrap_addr - Mips::KSEG0; }
 
-  l4_addr_t to_virt(l4_uint64_t phys_addr)
+  l4_addr_t to_virt(l4_uint64_t phys_addr) override
   { return phys_addr + Mips::KSEG0; }
 
-  void reboot()
+  void reboot() override
   {
     // TBD
   }
@@ -74,8 +74,8 @@ public:
     return "Baikal-T";
   }
 
-  Boot_modules *modules() { return this; }
-  void setup_memory_map()
+  Boot_modules *modules() override { return this; }
+  void setup_memory_map() override
   {
     unsigned long ram = RAM_SIZE_MB;
     if (RAM_BASE != 0)

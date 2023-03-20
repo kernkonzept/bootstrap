@@ -23,9 +23,9 @@
 namespace {
 class Platform_arm_int : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0x16000000;
     kuart.base_baud    = 24019200;

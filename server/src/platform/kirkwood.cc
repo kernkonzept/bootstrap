@@ -21,9 +21,9 @@
 namespace {
 class Platform_arm_kirkwood : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0xf1012000; /* uart 1: 0xf1012100 */
     kuart.reg_shift    = 2;

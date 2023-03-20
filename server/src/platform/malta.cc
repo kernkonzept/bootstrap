@@ -34,7 +34,7 @@ private:
   System_type _sys_controller;
 
 public:
-  bool probe()
+  bool probe() override
   {
     _sys_controller = Sysctrler_gt;
     return true;
@@ -47,7 +47,7 @@ public:
     I8259A_IRQ_UART_TTY0 = I8259A_IRQ_BASE + 4,
   };
 
-  void init()
+  void init() override
   {
     unsigned long uart_base;
 
@@ -82,13 +82,13 @@ public:
                          | L4_kernel_options::F_uart_irq;
   }
 
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr)
+  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
   { return bootstrap_addr - Mips::KSEG0; }
 
-  l4_addr_t to_virt(l4_uint64_t phys_addr)
+  l4_addr_t to_virt(l4_uint64_t phys_addr) override
   { return phys_addr + Mips::KSEG0; }
 
-  void reboot()
+  void reboot() override
   {
     L4::Io_register_block_mmio r(0xbf000000);
     enum { SOFTRES_REGISTER = 0x500, GORESET = 0x42 };
@@ -107,8 +107,8 @@ public:
     return "none";
   }
 
-  Boot_modules *modules() { return this; }
-  void setup_memory_map()
+  Boot_modules *modules() override { return this; }
+  void setup_memory_map() override
   {
     unsigned long ram = RAM_SIZE_MB;
     if (RAM_BASE != 0)

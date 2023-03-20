@@ -26,10 +26,10 @@ class Platform_ppc_mpc52000 :
   public Platform_base,
   public Boot_modules_image_mode
 {
-  bool probe() { return true; }
-  Boot_modules *modules() { return this; }
+  bool probe() override { return true; }
+  Boot_modules *modules() override { return this; }
 
-  void boot_kernel(unsigned long entry)
+  void boot_kernel(unsigned long entry) override
   {
     typedef void (*func)(void *, unsigned long);
     L4_drivers::Of_if of_if;
@@ -38,7 +38,7 @@ class Platform_ppc_mpc52000 :
     exit(-100);
   }
 
-  void init()
+  void init() override
   {
     // need to read stuff from Open Firmare device tree
     kuart.base_address = -1;
@@ -56,7 +56,7 @@ class Platform_ppc_mpc52000 :
     set_stdio_uart(&_uart);
   }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     L4_drivers::Of_if of_if;
 

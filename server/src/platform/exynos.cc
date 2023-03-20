@@ -24,9 +24,9 @@ namespace {
 class Platform_arm_exynos : public Platform_single_region_ram
 {
 public:
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     static L4::Uart_s5pv210 _uart;
     const unsigned long uart_offset = 0x10000;
@@ -57,7 +57,7 @@ public:
     set_stdio_uart(&_uart);
   }
 
-  void reboot()
+  void reboot() override
   {
 #ifdef PLATFORM_TYPE_exynos4
     *(unsigned *)0x10020400 = 1;

@@ -24,9 +24,9 @@ namespace {
 
 class Platform_arm_lx2160 : public Platform_dt
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0x21c0000;
     kuart.base_baud    = 0;
@@ -71,7 +71,7 @@ class Platform_arm_lx2160 : public Platform_dt
     printf("  Paused DPAA2 management complex.\n");
   }
 
-  void reboot()
+  void reboot() override
   {
     reboot_psci();
     l4_infinite_loop();

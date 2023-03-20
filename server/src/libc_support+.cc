@@ -48,7 +48,7 @@ namespace {
   class BootstrapIOBackend : public L4::IOBackend
   {
   protected:
-    void write(char const *str, unsigned len);
+    void write(char const *str, unsigned len) override;
   };
 
   void BootstrapIOBackend::write(char const *str, unsigned len)

@@ -22,9 +22,9 @@ namespace {
 class Platform_arm_rcar3 : public Platform_base,
                            public Boot_modules_image_mode
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0xe6e88000;
     kuart.reg_shift    = 0;
@@ -41,9 +41,9 @@ class Platform_arm_rcar3 : public Platform_base,
     set_stdio_uart(&_uart);
   }
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     // product register for R-Car Gen3
     l4_uint32_t prr = *(l4_uint32_t*)0xFFF00044;
@@ -77,7 +77,7 @@ class Platform_arm_rcar3 : public Platform_base,
       printf("Configured for R-Car Gen3 but found unknown product (prr=0x%08x)\n", prr);
   }
 
-  void reboot()
+  void reboot() override
   {
     reboot_psci();
   }

@@ -22,9 +22,9 @@
 namespace {
 class Platform_arm_omap : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.baud         = 115200;
     kuart.access_type  = L4_kernel_options::Uart_type_mmio;
@@ -54,7 +54,7 @@ class Platform_arm_omap : public Platform_single_region_ram
     set_stdio_uart(&_uart);
   }
 
-  bool arm_switch_to_hyp()
+  bool arm_switch_to_hyp() override
   {
     register l4_umword_t f asm("r12") = 0x102;
     asm volatile("push {fp}                 \n"

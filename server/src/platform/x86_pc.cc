@@ -47,7 +47,7 @@ struct Platform_x86_1 : Platform_x86
   l4util_mb_info_t *mbi;
   l4util_l4mod_info *l4mi;
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     Region_list *ram = mem_manager->ram;
     Region_list *regions = mem_manager->regions;
@@ -153,8 +153,8 @@ Platform_x86_loader_mbi _x86_pc_platform;
 class Platform_x86_multiboot : public Platform_x86_1, public Boot_modules
 {
 public:
-  Boot_modules *modules() { return this; }
-  int base_mod_idx(Mod_info_flags mod_info_mod_type)
+  Boot_modules *modules() override { return this; }
+  int base_mod_idx(Mod_info_flags mod_info_mod_type) override
   {
     switch (mod_info_mod_type)
       {
@@ -169,7 +169,7 @@ public:
       }
   }
 
-  Module module(unsigned index, bool) const
+  Module module(unsigned index, bool) const override
   {
     Module m;
 
@@ -194,10 +194,10 @@ public:
     return m;
   }
 
-  unsigned num_modules() const
+  unsigned num_modules() const override
   { return l4mi ? l4mi->mods_count : mbi->mods_count; }
 
-  void reserve()
+  void reserve() override
   {
     Region_list *regions = mem_manager->regions;
 
@@ -251,7 +251,7 @@ public:
       }
   }
 
-  void move_module(unsigned index, void *dest)
+  void move_module(unsigned index, void *dest) override
   {
     l4util_l4mod_mod *mod = (l4util_l4mod_mod *)(unsigned long)l4mi->mods_addr + index;
     unsigned long size = mod->mod_end - mod->mod_start;
@@ -263,7 +263,7 @@ public:
     mod->mod_end   = (l4_addr_t)dest + size;
   }
 
-  l4util_l4mod_info *construct_mbi(unsigned long mod_addr)
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr) override
   {
     // calculate the size needed to cover the full MBI, including command lines
     unsigned long total_size = sizeof(l4util_l4mod_info);

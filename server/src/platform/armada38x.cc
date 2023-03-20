@@ -20,9 +20,9 @@
 namespace {
 class Platform_arm_armada38x : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_address = 0xf1012000;
     kuart.base_baud    = 15625000;

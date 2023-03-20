@@ -36,7 +36,7 @@ public:
     Max_cmdline_length = 1024,
   };
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
   void init_efi(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
   {
@@ -50,7 +50,7 @@ public:
   EFI_PHYSICAL_ADDRESS                 _video_fb_phys_base;
   unsigned                             _video_fb_size;
 
-  l4util_l4mod_info *construct_mbi(unsigned long mod_addr)
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr) override
   {
     l4util_l4mod_info *mbi = Boot_modules_image_mode::construct_mbi(mod_addr);
 
@@ -230,7 +230,7 @@ public:
     }
   }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     UINTN num_entries;
     UINTN key;

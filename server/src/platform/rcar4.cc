@@ -21,9 +21,9 @@
 namespace {
 class Platform_arm_rcar4 : public Platform_dt
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.reg_shift    = 0;
     kuart.base_baud    = 14745600;
@@ -40,9 +40,9 @@ class Platform_arm_rcar4 : public Platform_dt
     set_stdio_uart(&_uart);
   }
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
-  void reboot()
+  void reboot() override
   {
     reboot_psci();
   }

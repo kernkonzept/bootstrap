@@ -21,9 +21,9 @@
 namespace {
 class Platform_arm_tegra3 : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     switch (PLATFORM_UART_NR)
       {

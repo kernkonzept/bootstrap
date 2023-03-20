@@ -252,9 +252,9 @@ struct Mbox_armmem : public Mbox_gen
 class Platform_arm_rpi : public Platform_base,
                          public Boot_modules_image_mode
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     unsigned rpi_ver;
     unsigned long m;
@@ -327,9 +327,9 @@ class Platform_arm_rpi : public Platform_base,
       }
   }
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     // Using multiple of the Mbox_* objects piles up a bit of stack
     // usage, so take care
@@ -379,7 +379,7 @@ class Platform_arm_rpi : public Platform_base,
       }
   }
 
-  void reboot()
+  void reboot() override
   {
     enum { Rstc = 0x1c, Wdog = 0x24 };
 

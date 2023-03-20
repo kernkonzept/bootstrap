@@ -203,12 +203,12 @@ inline Platform_base::~Platform_base() {}
 class Boot_modules_image_mode : public Boot_modules
 {
 public:
-  void reserve();
-  Module module(unsigned index, bool uncompress) const;
-  unsigned num_modules() const;
-  void move_module(unsigned index, void *dest);
-  l4util_l4mod_info *construct_mbi(unsigned long mod_addr);
-  int base_mod_idx(Mod_info_flags mod_info_module_flag);
+  void reserve() override;
+  Module module(unsigned index, bool uncompress) const override;
+  unsigned num_modules() const override;
+  void move_module(unsigned index, void *dest) override;
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr) override;
+  int base_mod_idx(Mod_info_flags mod_info_module_flag) override;
 
 private:
   void decompress_mods(unsigned mod_count,
@@ -220,8 +220,8 @@ class Platform_single_region_ram : public Platform_base,
   public Boot_modules_image_mode
 {
 public:
-  Boot_modules *modules() { return this; }
-  void setup_memory_map();
+  Boot_modules *modules() override { return this; }
+  void setup_memory_map() override;
   virtual void post_memory_hook() {}
 };
 
@@ -230,10 +230,10 @@ class Platform_dt : public Platform_base,
                     public Boot_modules_image_mode
 {
 public:
-  Boot_modules *modules() { return this; }
-  void setup_memory_map();
+  Boot_modules *modules() override { return this; }
+  void setup_memory_map() override;
   virtual void post_memory_hook() {}
-  virtual bool have_a_dt() { return true; }
+  bool have_a_dt() override { return true; }
 };
 #endif // USE_DT
 

@@ -22,9 +22,9 @@
 namespace {
 class Platform_arm_zynq : public Platform_single_region_ram
 {
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.baud      = 115200;
     kuart.reg_shift = 0;
@@ -64,7 +64,7 @@ class Platform_arm_zynq : public Platform_single_region_ram
     set_stdio_uart(&_uart);
   }
 
-  void reboot()
+  void reboot() override
   {
     enum
     {

@@ -25,8 +25,8 @@ class Platform_leon3 :
   public Platform_base,
   public Boot_modules_image_mode
 {
-  bool probe() { return true; }
-  Boot_modules *modules() { return this; }
+  bool probe() override { return true; }
+  Boot_modules *modules() override { return this; }
 
   enum {
       LEON3_NUM_DEVICE_INFO = 64,
@@ -56,7 +56,7 @@ class Platform_leon3 :
   long _ram_area_start;
   long _ram_area_size;
 
-  void init()
+  void init() override
   {
     kuart.base_address = LEON3_APBUART; // XXX hard
     kuart.base_baud    = 115200; // seems unused in the drivers
@@ -120,7 +120,7 @@ class Platform_leon3 :
     printf("--------------------------------------\n");
   }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     /* § 10.8.2
        SDRAM area is mapped into the upper half of the RAM area defined by BAR2

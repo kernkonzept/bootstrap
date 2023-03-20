@@ -23,9 +23,9 @@ class Platform_mips_boston :
   public Boot_modules_image_mode
 {
 public:
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
-  void init()
+  void init() override
   {
     kuart.base_baud    = 1562500;
     kuart.reg_shift    = 2;
@@ -47,13 +47,13 @@ public:
                          | L4_kernel_options::F_uart_irq;
   }
 
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr)
+  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
   { return bootstrap_addr - Mips::KSEG0; }
 
-  l4_addr_t to_virt(l4_uint64_t phys_addr)
+  l4_addr_t to_virt(l4_uint64_t phys_addr) override
   { return phys_addr + Mips::KSEG0; }
 
-  void reboot()
+  void reboot() override
   {
     L4::Io_register_block_mmio plat(Mips::KSEG1 + 0x17ffd000);
     plat.write<l4_uint32_t>(0x10, 1 << 4);
@@ -64,9 +64,9 @@ public:
     return "Boston";
   }
 
-  Boot_modules *modules() { return this; }
+  Boot_modules *modules() override { return this; }
 
-  void setup_memory_map()
+  void setup_memory_map() override
   {
     L4::Io_register_block_mmio plat(Mips::KSEG1 + 0x17ffd000);
     l4_uint32_t ddrcfg = plat.read<l4_uint32_t>(0x38);

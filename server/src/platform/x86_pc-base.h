@@ -400,19 +400,19 @@ public:
     _u2 = u2;
   }
 
-  bool startup(L4::Io_register_block const *)
+  bool startup(L4::Io_register_block const *) override
   {
     return true;
   }
 
-  void shutdown()
+  void shutdown() override
   {
     _u1->shutdown();
     if (_u2)
       _u2->shutdown();
   }
 
-  ~Dual_uart() {}
+  ~Dual_uart() override {}
 #if 0
   bool enable_rx_irq(bool e)
   {
@@ -429,19 +429,19 @@ public:
   }
 #endif
 
-  bool change_mode(Transfer_mode m, Baud_rate r)
+  bool change_mode(Transfer_mode m, Baud_rate r) override
   {
     bool r1 = _u1->change_mode(m, r);
     bool r2 = _u2 ? _u2->change_mode(m, r) : false;
     return r1 && r2;
   }
 
-  int char_avail() const
+  int char_avail() const override
   {
     return _u1->char_avail() || (_u2 && _u2->char_avail());
   }
 
-  int get_char(bool blocking) const
+  int get_char(bool blocking) const override
   {
     int c;
     do
@@ -454,7 +454,7 @@ public:
     return c;
   }
 
-  int write(char const *s, unsigned long count) const
+  int write(char const *s, unsigned long count) const override
   {
     int r = _u1->write(s, count);
     if (_u2)
@@ -510,7 +510,7 @@ Pci_com_drv::read_bars(Pci_iterator const &dev, Serial_board *board)
 
 struct Pci_com_drv_default : Pci_com_drv
 {
-  bool setup(Pci_iterator const &dev, Serial_board *board) const
+  bool setup(Pci_iterator const &dev, Serial_board *board) const override
   {
     read_bars(dev, board);
     int num_iobars = board->num_io_bars();
@@ -538,7 +538,7 @@ struct Pci_com_drv_default : Pci_com_drv
 
 struct Pci_com_drv_fallback : Pci_com_drv_default
 {
-  bool setup(Pci_iterator const &dev, Serial_board *board) const
+  bool setup(Pci_iterator const &dev, Serial_board *board) const override
   {
     // The default drivers only takes 7:80 typed devices
     if (dev.classcode() != 7)
@@ -556,7 +556,7 @@ struct Pci_com_drv_fallback : Pci_com_drv_default
 
 struct Pci_com_drv_oxsemi : Pci_com_drv
 {
-  bool setup(Pci_iterator const &dev, Serial_board *board) const
+  bool setup(Pci_iterator const &dev, Serial_board *board) const override
   {
     read_bars(dev, board);
     board->flags = 0;
@@ -587,7 +587,7 @@ struct Pci_com_drv_oxsemi : Pci_com_drv
 
 struct Pci_com_moschip : public Pci_com_drv
 {
-  bool setup(Pci_iterator const &dev, Serial_board *board) const
+  bool setup(Pci_iterator const &dev, Serial_board *board) const override
   {
     // only subclass 0x0 is the serial port, subclass 0x1 is the parallel port
     if (dev.subclass() != 0x00)
@@ -611,7 +611,7 @@ struct Pci_com_moschip : public Pci_com_drv
 
 struct Pci_com_agestar : public Pci_com_drv
 {
-  bool setup(Pci_iterator const &dev, Serial_board *board) const
+  bool setup(Pci_iterator const &dev, Serial_board *board) const override
   {
     read_bars(dev, board);
 
@@ -629,7 +629,7 @@ struct Pci_com_agestar : public Pci_com_drv
 
 struct Pci_com_wch_chip : public Pci_com_drv
 {
-  bool setup(Pci_iterator const &dev, Serial_board *board) const
+  bool setup(Pci_iterator const &dev, Serial_board *board) const override
   {
     read_bars(dev, board);
 
@@ -748,18 +748,18 @@ public:
   Uart_vga()
   { }
 
-  bool startup(L4::Io_register_block const *)
+  bool startup(L4::Io_register_block const *) override
   {
     vga_init();
     return true;
   }
 
-  ~Uart_vga() {}
-  void shutdown() {}
-  bool enable_rx_irq(bool) { return false; }
+  ~Uart_vga() override {}
+  void shutdown() override {}
+  bool enable_rx_irq(bool) override { return false; }
   bool enable_tx_irq(bool) { return false; }
-  bool change_mode(Transfer_mode, Baud_rate) { return true; }
-  int get_char(bool blocking) const
+  bool change_mode(Transfer_mode, Baud_rate) override { return true; }
+  int get_char(bool blocking) const override
   {
     int c;
     do
@@ -768,12 +768,12 @@ public:
     return c;
   }
 
-  int char_avail() const
+  int char_avail() const override
   {
     return raw_keyboard_getscancode() != -1;
   }
 
-  int write(char const *s, unsigned long count) const
+  int write(char const *s, unsigned long count) const override
   {
     unsigned long c = count;
     while (c)
@@ -823,7 +823,7 @@ public:
 #ifdef ARCH_amd64
   boot32_info_t const *boot32_info;
 #endif
-  bool probe() { return true; }
+  bool probe() override { return true; }
 
   int init_uart(Serial_board *board, int port, int com_irq, Dual_uart *du)
   {
@@ -883,7 +883,7 @@ public:
 
   /* To use esp. library code in bootstrap, we enable the FPU
    * so that FPU usage by those libs is possible */
-  void init()
+  void init() override
   {
     unsigned long tmp;
 
@@ -895,7 +895,7 @@ public:
                    : "=r" (tmp));
   }
 
-  void boot_kernel(unsigned long entry)
+  void boot_kernel(unsigned long entry) override
   {
     unsigned long tmp;
 
