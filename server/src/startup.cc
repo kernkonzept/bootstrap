@@ -597,11 +597,7 @@ startup(char const *cmdline)
 
   Internal_module_list internal_mods;
 
-#if defined(ARCH_arm64)
-  plat->init_dt(boot_args.r[0], internal_mods);
-#elif defined(ARCH_arm)
-  plat->init_dt(boot_args.r[2], internal_mods);
-#endif
+  plat->init_dt(internal_mods);
 
   regions.init(__regs, "regions");
   ram.init(__ram, "RAM", get_memory_max_size(cmdline), get_memory_max_address());

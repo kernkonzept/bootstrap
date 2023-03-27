@@ -8,6 +8,7 @@
 #include "platform-arm.h"
 #include "boot_modules.h"
 #include "dt.h"
+#include "support.h"
 
 class Platform_dt : public Platform_arm,
                     public Boot_modules_image_mode
@@ -30,11 +31,21 @@ class Platform_dt : public Platform_arm,
   Dt_module mod_fdt;
 public:
   Platform_dt() : mod_fdt(".fdt", dt) {}
+
+  l4_addr_t get_fdt_addr() const
+  {
+    #if defined(ARCH_arm64)
+      return boot_args.r[0];
+    #elif defined(ARCH_arm)
+      return boot_args.r[2];
+    #endif
+  }
+
   Boot_modules *modules() override { return this; }
   void setup_memory_map() override;
-  void init_dt(unsigned long fdt_addr, Internal_module_list &mods) override
+  void init_dt(Internal_module_list &mods) override
   {
-    dt.init(fdt_addr);
+    dt.init(get_fdt_addr());
     if (dt.have_fdt())
       mods.push_front(&mod_fdt);
   }
