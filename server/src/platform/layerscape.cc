@@ -17,11 +17,11 @@
 #include <l4/sys/compiler.h>
 
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "mmio_16550.h"
 
 namespace {
-class Platform_arm_ls10xxa : public Platform_single_region_ram
+class Platform_arm_ls10xxa : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
 

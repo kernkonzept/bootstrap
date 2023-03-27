@@ -5,11 +5,11 @@
  */
 
 #include <l4/util/l4mod.h>
-#include "platform.h"
+#include "platform-arm.h"
 #include "boot_modules.h"
 #include "dt.h"
 
-class Platform_dt : public Platform_base,
+class Platform_dt : public Platform_arm,
                     public Boot_modules_image_mode
 {
   struct Dt_module : Internal_module_base
@@ -40,11 +40,11 @@ public:
       mods.push_front(&mod_fdt);
   }
 
-  void setup_spin_addr(L4_kernel_options::Options *lko) override
+  void setup_kernel_options(L4_kernel_options::Options *lko) override
   {
     lko->core_spin_addr = dt.have_fdt() ? dt.cpu_release_addr() : -1ULL;
     if (lko->core_spin_addr == -1ULL)
-      Platform_base::setup_spin_addr(lko);
+      Platform_arm::setup_kernel_options(lko);
   }
 
   Dt dt;

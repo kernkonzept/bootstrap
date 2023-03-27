@@ -17,11 +17,11 @@
 
 #include "support.h"
 #include "startup.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include <l4/drivers/uart_omap35x.h>
 
 namespace {
-class Platform_arm_omap : public Platform_single_region_ram
+class Platform_arm_omap : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
 

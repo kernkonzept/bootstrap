@@ -12,13 +12,13 @@
 #include <assert.h>
 #include <l4/drivers/uart_pl011.h>
 
-#include "platform.h"
+#include "platform-arm.h"
 #include "support.h"
 #include "startup.h"
 
 namespace {
 
-class Platform_arm_fvp_base : public Platform_base,
+class Platform_arm_fvp_base : public Platform_arm,
                               public Boot_modules_image_mode
 {
   bool probe() override { return true; }

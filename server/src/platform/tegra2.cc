@@ -18,11 +18,11 @@
 /* Init-code from http://android.git.kernel.org/?p=kernel/tegra.git */
 
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "mmio_16550.h"
 
 namespace {
-class Platform_arm_tegra2 : public Platform_single_region_ram
+class Platform_arm_tegra2 : public Platform_single_region_ram<Platform_arm>
 {
   void some_delay(int d) const
     {

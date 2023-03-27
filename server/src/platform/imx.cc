@@ -20,16 +20,16 @@
 #include <l4/drivers/uart_pl011.h>
 #include <l4/sys/compiler.h>
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "startup.h"
 
 
 namespace {
 class Platform_arm_imx
 #if defined(PLATFORM_TYPE_imx8x) || defined(PLATFORM_TYPE_imx8q)
-  : public Platform_base, public Boot_modules_image_mode
+  : public Platform_arm, public Boot_modules_image_mode
 #else
-  : public Platform_single_region_ram
+  : public Platform_single_region_ram<Platform_arm>
 #endif
 {
   bool probe() override { return true; }

@@ -16,11 +16,11 @@
  * Please see the COPYING-GPL-2 file for details.
  */
 
-#include "platform.h"
+#include "platform-arm.h"
 #include "mmio_16550.h"
 
 namespace {
-class Platform_arm_sunxi : public Platform_single_region_ram
+class Platform_arm_sunxi : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
 

@@ -16,7 +16,7 @@
 
 namespace {
 
-class Platform_mips_ci40 : public Platform_single_region_ram
+class Platform_mips_ci40 : public Platform_single_region_ram<Platform_base>
 {
 public:
   bool probe() override

@@ -18,10 +18,10 @@
 #include <l4/drivers/uart_cadence.h>
 #include "startup.h"
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 
 namespace {
-class Platform_arm_zynq : public Platform_single_region_ram
+class Platform_arm_zynq : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
 

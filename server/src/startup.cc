@@ -486,103 +486,6 @@ load_elf_module(Boot_modules::Module const &mod)
   return entry;
 }
 
-#if defined(ARCH_arm) || defined(ARCH_arm64)
-enum class EL_Support { EL2, EL1, Unknown };
-EL_Support kernel_type = EL_Support::Unknown;
-#endif
-
-#ifdef ARCH_arm
-static inline l4_umword_t
-running_in_hyp_mode()
-{
-  l4_umword_t cpsr;
-  asm volatile("mrs %0, cpsr" : "=r"(cpsr));
-  return (cpsr & 0x1f) == 0x1a;
-}
-
-static void
-setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
-{
-  l4_kip_platform_info_arch *ia = &kip->platform_info.arch;
-
-  asm("mrc p15, 0, %0, c0, c0, 0" : "=r" (ia->cpuinfo.MIDR));
-  asm("mrc p15, 0, %0, c0, c0, 1" : "=r" (ia->cpuinfo.CTR));
-  asm("mrc p15, 0, %0, c0, c0, 2" : "=r" (ia->cpuinfo.TCMTR));
-  asm("mrc p15, 0, %0, c0, c0, 3" : "=r" (ia->cpuinfo.TLBTR));
-  asm("mrc p15, 0, %0, c0, c0, 5" : "=r" (ia->cpuinfo.MPIDR));
-  asm("mrc p15, 0, %0, c0, c0, 6" : "=r" (ia->cpuinfo.REVIDR));
-
-  if (((ia->cpuinfo.MIDR >> 16) & 0xf) >= 7)
-    {
-      asm("mrc p15, 0, %0, c0, c1, 0" : "=r" (ia->cpuinfo.ID_PFR[0]));
-      asm("mrc p15, 0, %0, c0, c1, 1" : "=r" (ia->cpuinfo.ID_PFR[1]));
-      asm("mrc p15, 0, %0, c0, c1, 2" : "=r" (ia->cpuinfo.ID_DFR0));
-      asm("mrc p15, 0, %0, c0, c1, 3" : "=r" (ia->cpuinfo.ID_AFR0));
-      asm("mrc p15, 0, %0, c0, c1, 4" : "=r" (ia->cpuinfo.ID_MMFR[0]));
-      asm("mrc p15, 0, %0, c0, c1, 5" : "=r" (ia->cpuinfo.ID_MMFR[1]));
-      asm("mrc p15, 0, %0, c0, c1, 6" : "=r" (ia->cpuinfo.ID_MMFR[2]));
-      asm("mrc p15, 0, %0, c0, c1, 7" : "=r" (ia->cpuinfo.ID_MMFR[3]));
-      asm("mrc p15, 0, %0, c0, c2, 0" : "=r" (ia->cpuinfo.ID_ISAR[0]));
-      asm("mrc p15, 0, %0, c0, c2, 1" : "=r" (ia->cpuinfo.ID_ISAR[1]));
-      asm("mrc p15, 0, %0, c0, c2, 2" : "=r" (ia->cpuinfo.ID_ISAR[2]));
-      asm("mrc p15, 0, %0, c0, c2, 3" : "=r" (ia->cpuinfo.ID_ISAR[3]));
-      asm("mrc p15, 0, %0, c0, c2, 4" : "=r" (ia->cpuinfo.ID_ISAR[4]));
-      asm("mrc p15, 0, %0, c0, c2, 5" : "=r" (ia->cpuinfo.ID_ISAR[5]));
-    }
-
-  assert(kernel_type != EL_Support::Unknown);
-  if (kernel_type == EL_Support::EL2 && !running_in_hyp_mode())
-    {
-      printf("  Detected HYP kernel, switching to HYP mode\n");
-
-      if (   ((ia->cpuinfo.MIDR >> 16) & 0xf) != 0xf // ARMv7
-          || (((ia->cpuinfo.ID_PFR[1] >> 12) & 0xf) == 0)) // No Virt Ext
-        panic("\nCPU does not support Virtualization Extensions\n");
-
-      if (!plat->arm_switch_to_hyp())
-        panic("\nNo switching functionality available on this platform.\n");
-      if (!running_in_hyp_mode())
-        panic("\nFailed to switch to HYP as required by Fiasco.OC.\n");
-    }
-
-  if (kernel_type == EL_Support::EL1 && running_in_hyp_mode())
-    {
-      printf("  Non-HYP kernel detected but running in HYP mode, switching back.\n");
-      asm volatile("mov r3, lr                    \n"
-                   "mcr p15, 0, sp, c13, c0, 2    \n"
-                   "mrs r0, cpsr                  \n"
-                   "bic r0, #0x1f                 \n"
-                   "orr r0, #0x13                 \n"
-                   "orr r0, #0x100                \n"
-                   "adr r1, 1f                    \n"
-                   ".inst 0xe16ff000              \n" // msr spsr_cfsx, r0
-                   ".inst 0xe12ef301              \n" // msr elr_hyp, r1
-                   ".inst 0xe160006e              \n" // eret
-                   "nop                           \n"
-                   "1: mrc p15, 0, sp, c13, c0, 2 \n"
-                   "mov lr, r3                    \n"
-                   : : : "r0", "r1" , "r3", "lr", "memory");
-    }
-}
-#endif /* arm */
-
-#ifdef ARCH_arm64
-static inline unsigned current_el()
-{
-  l4_umword_t current_el;
-  asm ("mrs %0, CurrentEL" : "=r" (current_el));
-  return (current_el >> 2) & 3;
-}
-
-static void
-setup_and_check_kernel_config(Platform_base *, l4_kernel_info_t *)
-{
-  assert(kernel_type != EL_Support::Unknown);
-  if (kernel_type == EL_Support::EL2 && current_el() < 2)
-    panic("Kernel requires EL2 (virtualization) but running in EL1.");
-}
-#endif /* arm64 */
-
 #ifdef ARCH_mips
 extern "C" void syncICache(unsigned long start, unsigned long size);
 #endif
@@ -763,18 +666,7 @@ startup(char const *cmdline)
   /* setup kernel PART TWO (special kernel initialization) */
   l4_kernel_info_t *l4i = find_kip(mods->module(idx_kern));
 
-#if defined(ARCH_arm64) || defined(ARCH_arm)
-  const char *s = l4_kip_version_string((l4_kernel_info_t *)l4i);
-  assert(s);
-
-  kernel_type = EL_Support::EL1;
-  l4util_kip_for_each_feature(s)
-    if (!strcmp(s, "arm:hyp"))
-      {
-        kernel_type = EL_Support::EL2;
-        break;
-      }
-#endif
+  plat->setup_kernel_config(l4i);
 
   if (idx_sigma0 >= 0)
     {
@@ -822,10 +714,7 @@ startup(char const *cmdline)
 		    "[KERNEL]");
   printf(" at " l4_addr_fmt "\n", boot_info.kernel_start);
 
-#if defined(ARCH_arm) || defined(ARCH_arm64)
-  setup_and_check_kernel_config(plat, l4i);
-  plat->setup_spin_addr(lko);
-#endif
+  plat->setup_kernel_options(lko);
 #if defined(ARCH_mips)
   {
     printf("  Flushing caches ...\n");
@@ -887,25 +776,6 @@ l4_exec_read_exec(Elf_handle *handle,
   else
     memcpy_aligned(dst, src, file_size);
 
-#if defined(ARCH_arm64)
-  l4_uint32_t *end = (l4_uint32_t *)(dst + file_size);
-  for (l4_uint32_t *cp = (l4_uint32_t *)dst; cp < end; ++cp)
-    if (*cp == 0xd4000001 && kernel_type == EL_Support::EL2) // svc #0
-      {
-        printf("WARNING: Kernel with virtualization support does not match userland without!\n"
-               "         booting might fail silently or with a kernel panic\n"
-               "         please adapt your kernel or userland config if needed\n");
-        break; // There's only a single syscall insn in the binary
-      }
-    else if (*cp == 0xd4000002 && kernel_type == EL_Support::EL1) // hvc #0
-      {
-        printf("WARNING: Kernel without virtualization support does not match userland with it!\n"
-               "         booting might fail silently or with a kernel panic\n"
-               "         please adapt your kernel or userland config if needed\n");
-        break; // There's only a single syscall insn in the binary
-      }
-#endif
-
   if (file_size < mem_size)
     memset(dst + file_size, 0, mem_size - file_size);
 
@@ -918,6 +788,10 @@ l4_exec_read_exec(Elf_handle *handle,
     }
 
   f->name(m.cmdline ? m.cmdline :  ".[Unknown]");
+
+  Platform_base::platform->module_load_hook(mem_addr, file_size, mem_size,
+                                            f->name());
+
   return 0;
 }
 

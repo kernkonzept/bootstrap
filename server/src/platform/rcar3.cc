@@ -17,10 +17,10 @@
 #include <l4/drivers/uart_sh.h>
 #include "support.h"
 #include "startup.h"
-#include "platform.h"
+#include "platform-arm.h"
 
 namespace {
-class Platform_arm_rcar3 : public Platform_base,
+class Platform_arm_rcar3 : public Platform_arm,
                            public Boot_modules_image_mode
 {
   bool probe() override { return true; }

@@ -10,11 +10,8 @@
 #include "boot_modules.h"
 #include "koptions-def.h"
 #include <l4/sys/l4int.h>
+#include <l4/sys/kip.h>
 #include <stdlib.h> // exit()
-
-#if defined(ARCH_arm) || defined(ARCH_arm64)
-#include "arch/arm/mem.h"
-#endif
 
 class Platform_base
 {
@@ -38,39 +35,34 @@ public:
 
   virtual void init_dt(unsigned long /*dt_addr*/, Internal_module_list &) {}
 
-#if defined(ARCH_arm) || defined(ARCH_arm64)
-  static void reboot_psci()
-  {
-    register unsigned long r0 asm("r0") = 0x84000009;
-    asm volatile(
-#ifdef ARCH_arm
-                 ".arch armv7-a\n"
-                 ".arch_extension sec\n"
-#endif
-                 "smc #0" : : "r" (r0));
-  }
-
-  virtual void setup_spin_addr(L4_kernel_options::Options *lko)
-  {
-#if defined(ARCH_arm64) // disabled on arm32 until assembler support lands
-    // If we do not get an spin address from DT, all cores might start
-    // at the same time and are caught by bootstrap
-    extern l4_umword_t mp_launch_spin_addr;
-    asm volatile("" : : : "memory");
-    Barrier::dmb_cores();
-    lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
-#endif // defined(ARCH_arm64)
-  }
-#endif // defined(ARCH_arm) || defined(ARCH_arm64)
-
-  virtual bool arm_switch_to_hyp() { return false; }
-
   /**
    * Invoked late during startup, when the memory map is already set up and all
    * modules are loaded or moved. This allows allocating memory without the risk
    * of conflicts.
    */
   virtual void late_setup() {};
+
+  /**
+   * Called immediately after loading the kernel. Beware that the KIP has not
+   * yet been initialized at that point. In particular you should not assume
+   * that the memory configuration, the platform name or the pointers to root
+   * task / pager are valid.
+   */
+  virtual void setup_kernel_config(l4_kernel_info_t*) {};
+
+  /**
+   * Called after all other kernel options have been set up such that the
+   * platform can set platform-specific kernel options.
+   */
+  virtual void setup_kernel_options(L4_kernel_options::Options *) {}
+
+  /**
+   * Allows the platform to do platform specific setup when loading modules.
+   * It is guaranteed that this is called after setup_kernel_config().
+   */
+  virtual void module_load_hook(l4_addr_t /* addr */, l4_umword_t /* file_sz */,
+                                l4_umword_t /* mem_sz */,
+                                char const* /* cmdline */) {};
 
   virtual void boot_kernel(unsigned long entry)
   {
@@ -103,12 +95,22 @@ inline Platform_base::~Platform_base() {}
       static type type##_inst; \
       static type * const __attribute__((section(".platformdata"),used)) type##_inst_p = &type##_inst
 
-class Platform_single_region_ram : public Platform_base,
+
+void setup_single_region_ram_memory_map();
+
+template<class BASE>
+class Platform_single_region_ram : public BASE,
   public Boot_modules_image_mode
 {
 public:
   Boot_modules *modules() override { return this; }
-  void setup_memory_map() override;
+
+  void setup_memory_map() override
+  {
+    setup_single_region_ram_memory_map();
+    post_memory_hook();
+  }
+
   virtual void post_memory_hook() {}
 };
 

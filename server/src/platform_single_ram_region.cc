@@ -60,7 +60,7 @@ scan_ram_size(unsigned long base_addr, unsigned long max_scan_size_mb)
 }
 
 void
-Platform_single_region_ram::setup_memory_map()
+setup_single_region_ram_memory_map()
 {
   unsigned long ram_size_mb = scan_ram_size(RAM_BASE, RAM_SIZE_MB);
   printf("  Memory size is %ldMB%s (%08lx - %08lx)\n",
@@ -70,7 +70,6 @@ Platform_single_region_ram::setup_memory_map()
       Region::n(RAM_BASE,
                 (unsigned long long)RAM_BASE + (ram_size_mb << 20),
                 ".ram", Region::Ram));
-  post_memory_hook();
 }
 #endif
 

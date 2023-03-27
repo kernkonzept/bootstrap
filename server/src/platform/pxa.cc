@@ -17,10 +17,10 @@
 
 #include "mmio_16550.h"
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 
 namespace {
-class Platform_arm_pxa : public Platform_single_region_ram
+class Platform_arm_pxa : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
 

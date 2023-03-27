@@ -17,12 +17,12 @@
 #include <l4/drivers/uart_16550.h>
 #include <l4/sys/compiler.h>
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "startup.h"
 
 namespace {
 
-class Platform_arm_ls1046 : public Platform_base,
+class Platform_arm_ls1046 : public Platform_arm,
                             public Boot_modules_image_mode
 {
   bool probe() override { return true; }

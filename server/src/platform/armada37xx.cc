@@ -17,11 +17,11 @@
 #include <l4/drivers/uart_mvebu.h>
 
 #include "startup.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "support.h"
 
 namespace {
-class Platform_arm_armada37xx : public Platform_base,
+class Platform_arm_armada37xx : public Platform_arm,
                                 public Boot_modules_image_mode
 {
   bool probe() override { return true; }

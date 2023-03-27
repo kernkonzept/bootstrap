@@ -16,12 +16,12 @@
  */
 
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "startup.h"
 #include <l4/drivers/uart_sa1000.h>
 
 namespace {
-class Platform_arm_sa1000 : public Platform_single_region_ram
+class Platform_arm_sa1000 : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
 

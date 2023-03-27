@@ -18,7 +18,7 @@
 #include <l4/drivers/uart_pl011.h>
 #include <l4/sys/compiler.h>
 #include "support.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "boot_modules.h"
 #include "mmio_16550.h"
 #include "arch/arm/mem.h"
@@ -251,7 +251,7 @@ struct Mbox_armmem : public Mbox_gen
 };
 
 
-class Platform_arm_rpi : public Platform_base,
+class Platform_arm_rpi : public Platform_arm,
                          public Boot_modules_image_mode
 {
   bool probe() override { return true; }

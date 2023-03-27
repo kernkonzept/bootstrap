@@ -18,13 +18,13 @@
 
 #include "support.h"
 #include "startup.h"
-#include "platform.h"
+#include "platform-arm.h"
 
 #include <l4/drivers/uart_s3c2410.h>
 #include <l4/drivers/uart_dummy.h>
 
 namespace {
-class Platform_arm_om : public Platform_single_region_ram
+class Platform_arm_om : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
 

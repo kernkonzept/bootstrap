@@ -17,13 +17,13 @@
 
 #include "support.h"
 #include "startup.h"
-#include "platform.h"
+#include "platform-arm.h"
 
 #include <l4/drivers/uart_pl011.h>
 
 namespace {
 
-class Platform_arm_rv : public Platform_single_region_ram
+class Platform_arm_rv : public Platform_single_region_ram<Platform_arm>
 {
   bool probe() override { return true; }
   void init() override
