@@ -492,6 +492,11 @@ load_elf_module(Boot_modules::Module const &mod)
   return entry;
 }
 
+#if defined(ARCH_arm) || defined(ARCH_arm64)
+enum class EL_Support { EL2, EL1, Unknown };
+EL_Support kernel_type = EL_Support::Unknown;
+#endif
+
 #ifdef ARCH_arm
 static inline l4_umword_t
 running_in_hyp_mode()
@@ -531,32 +536,22 @@ setup_and_check_kernel_config(Platform_base *plat, l4_kernel_info_t *kip)
       asm("mrc p15, 0, %0, c0, c2, 5" : "=r" (ia->cpuinfo.ID_ISAR[5]));
     }
 
-  const char *s = l4_kip_version_string(kip);
-  if (!s)
-    return;
+  assert(kernel_type != EL_Support::Unknown);
+  if (kernel_type == EL_Support::EL2 && !running_in_hyp_mode())
+    {
+      printf("  Detected HYP kernel, switching to HYP mode\n");
 
-  bool is_hyp_kernel = false;
-  l4util_kip_for_each_feature(s)
-    if (!strcmp(s, "arm:hyp"))
-      {
-        if (!running_in_hyp_mode())
-          {
-            printf("  Detected HYP kernel, switching to HYP mode\n");
+      if (   ((ia->cpuinfo.MIDR >> 16) & 0xf) != 0xf // ARMv7
+          || (((ia->cpuinfo.ID_PFR[1] >> 12) & 0xf) == 0)) // No Virt Ext
+        panic("\nCPU does not support Virtualization Extensions\n");
 
-            if (   ((ia->cpuinfo.MIDR >> 16) & 0xf) != 0xf // ARMv7
-                || (((ia->cpuinfo.ID_PFR[1] >> 12) & 0xf) == 0)) // No Virt Ext
-              panic("\nCPU does not support Virtualization Extensions\n");
+      if (!plat->arm_switch_to_hyp())
+        panic("\nNo switching functionality available on this platform.\n");
+      if (!running_in_hyp_mode())
+        panic("\nFailed to switch to HYP as required by Fiasco.OC.\n");
+    }
 
-            if (!plat->arm_switch_to_hyp())
-              panic("\nNo switching functionality available on this platform.\n");
-            if (!running_in_hyp_mode())
-              panic("\nFailed to switch to HYP as required by Fiasco.OC.\n");
-          }
-        is_hyp_kernel = true;
-        break;
-      }
-
-  if (!is_hyp_kernel && running_in_hyp_mode())
+  if (kernel_type == EL_Support::EL1 && running_in_hyp_mode())
     {
       printf("  Non-HYP kernel detected but running in HYP mode, switching back.\n");
       asm volatile("mov r3, lr                    \n"
@@ -586,16 +581,11 @@ static inline unsigned current_el()
 }
 
 static void
-setup_and_check_kernel_config(Platform_base *, l4_kernel_info_t *kip)
+setup_and_check_kernel_config(Platform_base *, l4_kernel_info_t *)
 {
-  const char *s = l4_kip_version_string(kip);
-  if (!s)
-    return;
-
-  l4util_kip_for_each_feature(s)
-    if (!strcmp(s, "arm:hyp"))
-      if (current_el() < 2)
-        panic("Kernel requires EL2 (virtualization) but running in EL1.");
+  assert(kernel_type != EL_Support::Unknown);
+  if (kernel_type == EL_Support::EL2 && current_el() < 2)
+    panic("Kernel requires EL2 (virtualization) but running in EL1.");
 }
 #endif /* arm64 */
 
@@ -776,6 +766,22 @@ startup(char const *cmdline)
   /* setup kernel PART ONE */
   boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]");
 
+  /* setup kernel PART TWO (special kernel initialization) */
+  l4_kernel_info_t *l4i = find_kip(mods->module(idx_kern));
+
+#if defined(ARCH_arm64) || defined(ARCH_arm)
+  const char *s = l4_kip_version_string((l4_kernel_info_t *)l4i);
+  assert(s);
+
+  kernel_type = EL_Support::EL1;
+  l4util_kip_for_each_feature(s)
+    if (!strcmp(s, "arm:hyp"))
+      {
+        kernel_type = EL_Support::EL2;
+        break;
+      }
+#endif
+
   if (idx_sigma0 >= 0)
     {
       /* setup sigma0 */
@@ -789,9 +795,6 @@ startup(char const *cmdline)
       boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
                                                  "[ROOTTASK]");
     }
-
-  /* setup kernel PART TWO (special kernel initialization) */
-  l4_kernel_info_t *l4i = find_kip(mods->module(idx_kern));
 
   plat->late_setup();
 
@@ -826,7 +829,7 @@ startup(char const *cmdline)
   printf(" at " l4_addr_fmt "\n", boot_info.kernel_start);
 
 #if defined(ARCH_arm) || defined(ARCH_arm64)
-  setup_and_check_kernel_config(plat, (l4_kernel_info_t *)l4i);
+  setup_and_check_kernel_config(plat, l4i);
   lko->core_spin_addr = plat->have_a_dt() ? dt.cpu_release_addr() : -1ULL;
 #if defined(ARCH_arm64) // disabled on arm32 until assembler support lands
   if (lko->core_spin_addr == -1ULL)
@@ -900,6 +903,26 @@ l4_exec_read_exec(Elf_handle *handle,
     memcpy(dst, src, file_size);
   else
     memcpy_aligned(dst, src, file_size);
+
+#if defined(ARCH_arm64)
+  l4_uint32_t *end = (l4_uint32_t *)(dst + file_size);
+  for (l4_uint32_t *cp = (l4_uint32_t *)dst; cp < end; ++cp)
+    if (*cp == 0xd4000001 && kernel_type == EL_Support::EL2) // svc #0
+      {
+        printf("WARNING: Kernel with virtualization support does not match userland without!\n"
+               "         booting might fail silently or with a kernel panic\n"
+               "         please adapt your kernel or userland config if needed\n");
+        break; // There's only a single syscall insn in the binary
+      }
+    else if (*cp == 0xd4000002 && kernel_type == EL_Support::EL1) // hvc #0
+      {
+        printf("WARNING: Kernel without virtualization support does not match userland with it!\n"
+               "         booting might fail silently or with a kernel panic\n"
+               "         please adapt your kernel or userland config if needed\n");
+        break; // There's only a single syscall insn in the binary
+      }
+#endif
+
   if (file_size < mem_size)
     memset(dst + file_size, 0, mem_size - file_size);
 
