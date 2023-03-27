@@ -32,7 +32,6 @@ public:
   Platform_dt() : mod_fdt(".fdt", dt) {}
   Boot_modules *modules() override { return this; }
   void setup_memory_map() override;
-  virtual void post_memory_hook() {}
   void init_dt(unsigned long fdt_addr, Internal_module_list &mods) override
   {
     dt.init(fdt_addr);
