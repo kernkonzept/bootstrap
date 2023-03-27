@@ -15,6 +15,7 @@
 
 #include <l4/sys/compiler.h>
 
+#include "platform.h"
 #include "support.h"
 
 void

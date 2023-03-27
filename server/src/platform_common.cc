@@ -1,4 +1,5 @@
 #include "support.h"
+#include "platform.h"
 #include "dt.h"
 #include <l4/cxx/minmax>
 #include <assert.h>
@@ -74,11 +75,3 @@ Platform_single_region_ram::setup_memory_map()
 }
 #endif
 
-#ifdef USE_DT
-void
-Platform_dt::setup_memory_map()
-{
-  dt.check_for_dt();
-  dt.setup_memory();
-}
-#endif

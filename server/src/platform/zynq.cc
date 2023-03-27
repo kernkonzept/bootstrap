@@ -18,6 +18,7 @@
 #include <l4/drivers/uart_cadence.h>
 #include "startup.h"
 #include "support.h"
+#include "platform.h"
 
 namespace {
 class Platform_arm_zynq : public Platform_single_region_ram

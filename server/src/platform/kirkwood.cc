@@ -17,6 +17,7 @@
 
 #include "support.h"
 #include "mmio_16550.h"
+#include "platform.h"
 
 namespace {
 class Platform_arm_kirkwood : public Platform_single_region_ram

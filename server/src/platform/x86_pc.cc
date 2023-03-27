@@ -17,6 +17,8 @@
 
 #include <l4/util/mb_info.h>
 #include "support.h"
+#include "platform.h"
+#include "boot_modules.h"
 #include "x86_pc-base.h"
 
 #include <string.h>

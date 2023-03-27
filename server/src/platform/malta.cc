@@ -17,6 +17,7 @@
 #include "panic.h"
 #include "startup.h"
 #include "mips-defs.h"
+#include "platform.h"
 
 namespace {
 

@@ -17,6 +17,7 @@
 #include <l4/sys/compiler.h>
 
 #include "support.h"
+#include "platform.h"
 #include "mmio_16550.h"
 
 namespace {

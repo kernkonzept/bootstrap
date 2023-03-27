@@ -9,6 +9,7 @@
 #include <l4/drivers/uart_linflex.h>
 #include "support.h"
 #include "startup.h"
+#include "platform_dt.h"
 
 
 namespace {

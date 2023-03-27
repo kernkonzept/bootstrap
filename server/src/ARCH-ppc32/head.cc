@@ -1,3 +1,4 @@
+#include "platform.h"
 #include "support.h"
 #include "startup.h"
 

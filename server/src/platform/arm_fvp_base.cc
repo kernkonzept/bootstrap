@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <l4/drivers/uart_pl011.h>
 
+#include "platform.h"
 #include "support.h"
 #include "startup.h"
 

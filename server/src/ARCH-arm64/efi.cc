@@ -9,6 +9,7 @@ extern "C" {
 #include <efilib.h>
 }
 
+#include "platform.h"
 #include "support.h"
 #include "startup.h"
 

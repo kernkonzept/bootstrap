@@ -17,6 +17,7 @@
 #include <l4/drivers/uart_sh.h>
 #include "support.h"
 #include "startup.h"
+#include "platform_dt.h"
 
 namespace {
 class Platform_arm_rcar4 : public Platform_dt

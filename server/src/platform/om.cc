@@ -18,6 +18,7 @@
 
 #include "support.h"
 #include "startup.h"
+#include "platform.h"
 
 #include <l4/drivers/uart_s3c2410.h>
 #include <l4/drivers/uart_dummy.h>

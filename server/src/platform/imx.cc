@@ -20,6 +20,7 @@
 #include <l4/drivers/uart_pl011.h>
 #include <l4/sys/compiler.h>
 #include "support.h"
+#include "platform.h"
 #include "startup.h"
 
 

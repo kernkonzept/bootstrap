@@ -16,6 +16,7 @@
  */
 
 #include "support.h"
+#include "platform.h"
 #include "startup.h"
 #include <l4/drivers/uart_sa1000.h>
 

@@ -40,6 +40,7 @@
 #include "panic.h"
 
 /* local stuff */
+#include "platform.h"
 #include "exec.h"
 #include "macros.h"
 #include "region.h"

@@ -9,6 +9,7 @@
 #include <l4/drivers/uart_16550.h>
 #include <l4/sys/compiler.h>
 #include "support.h"
+#include "platform.h"
 #include "macros.h"
 #include "startup.h"
 #include "mips-defs.h"

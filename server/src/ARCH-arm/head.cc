@@ -1,6 +1,7 @@
 #include <l4/sys/compiler.h>
 
 #include "support.h"
+#include "platform.h"
 #include "startup.h"
 
 extern "C" int __aeabi_unwind_cpp_pr0(void);

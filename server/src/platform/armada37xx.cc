@@ -17,6 +17,7 @@
 #include <l4/drivers/uart_mvebu.h>
 
 #include "startup.h"
+#include "platform.h"
 #include "support.h"
 
 namespace {

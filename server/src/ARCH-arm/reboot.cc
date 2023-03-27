@@ -7,7 +7,7 @@
  */
 
 #include <l4/sys/compiler.h>
-#include "support.h"
+#include "platform.h"
 
 void
 reboot_arch(void) __attribute__((noreturn));

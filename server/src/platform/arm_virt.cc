@@ -9,6 +9,7 @@
 #include <l4/drivers/uart_pl011.h>
 #include "support.h"
 #include "startup.h"
+#include "platform_dt.h"
 #include "dt.h"
 
 extern char _start;

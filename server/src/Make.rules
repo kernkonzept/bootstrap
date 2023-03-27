@@ -119,8 +119,8 @@ SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc base_critical.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc \
 		   ARCH-amd64/cpu_info.cc ARCH-amd64/paging.cc \
 		   ARCH-amd64/paging_alloc.cc
-SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc dt.cc
-SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc dt.cc
+SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc dt.cc platform_dt.cc
+SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc dt.cc platform_dt.cc
 SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/efi.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc

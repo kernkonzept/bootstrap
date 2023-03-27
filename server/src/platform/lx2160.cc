@@ -18,6 +18,7 @@
 #include <l4/sys/compiler.h>
 #include "dt.h"
 #include "support.h"
+#include "platform_dt.h"
 #include "startup.h"
 
 namespace {

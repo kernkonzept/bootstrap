@@ -17,6 +17,7 @@
 
 #include "mmio_16550.h"
 #include "support.h"
+#include "platform.h"
 
 namespace {
 class Platform_arm_pxa : public Platform_single_region_ram

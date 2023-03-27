@@ -11,8 +11,9 @@
 #ifndef EXEC_H
 #define EXEC_H
 
-#include "support.h"
-#include "types.h"
+#include "boot_modules.h"
+
+#include <l4/sys/l4int.h>
 #include <l4/util/mb_info.h>
 #include <l4/sys/compiler.h>
 

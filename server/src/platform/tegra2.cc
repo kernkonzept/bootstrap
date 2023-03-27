@@ -18,6 +18,7 @@
 /* Init-code from http://android.git.kernel.org/?p=kernel/tegra.git */
 
 #include "support.h"
+#include "platform.h"
 #include "mmio_16550.h"
 
 namespace {

@@ -14,6 +14,7 @@
 #include "support.h"
 #include "macros.h"
 #include "panic.h"
+#include "platform.h"
 #include "startup.h"
 #include "mips-defs.h"
 

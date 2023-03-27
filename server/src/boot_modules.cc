@@ -1,3 +1,5 @@
+#include "boot_modules.h"
+#include "platform.h"
 #include "support.h"
 #include "panic.h"
 #include <assert.h>

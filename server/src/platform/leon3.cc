@@ -19,6 +19,7 @@
 
 #include "support.h"
 #include "startup.h"
+#include "platform.h"
 
 namespace {
 class Platform_leon3 :

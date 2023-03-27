@@ -29,6 +29,7 @@
 #include <l4/sys/compiler.h>
 
 #include "support.h"
+#include "platform.h"
 
 Platform_base *Platform_base::platform;
 

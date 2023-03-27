@@ -1,3 +1,5 @@
+#include "platform.h"
+#include "boot_modules.h"
 #include "support.h"
 #include "x86_pc-base.h"
 #include <string.h>
