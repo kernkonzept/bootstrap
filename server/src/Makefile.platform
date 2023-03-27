@@ -45,6 +45,7 @@ SUPPORT_CC_arm-rcar4           := platform/rcar4.cc
 SUPPORT_CC_arm-arm_virt        := platform/arm_virt.cc
 SUPPORT_CC_arm-armada37xx      := platform/armada37xx.cc
 SUPPORT_CC_arm-s32             := platform/s32.cc
+SUPPORT_CC_arm-lx2160          := platform/lx2160.cc
 SUPPORT_CC_arm-msm8226         := platform/qcom.cc
 SUPPORT_CC_arm-msm8909         := platform/qcom.cc
 SUPPORT_CC_arm-msm8916         := platform/qcom.cc
