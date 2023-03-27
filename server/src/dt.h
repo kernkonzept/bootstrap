@@ -106,7 +106,7 @@ public:
      * \param[inout]  address    Address that shall be translated
      * \param[in]     size Size  Size associated with the address
      */
-    bool translate(Cell &address, Cell const &size)
+    bool translate(Cell &address, Cell const &size) const
     {
       if (match(address, size))
         {
@@ -312,18 +312,18 @@ public:
   };
 
   void init(unsigned long fdt_addr);
-  void check_for_dt();
+  void check_for_dt() const;
 
   bool have_fdt() { return _fdt; }
   const void *fdt() { return _fdt; }
   unsigned fdt_size() { return fdt_totalsize(_fdt); }
 
-  Node node_by_path(char const *path);
-  Node node_by_phandle(uint32_t phandle);
-  Node node_by_compatible(char const *compatible);
+  Node node_by_path(char const *path) const;
+  Node node_by_phandle(uint32_t phandle) const;
+  Node node_by_compatible(char const *compatible) const;
 
   template<typename CB, typename NEXT>
-  void nodes_by(CB &&cb, NEXT &&next)
+  void nodes_by(CB &&cb, NEXT &&next) const
   {
     for (int node = next(-1); node >= 0; node = next(node))
       if (invoke_cb(cb, Node(_fdt, node)) == Break)
@@ -332,14 +332,14 @@ public:
 
   template<typename CB>
   void nodes_by_prop_value(char const *name, void const *val, int len,
-                           CB &&cb)
+                           CB &&cb) const
   {
     nodes_by(cb, [=](int node)
       { return fdt_node_offset_by_prop_value(_fdt, node, name, val, len); });
   }
 
   template<typename CB>
-  void nodes_by_compatible(char const *compatible, CB &&cb)
+  void nodes_by_compatible(char const *compatible, CB &&cb) const
   {
     nodes_by(cb, [=](int node)
       { return fdt_node_offset_by_compatible(_fdt, node, compatible); });
@@ -359,10 +359,10 @@ public:
     return static_cast<T>(val);
   }
 
-  void setup_memory();
-  l4_uint64_t cpu_release_addr();
+  void setup_memory() const;
+  l4_uint64_t cpu_release_addr() const;
 
-  void dump();
+  void dump() const;
 
   __attribute__ ((format (printf, 1, 2)))
   static void warn(char const *format, ...)

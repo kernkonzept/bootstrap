@@ -31,23 +31,23 @@ void Dt::init(unsigned long fdt_addr)
   info("FDT available (size=%d)\n", fdt_totalsize(_fdt));
 }
 
-void Dt::check_for_dt()
+void Dt::check_for_dt() const
 {
   if (!_fdt)
     panic("This platform needs a device tree, please provide one.");
 }
 
-Dt::Node Dt::node_by_path(char const *path)
+Dt::Node Dt::node_by_path(char const *path) const
 {
   return Node(_fdt, fdt_path_offset(_fdt, path));
 }
 
-Dt::Node Dt::node_by_phandle(uint32_t phandle)
+Dt::Node Dt::node_by_phandle(uint32_t phandle) const
 {
   return Node(_fdt, fdt_node_offset_by_phandle(_fdt, phandle));
 }
 
-Dt::Node Dt::node_by_compatible(char const *path)
+Dt::Node Dt::node_by_compatible(char const *path) const
 {
   return Node(_fdt, fdt_node_offset_by_compatible(_fdt, -1, path));
 }
@@ -161,7 +161,7 @@ bool Dt::Node::get_reg_val(Node parent, Reg_array_prop const &regs,
 }
 
 
-void Dt::setup_memory()
+void Dt::setup_memory() const
 {
   // Iterate all memory nodes
   nodes_by_prop_value("device_type", "memory", 7, [](Dt::Node mem)
@@ -218,7 +218,7 @@ void Dt::setup_memory()
               ".dtb", Region::Root));
 }
 
-l4_uint64_t Dt::cpu_release_addr()
+l4_uint64_t Dt::cpu_release_addr() const
 {
   Node cpus = node_by_path("/cpus");
   if (!cpus.is_valid())
@@ -254,7 +254,7 @@ l4_uint64_t Dt::cpu_release_addr()
   return cpu_release_addr;
 }
 
-void Dt::dump()
+void Dt::dump() const
 {
   auto size = fdt_totalsize(_fdt);
   printf("DT: Dumping device tree:\n");
