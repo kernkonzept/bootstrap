@@ -16,14 +16,13 @@
 
 #include <l4/drivers/uart_pl011.h>
 #include <l4/sys/compiler.h>
-#include "dt.h"
 #include "support.h"
-#include "platform_dt.h"
+#include "platform_dt-arm.h"
 #include "startup.h"
 
 namespace {
 
-class Platform_arm_lx2160 : public Platform_dt
+class Platform_arm_lx2160 : public Platform_dt_arm
 {
   bool probe() override { return true; }
 

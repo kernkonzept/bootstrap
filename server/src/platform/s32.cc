@@ -9,11 +9,11 @@
 #include <l4/drivers/uart_linflex.h>
 #include "support.h"
 #include "startup.h"
-#include "platform_dt.h"
+#include "platform_dt-arm.h"
 
 
 namespace {
-class Platform_s32 : public Platform_dt
+class Platform_s32 : public Platform_dt_arm
 {
   bool probe() override { return true; }
 

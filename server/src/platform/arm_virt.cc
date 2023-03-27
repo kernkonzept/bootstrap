@@ -9,13 +9,12 @@
 #include <l4/drivers/uart_pl011.h>
 #include "support.h"
 #include "startup.h"
-#include "platform_dt.h"
-#include "dt.h"
+#include "platform_dt-arm.h"
 
 extern char _start;
 
 namespace {
-class Platform_arm_virt : public Platform_dt
+class Platform_arm_virt : public Platform_dt_arm
 {
   bool probe() override { return true; }
 

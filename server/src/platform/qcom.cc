@@ -6,13 +6,12 @@
 
 #include <l4/drivers/uart_dm.h>
 #include <l4/drivers/uart_geni.h>
-#include "dt.h"
 #include "startup.h"
 #include "support.h"
-#include "platform_dt.h"
+#include "platform_dt-arm.h"
 
 namespace {
-class Platform_arm_qcom : public Platform_dt
+class Platform_arm_qcom : public Platform_dt_arm
 {
   bool probe() override { return true; }
 

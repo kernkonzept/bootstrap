@@ -17,10 +17,10 @@
 #include <l4/drivers/uart_sh.h>
 #include "support.h"
 #include "startup.h"
-#include "platform_dt.h"
+#include "platform_dt-arm.h"
 
 namespace {
-class Platform_arm_rcar4 : public Platform_dt
+class Platform_arm_rcar4 : public Platform_dt_arm
 {
   bool probe() override { return true; }
 
@@ -40,8 +40,6 @@ class Platform_arm_rcar4 : public Platform_dt
     _uart.startup(&r);
     set_stdio_uart(&_uart);
   }
-
-  Boot_modules *modules() override { return this; }
 
   void reboot() override
   {

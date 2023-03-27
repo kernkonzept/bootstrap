@@ -4,13 +4,12 @@
  * Author(s): Adam Lackorznynski <adam@l4re.org>
  */
 
-#include <l4/util/l4mod.h>
-#include "platform-arm.h"
 #include "boot_modules.h"
 #include "dt.h"
-#include "support.h"
+#include "platform.h"
 
-class Platform_dt : public Platform_arm,
+template<typename BASE>
+class Platform_dt : public BASE,
                     public Boot_modules_image_mode
 {
   struct Dt_module : Internal_module_base
@@ -29,32 +28,25 @@ class Platform_dt : public Platform_arm,
   };
 
   Dt_module mod_fdt;
+
 public:
   Platform_dt() : mod_fdt(".fdt", dt) {}
 
-  l4_addr_t get_fdt_addr() const
-  {
-    #if defined(ARCH_arm64)
-      return boot_args.r[0];
-    #elif defined(ARCH_arm)
-      return boot_args.r[2];
-    #endif
-  }
+  virtual l4_addr_t get_fdt_addr() const = 0;
 
   Boot_modules *modules() override { return this; }
-  void setup_memory_map() override;
+
+  void setup_memory_map() override
+  {
+    dt.check_for_dt();
+    dt.setup_memory();
+  }
+
   void init_dt(Internal_module_list &mods) override
   {
     dt.init(get_fdt_addr());
     if (dt.have_fdt())
       mods.push_front(&mod_fdt);
-  }
-
-  void setup_kernel_options(L4_kernel_options::Options *lko) override
-  {
-    lko->core_spin_addr = dt.have_fdt() ? dt.cpu_release_addr() : -1ULL;
-    if (lko->core_spin_addr == -1ULL)
-      Platform_arm::setup_kernel_options(lko);
   }
 
   Dt dt;
