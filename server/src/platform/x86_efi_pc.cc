@@ -52,9 +52,10 @@ public:
   EFI_PHYSICAL_ADDRESS                 _video_fb_phys_base;
   unsigned                             _video_fb_size;
 
-  l4util_l4mod_info *construct_mbi(unsigned long mod_addr) override
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr,
+                                   Internal_module_list const &mods) override
   {
-    l4util_l4mod_info *mbi = Boot_modules_image_mode::construct_mbi(mod_addr);
+    l4util_l4mod_info *mbi = Boot_modules_image_mode::construct_mbi(mod_addr, mods);
 
     // we use the copy here instead of reading it out directly because
     // EFI is already exited in setup_memory_map which is called much too

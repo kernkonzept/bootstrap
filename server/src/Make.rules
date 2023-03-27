@@ -105,9 +105,6 @@ CXXFLAGS_arm64  += -mstrict-align
 CFLAGS_arm      += -mno-unaligned-access
 CXXFLAGS_arm    += -mno-unaligned-access
 
-DEFINES_arm     += -DUSE_DT
-DEFINES_arm64   += -DUSE_DT
-
 SRC_C           += memcpy_aligned.c
 CFLAGS_memcpy_aligned.c = -ffreestanding
 
@@ -119,8 +116,8 @@ SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc base_critical.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc \
 		   ARCH-amd64/cpu_info.cc ARCH-amd64/paging.cc \
 		   ARCH-amd64/paging_alloc.cc
-SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc dt.cc platform_dt.cc
-SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc dt.cc platform_dt.cc
+SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc
+SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc
 SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/efi.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc

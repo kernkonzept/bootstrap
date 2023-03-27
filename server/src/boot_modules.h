@@ -9,8 +9,51 @@
 
 #include <l4/sys/l4int.h>
 #include <l4/util/l4mod.h>
+#include <string.h>
 #include "region.h"
 #include "mod_info.h"
+
+/**
+ * Modules created by or internal to bootstrap
+ */
+struct Internal_module_base
+{
+  Internal_module_base(const char *cmdline)
+  : _cmdline(cmdline)
+  {}
+
+  unsigned cmdline_size() const { return strlen(_cmdline) + 1; }
+  Internal_module_base *next() const { return _next; }
+  void next(Internal_module_base *n) { _next = n; }
+  virtual void set_region(l4util_l4mod_mod *m) const = 0;
+
+  void set(l4util_l4mod_mod *m, char *cmdline_store) const
+  {
+    m->cmdline = (l4_addr_t)cmdline_store;
+    memcpy(cmdline_store, _cmdline, cmdline_size());
+    set_region(m);
+    m->flags = 0;
+  }
+
+private:
+  Internal_module_base *_next;
+  const char *_cmdline;
+};
+
+struct Internal_module_list
+{
+  void push_front(Internal_module_base *mod)
+  {
+    mod->next(root);
+    root = mod;
+    cnt++;
+  }
+
+  Internal_module_base *root = 0;
+  unsigned cnt = 0;
+};
+
+
 
 /**
  * Interface to boot modules.
@@ -39,7 +82,7 @@ public:
   virtual void reserve() = 0;
   virtual Module module(unsigned index, bool uncompress = true) const = 0;
   virtual unsigned num_modules() const = 0;
-  virtual l4util_l4mod_info *construct_mbi(unsigned long mod_addr) = 0;
+  virtual l4util_l4mod_info *construct_mbi(unsigned long mod_addr, Internal_module_list const &mods) = 0;
   virtual void move_module(unsigned index, void *dest) = 0;
   virtual int base_mod_idx(Mod_info_flags mod_info_mod_type) = 0;
   void move_modules(unsigned long modaddr);
@@ -70,7 +113,7 @@ public:
   Module module(unsigned index, bool uncompress) const override;
   unsigned num_modules() const override;
   void move_module(unsigned index, void *dest) override;
-  l4util_l4mod_info *construct_mbi(unsigned long mod_addr) override;
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr, Internal_module_list const &mods) override;
   int base_mod_idx(Mod_info_flags mod_info_module_flag) override;
 
 private:

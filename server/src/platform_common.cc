@@ -1,6 +1,5 @@
 #include "support.h"
 #include "platform.h"
-#include "dt.h"
 #include <l4/cxx/minmax>
 #include <assert.h>
 

@@ -265,7 +265,8 @@ public:
     mod->mod_end   = (l4_addr_t)dest + size;
   }
 
-  l4util_l4mod_info *construct_mbi(unsigned long mod_addr) override
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr,
+                                   Internal_module_list const &) override
   {
     // calculate the size needed to cover the full MBI, including command lines
     unsigned long total_size = sizeof(l4util_l4mod_info);

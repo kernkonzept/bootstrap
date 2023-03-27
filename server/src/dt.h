@@ -6,7 +6,6 @@
 
 #pragma once
 
-#ifdef USE_DT
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -314,9 +313,9 @@ public:
   void init(unsigned long fdt_addr);
   void check_for_dt() const;
 
-  bool have_fdt() { return _fdt; }
-  const void *fdt() { return _fdt; }
-  unsigned fdt_size() { return fdt_totalsize(_fdt); }
+  bool have_fdt() const { return _fdt; }
+  const void *fdt() const { return _fdt; }
+  unsigned fdt_size() const { return _fdt ? fdt_totalsize(_fdt) : 0; }
 
   Node node_by_path(char const *path) const;
   Node node_by_phandle(uint32_t phandle) const;
@@ -415,14 +414,4 @@ protected:
 
   void const *_fdt;
 };
-#else // USE_DT
-class Dt
-{
-public:
-  static bool have_fdt() { return false; }
-  static const void *fdt() { return nullptr; }
-  static unsigned fdt_size() { return 0; }
-};
-#endif // USE_DT
 
-extern Dt dt;

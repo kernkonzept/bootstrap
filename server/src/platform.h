@@ -8,8 +8,13 @@
 #pragma once
 
 #include "boot_modules.h"
+#include "koptions-def.h"
 #include <l4/sys/l4int.h>
 #include <stdlib.h> // exit()
+
+#if defined(ARCH_arm) || defined(ARCH_arm64)
+#include "arch/arm/mem.h"
+#endif
 
 class Platform_base
 {
@@ -31,7 +36,7 @@ public:
     l4_infinite_loop();
   }
 
-  virtual bool have_a_dt() { return false; }
+  virtual void init_dt(unsigned long /*dt_addr*/, Internal_module_list &) {}
 
 #if defined(ARCH_arm) || defined(ARCH_arm64)
   static void reboot_psci()
@@ -44,7 +49,19 @@ public:
 #endif
                  "smc #0" : : "r" (r0));
   }
-#endif
+
+  virtual void setup_spin_addr(L4_kernel_options::Options *lko)
+  {
+#if defined(ARCH_arm64) // disabled on arm32 until assembler support lands
+    // If we do not get an spin address from DT, all cores might start
+    // at the same time and are caught by bootstrap
+    extern l4_umword_t mp_launch_spin_addr;
+    asm volatile("" : : : "memory");
+    Barrier::dmb_cores();
+    lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
+#endif // defined(ARCH_arm64)
+  }
+#endif // defined(ARCH_arm) || defined(ARCH_arm64)
 
   virtual bool arm_switch_to_hyp() { return false; }
 

@@ -50,11 +50,6 @@
 #include "support.h"
 #include "init_kip.h"
 #include "koptions.h"
-#include "dt.h"
-
-#if defined(ARCH_arm) || defined(ARCH_arm64)
-#include "arch/arm/mem.h"
-#endif
 
 #undef getchar
 
@@ -71,8 +66,6 @@ Memory *mem_manager = &_mem_manager;
 
 L4_kernel_options::Uart kuart;
 unsigned int kuart_flags;
-
-Dt dt;
 
 /*
  * IMAGE_MODE means that all boot modules are linked together to one
@@ -699,12 +692,12 @@ startup(char const *cmdline)
   if (print_cpu_info)
     print_cpu_info();
 
+  Internal_module_list internal_mods;
+
 #if defined(ARCH_arm64)
-  if (plat->have_a_dt())
-    dt.init(boot_args.r[0]);
+  plat->init_dt(boot_args.r[0], internal_mods);
 #elif defined(ARCH_arm)
-  if (plat->have_a_dt())
-    dt.init(boot_args.r[2]);
+  plat->init_dt(boot_args.r[2], internal_mods);
 #endif
 
   regions.init(__regs, "regions");
@@ -755,7 +748,7 @@ startup(char const *cmdline)
   else
     printf("  WARNING: No roottask module specified -- setup might not boot!\n");
 
-  l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr);
+  l4util_l4mod_info *mbi = plat->modules()->construct_mbi(_mod_addr, internal_mods);
   cmdline = nullptr;
 
   assert(mbi->mods_count <= MODS_MAX);
@@ -831,19 +824,8 @@ startup(char const *cmdline)
 
 #if defined(ARCH_arm) || defined(ARCH_arm64)
   setup_and_check_kernel_config(plat, l4i);
-  lko->core_spin_addr = plat->have_a_dt() ? dt.cpu_release_addr() : -1ULL;
-#if defined(ARCH_arm64) // disabled on arm32 until assembler support lands
-  if (lko->core_spin_addr == -1ULL)
-    {
-      // If we do not get an spin address from DT, all cores might start
-      // at the same time and are caught by bootstrap
-      extern l4_umword_t mp_launch_spin_addr;
-      asm volatile("" : : : "memory");
-      Barrier::dmb_cores();
-      lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
-    }
-#endif // defined(ARCH_arm64)
-#endif // defined(ARCH_arm) || defined(ARCH_arm64)
+  plat->setup_spin_addr(lko);
+#endif
 #if defined(ARCH_mips)
   {
     printf("  Flushing caches ...\n");
