@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0-only or License-Ref-kk-custom */
+/* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (C) 2009-2020 Kernkonzept GmbH.
  * Authors: Alexander Warg <warg@os.inf.tu-dresden.de>
