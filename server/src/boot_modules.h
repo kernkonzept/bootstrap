@@ -73,7 +73,7 @@ public:
     char const *end;
     char const *cmdline;
 
-    unsigned long size() const { return end -start; }
+    unsigned long size() const { return end - start; }
   };
 
   static char const *const Mod_reg;
