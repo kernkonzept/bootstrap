@@ -93,7 +93,8 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
 
   // reserve memory for final locations of fiasco, sigma0 and moe
   l4util_mb_mod_t *mods = (l4util_mb_mod_t*)mbi->mods_addr;
-  reserve_elf((void *)mods[0].mod_start, (void *)mods[0].mod_end); // fiasco
+  if (mbi->mods_count > 0)
+    reserve_elf((void *)mods[0].mod_start, (void *)mods[0].mod_end); // fiasco
   if (mbi->mods_count > 1)
     reserve_elf((void *)mods[1].mod_start, (void *)mods[1].mod_end); // sigma0
   if (mbi->mods_count > 2)
