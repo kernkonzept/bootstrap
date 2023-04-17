@@ -257,8 +257,7 @@ sub build_objects(@)
   close $fd;
 
   my $section_attr = ($arch ne 'sparc' && $arch ne 'arm'
-       ? #'"a", @progbits' # Not Xen
-         '\"awx\", @progbits' # Xen
+       ? '\"a\", @progbits'
        : '\"a\"' );
 
   my $alignment = 12;
