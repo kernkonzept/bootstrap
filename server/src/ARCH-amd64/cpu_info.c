@@ -21,8 +21,8 @@ cpuid(l4_uint32_t mode,
   if (edx) *edx = d;
 }
 
-EXTERN_C void
-init_cpu_info()
+void
+init_cpu_info(void)
 {
   l4_uint32_t max_val;
   cpuid(0, &max_val, 0, 0, 0);
