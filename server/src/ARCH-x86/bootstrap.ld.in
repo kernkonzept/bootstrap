@@ -22,6 +22,11 @@ PHDRS {
 
 SECTIONS
 {
+  .bda 0x400 (NOLOAD) : {
+    . = 0xe;
+    ebda_segment = .;
+  }
+
 #ifdef ARCH_amd64
   . = LINKADDR + SIZEOF_HEADERS;
 #else

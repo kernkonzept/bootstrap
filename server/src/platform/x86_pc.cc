@@ -42,6 +42,8 @@ enum { Verbose_mbi = 1 };
 
 static void pci_quirks();
 
+extern char ebda_segment[];
+
 namespace {
 
 struct Platform_x86_1 : Platform_x86
@@ -84,7 +86,7 @@ struct Platform_x86_1 : Platform_x86
                            Region::Ram));
 
         // Fix EBDA in conventional memory
-        unsigned long p = *(l4_uint16_t *)0x40e << 4;
+        unsigned long p = *(l4_uint16_t const *)ebda_segment << 4;
 
         if (p > 0x400)
           {
