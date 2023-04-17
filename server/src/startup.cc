@@ -359,8 +359,8 @@ setup_memory_map(char const *cmdline)
 
 static void do_the_memset(unsigned long s, unsigned val, unsigned long len)
 {
-  printf("Presetting memory %16lx - %16lx to '%x'\n",
-         s, s + len - 1, val);
+  printf("Presetting memory %16lx - %16lx to '0x%x'\n",
+         s, s + len - 1, val & 0xff);
   memset((void *)s, val, len);
 }
 
