@@ -1,0 +1,24 @@
+menu "Bootstrap"
+
+config BOOTSTRAP_ROOTTASK_NX
+	bool "Support W^X in the root task"
+	help
+	  Mark the text sections of the root task as non-writeable in the memory map
+	  and mark the data sections as non executable.
+	
+	  This is useful if you want to ensure a requirement to have this property
+	  enforced for the root task. However, be aware that this will only protect
+	  the memory from the binary. Moe will still have large parts of the memory
+	  mapped as both executable and writable due to the system design.
+	
+	  Also this precludes self-adaptation of Moe when compiled for the wrong
+	  kernel type (virtualization enabled vs. non-virt). So only enable this when
+	  you understand the features limitations and are sure that you need it.
+	
+	  If you enable this feature and the system fails to boot after loading
+	  Sigma0, ensure the KERNEL_CPU_VIRT option is in sync with the respective
+	  kernel configuration.
+	
+	  If in doubt, choose n.
+
+endmenu

@@ -31,6 +31,7 @@
 #include <limits.h>
 
 /* L4 stuff */
+#include <l4/bid_config.h>
 #include <l4/sys/compiler.h>
 #include <l4/sys/consts.h>
 #include <l4/sys/kip.h>
@@ -810,11 +811,15 @@ l4_exec_add_region(Elf_handle *handle,
   if (! (section_type & (EXEC_SECTYPE_ALLOC|EXEC_SECTYPE_LOAD)))
     return 0;
 
+#if defined(CONFIG_BOOTSTRAP_ROOTTASK_NX)
   unsigned short rights = L4_FPAGE_RO;
   if (section_type & EXEC_SECTYPE_WRITE)
     rights |= L4_FPAGE_W;
   if (section_type & EXEC_SECTYPE_EXECUTE)
     rights |= L4_FPAGE_X;
+#else
+  unsigned short rights = L4_FPAGE_RWX;
+#endif
 
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.

@@ -4,6 +4,8 @@
  * Author(s): Adam Lackorzynski <adam@l4re.org>
  */
 
+#include <l4/bid_config.h>
+
 #include "panic.h"
 #include "platform-arm.h"
 #include <assert.h>
@@ -28,6 +30,7 @@ void Platform_arm::setup_kernel_config(l4_kernel_info_t *kip)
 void Platform_arm::module_load_hook(l4_addr_t addr, l4_umword_t file_sz,
                                     l4_umword_t, char const*)
 {
+#if defined(CONFIG_BOOTSTRAP_ROOTTASK_NX)
   l4_uint32_t* end = (l4_uint32_t *)(addr + file_sz);
   for (l4_uint32_t *cp = (l4_uint32_t *)addr; cp < end; ++cp)
     if (*cp == 0xd4000001 && kernel_type == EL_Support::EL2) // svc #0
@@ -44,4 +47,8 @@ void Platform_arm::module_load_hook(l4_addr_t addr, l4_umword_t file_sz,
                "         please adapt your kernel or userland config if needed\n");
         break; // There's only a single syscall insn in the binary
       }
+#else
+  (void) addr;
+  (void) file_sz;
+#endif
 }
