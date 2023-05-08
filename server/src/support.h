@@ -19,6 +19,7 @@
 
 #include <l4/drivers/uart_base.h>
 #include <l4/util/l4mod.h>
+#include <l4/util/kip.h>
 #include <l4/sys/compiler.h>
 #include "mod_info.h"
 #include "region.h"
@@ -74,5 +75,20 @@ struct Memory
 };
 
 extern Memory *mem_manager;
+
+static inline
+bool
+kip_kernel_has_feature(l4_kernel_info_t *kip, const char *feature)
+{
+  const char *s = l4_kip_version_string(kip);
+  if (!s)
+    return false;
+
+  l4util_kip_for_each_feature(s)
+    if (!strcmp(s, feature))
+      return true;
+
+  return false;
+}
 
 #endif /* __BOOTSTRAP__SUPPORT_H__ */
