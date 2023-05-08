@@ -47,9 +47,9 @@ Dt::Node Dt::node_by_phandle(uint32_t phandle) const
   return Node(_fdt, fdt_node_offset_by_phandle(_fdt, phandle));
 }
 
-Dt::Node Dt::node_by_compatible(char const *path) const
+Dt::Node Dt::node_by_compatible(char const *compatible) const
 {
-  return Node(_fdt, fdt_node_offset_by_compatible(_fdt, -1, path));
+  return Node(_fdt, fdt_node_offset_by_compatible(_fdt, -1, compatible));
 }
 
 char const *Dt::Node::get_prop_str(char const *name) const
