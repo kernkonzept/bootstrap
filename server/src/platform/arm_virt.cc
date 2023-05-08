@@ -9,6 +9,7 @@
 #include <l4/drivers/uart_pl011.h>
 #include "support.h"
 #include "startup.h"
+#include "panic.h"
 #include "platform_dt-arm.h"
 
 extern char _start;
@@ -58,6 +59,15 @@ class Platform_arm_virt : public Platform_dt_arm
         boot_args.r[2] = dst;
 #endif
       }
+  }
+
+  void late_setup(l4_kernel_info_t *kip) override
+  {
+    bool have_smmuv3 = dt.node_by_compatible("arm,smmu-v3").is_valid();
+    bool kernel_uses_smmuv3 = kip_kernel_has_feature(kip, "arm,smmu-v3");
+
+    if (kernel_uses_smmuv3 && !have_smmuv3)
+      panic("Error: Microkernel uses SMMU-v3 but QEMU missing '-M virt,iommu=smmuv3'");
   }
 
   void reboot() override
