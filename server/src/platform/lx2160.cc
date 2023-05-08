@@ -51,7 +51,7 @@ class Platform_arm_lx2160 : public Platform_dt_arm
     MC_GCR1_P2_STOP = 1UL << 30, // Processor 2 Stop
   };
 
-  void late_setup() override
+  void late_setup(l4_kernel_info_t *) override
   {
     dt.check_for_dt();
 

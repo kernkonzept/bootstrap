@@ -40,7 +40,7 @@ public:
    * modules are loaded or moved. This allows allocating memory without the risk
    * of conflicts.
    */
-  virtual void late_setup() {};
+  virtual void late_setup(l4_kernel_info_t *) {};
 
   /**
    * Called immediately after loading the kernel. Beware that the KIP has not

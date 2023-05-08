@@ -679,7 +679,7 @@ startup(char const *cmdline)
                                                  "[ROOTTASK]");
     }
 
-  plat->late_setup();
+  plat->late_setup(l4i);
 
   regions.optimize();
   regions.dump();

@@ -133,7 +133,7 @@ struct Platform_x86_1 : Platform_x86
     regions->add(Region::n(0, 0x1000, ".BIOS", Region::Arch, 0));
   }
 
-  void late_setup() override
+  void late_setup(l4_kernel_info_t *) override
   {
     pci_quirks();
   }
