@@ -18,11 +18,11 @@ void Platform_arm::setup_kernel_config_arm_common(l4_kernel_info_t *kip)
 
   kernel_type = EL_Support::EL1;
   l4util_kip_for_each_feature(s)
-  if (!strcmp(s, "arm:hyp"))
-    {
-      kernel_type = EL_Support::EL2;
-      break;
-    }
+    if (!strcmp(s, "arm:hyp"))
+      {
+        kernel_type = EL_Support::EL2;
+        break;
+      }
 
   // Ensure later stages do not overwrite the CPU boot-up code
   extern char cpu_bootup_code_start[], cpu_bootup_code_end[];
