@@ -13,16 +13,8 @@
 
 void Platform_arm::setup_kernel_config_arm_common(l4_kernel_info_t *kip)
 {
-  const char *s = l4_kip_version_string(kip);
-  assert(s);
-
-  kernel_type = EL_Support::EL1;
-  l4util_kip_for_each_feature(s)
-    if (!strcmp(s, "arm:hyp"))
-      {
-        kernel_type = EL_Support::EL2;
-        break;
-      }
+  kernel_type = kip_kernel_has_feature(kip, "arm:hyp")
+                ? EL_Support::EL2 : EL_Support::EL1;
 
   // Ensure later stages do not overwrite the CPU boot-up code
   extern char cpu_bootup_code_start[], cpu_bootup_code_end[];
