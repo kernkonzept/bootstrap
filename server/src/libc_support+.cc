@@ -172,7 +172,7 @@ getchar(void)
   return c;
 }
 
-off_t lseek(int /*fd*/, off_t /*offset*/, int /*whence*/)
+off_t lseek(int /*fd*/, off_t /*offset*/, int /*whence*/) __THROW
 {
   return 0;
 }
