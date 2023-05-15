@@ -98,6 +98,8 @@ _start:
 	ehb
 
 	mfc0  $8, $12, 0         // mfc0 t0, c0_status
+	li    $9, -5             // ~(1 << 2) -> ST_ERL
+	and   $8, $8, $9         // clear ERL
 	li    $9, 0x20000000     // set ST0_CU1 to enable FPU
 	or    $8, $8, $9
 	mtc0  $8, $12, 0         // mtc0 t0, c0_status
