@@ -205,14 +205,9 @@ sub build_objects(@)
   &{$output_formatter{begin}}(%entry);
 
   for (my $i = 0; $i < @mods; $i++) {
-    my $flags = 0;
-    $flags = 1 if $i == 0; # kernel
-    $flags = 2 if $i == 1; # sigma0
-    $flags = 3 if $i == 2; # roottask
-    $flags |= 1 << 4;
     $img{mods}[$i] =
       { build_obj($mods[$i]->{file}, $mods[$i]->{cmdline},
-                  $mods[$i]->{modname}, $flags,
+                  $mods[$i]->{modname}, $mods[$i]->{type} | 1 << 4,
                   $mods[$i]->{opts}) };
   }
 
@@ -318,8 +313,8 @@ sub dump_entry(@)
   print "modaddr=$entry{modaddr}\n" if defined $entry{modaddr};
   print "$entry{bootstrap}{file}\n";
   print "$entry{bootstrap}{cmdline}\n";
-  print join("\n", map { $_->{cmdline} } @{$entry{mods}}), "\n";
-  print join(' ', map { $_->{file} } @{$entry{mods}}), "\n";
+  print join("\n", sort map { $_->{cmdline} } @{$entry{mods}}), "\n";
+  print join(' ', sort map { $_->{file}.$_->{type} } @{$entry{mods}}), "\n";
 }
 
 sub postprocess
