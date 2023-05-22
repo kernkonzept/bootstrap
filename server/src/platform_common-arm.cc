@@ -8,12 +8,12 @@
 #include "platform-arm.h"
 #include "support.h"
 
-#include <l4/util/kip.h>
+#include <l4/sys/kip.h>
 #include <assert.h>
 
 void Platform_arm::setup_kernel_config_arm_common(l4_kernel_info_t *kip)
 {
-  kernel_type = kip_kernel_has_feature(kip, "arm:hyp")
+  kernel_type = l4_kip_kernel_has_feature(kip, "arm:hyp")
                 ? EL_Support::EL2 : EL_Support::EL1;
 
   // Ensure later stages do not overwrite the CPU boot-up code

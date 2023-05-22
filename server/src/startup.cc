@@ -37,7 +37,6 @@
 #include <l4/sys/kip.h>
 #include <l4/util/mb_info.h>
 #include <l4/util/l4_macros.h>
-#include <l4/util/kip.h>
 #include "panic.h"
 
 /* local stuff */
@@ -521,7 +520,7 @@ search_and_setup_utest_feature(char const *cmdline, l4_kernel_info_t *info)
   if (!s)
     return;
 
-  l4util_kip_for_each_feature(s)
+  l4_kip_for_each_feature(s)
     if (0 == strncmp(s, feat_prefix, prefix_len))
       {
         size_t max_len = strlen(s) - prefix_len;
