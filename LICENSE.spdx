@@ -1,0 +1,42 @@
+## This file states the license of this package and possibly its subpackages
+## in machine and human readable format. The PackageName refers to the package
+## whose license is defined by PackageLicenseConcluded.
+## For more information about this file format visit the SPDX website at
+## https://spdx.org
+
+SPDXVersion: SPDX-2.3
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentNamespace: spdx:kernkonzept/bootstrap-06ed57d1-8b41-4651-88f2-3665d521c08f
+DocumentName: bootstrap
+Creator: Organization: Kernkonzept GmbH (info@kernkonzept.com)
+Created: 2018-05-18T00:00:00Z
+
+## Package Information
+PackageName: bootstrap
+SPDXID: SPDXRef-bootstrap
+PackageOriginator: Organization: Kernkonzept GmbH (info@kernkonzept.com)
+PackageLicenseDeclared: GPL-2.0-only
+PackageLicenseConcluded: GPL-2.0-only
+FilesAnalyzed: true
+PackageCopyrightText: NOASSERTION
+PackageDownloadLocation: NOASSERTION
+
+FileName: ./server/src/gunzip.cc
+SPDXID: SPDXRef-bootstrap-gunzip.cc
+LicenseConcluded: GPL-2.0-or-later
+LicenseInfoInFile: NOASSERTION
+FileCopyrightText: 1999 Free Software Foundation, Inc.
+FileComment: Only compiled in if the compression feature in bootstrap is enabled
+
+PackageName: bootstrap-libc32
+SPDXID: SPDXRef-bootstrap-libc32
+PackageFileName: ./server/src/ARCH-amd64/libc32
+PackageLicenseDeclared: GPL-2.0-only
+PackageLicenseConcluded: GPL-2.0-only
+FilesAnalyzed: false
+PackageCopyrightText: NOASSERTION
+PackageDownloadLocation: NOASSERTION
+
+## Relationships
+Relationship: SPDXRef-bootstrap CONTAINS SPDXRef-bootstrap-libc32
