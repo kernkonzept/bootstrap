@@ -111,6 +111,7 @@ CFLAGS_memcpy_aligned.c = -ffreestanding
 SRC_CC		+= exec.cc module.cc region.cc startup.cc init_kip.cc \
 		   libc_support+.cc koptions.cc \
 		   memory.cc boot_modules.cc
+SRC_CC-$(BOOTSTRAP_DO_UEFI) += efi-support.cc
 
 SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc base_critical.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc \
@@ -118,7 +119,7 @@ SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc \
 		   ARCH-amd64/paging_alloc.cc
 SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc ARCH-arm/platform.cc platform_common-arm.cc
 SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc ARCH-arm64/platform.cc platform_common-arm.cc
-SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += efi-support.cc ARCH-arm64/efi.cc
+SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/efi.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc
 SRC_CC_ppc32    += ARCH-ppc32/init_kip_v2-arch.cc \
