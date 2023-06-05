@@ -18,9 +18,9 @@ namespace
 {
 
 /// Enforces ordering between MMIO register access and/or shared memory accesses.
-#if defined(__ARM_ARCH_7A__)
+#if defined(__ARM_ARCH) && __ARM_ARCH == 7
 static inline void mb() { asm volatile ("dsb" : : : "memory"); }
-#elif defined(__ARM_ARCH_8A)
+#elif defined(__ARM_ARCH) && __ARM_ARCH >= 8
 // Since ARMv8 the memory model is other-multi-copy atomic, i.e. a memory write
 // observed by an observer is also visible to all other observers. In other
 // words, the memory write is either visible only locally to the originator (for
