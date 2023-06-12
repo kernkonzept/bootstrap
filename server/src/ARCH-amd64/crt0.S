@@ -21,10 +21,10 @@ _start:
 #endif
 
 #ifdef __PIC__
-	push	$_exit@plt
+	pushq	$_exit@plt
 	jmp	__main@plt
 #else
-	push	$_exit
+	pushq	$_exit
 	jmp	__main
 #endif
 
