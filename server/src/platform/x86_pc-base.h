@@ -292,6 +292,14 @@ struct Pci_iterator
     pci_write(Cmd, cmd, 16);
   }
 
+  l4_uint32_t read_bar_size(unsigned bar_offs, l4_uint32_t bar) const
+  {
+    pci_write(bar_offs, 0xffffffffU, 32);
+    l4_uint32_t bar_size = pci_read(bar_offs, 32);
+    pci_write(bar_offs, bar, 32);
+    return bar_size;
+  }
+
   unsigned vendor() const { return vd & 0xffff; }
   unsigned device() const { return vd >> 16; }
   unsigned vendor_device() const { return vd; }

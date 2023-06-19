@@ -420,14 +420,14 @@ Platform_x86_multiboot _x86_pc_platform;
 
 namespace /* usb_xhci_handoff */ {
 
-static int
+static unsigned
 xhci_first_cap(L4::Io_register_block const *base)
 {
   return ((base->read<l4_uint32_t>(0x10) >> 16) & 0xffff) << 2;
 }
 
-static int
-xhci_next_cap(L4::Io_register_block const *base, int cap)
+static unsigned
+xhci_next_cap(L4::Io_register_block const *base, unsigned cap)
 {
   l4_uint32_t next = (base->read<l4_uint32_t>(cap) >> 8) & 0xff;
 
@@ -481,82 +481,109 @@ do_handoff_cap(L4::Io_register_block const *base, unsigned cap)
   base->modify<l4_uint32_t>(cap + USBLEGCTLSTS, DISABLE_SMI, SMI_EVENTS);
 }
 
-static void
-xhci_handoff(Pci_iterator const &dev)
+static bool
+xhci_probe_bar(Pci_iterator const &dev, l4_uint64_t *addr, l4_uint64_t *size)
 {
   enum : l4_uint32_t
   {
     PCI_BAR_MEM_TYPE_MASK = 3 << 1,
     PCI_BAR_MEM_TYPE_64   = 2 << 1,
     PCI_BAR_MEM_ATTR_MASK = 0xf,
+  };
 
-    HC_MAX_CAPLENGTH             = 0x100,
+  // read BAR[0]
+  l4_uint32_t bar = dev.pci_read(0x10, 32);
+
+  // invalid -> skip
+  if (!bar)
+    return false;
+
+  // BAR[0] is an IO BAR, not XHCI compliant -> skip
+  if (bar & 1)
+    return false;
+
+  *addr = bar & ~PCI_BAR_MEM_ATTR_MASK;
+  *size = dev.read_bar_size(0x10, bar);
+  if (*size == 0xffffffffU)
+    // Invalid size, device not working correctly, at least one bit in BAR
+    // attributes is always zero.
+    return false;
+
+  // 64-bit BAR?
+  if ((bar & PCI_BAR_MEM_TYPE_MASK) == PCI_BAR_MEM_TYPE_64)
+    {
+      // read BAR[1] and set it as the upper 32-bits of the 64-bit address
+      bar = dev.pci_read(0x14, 32);
+      *addr |= ((l4_uint64_t)bar) << 32;
+      *size |= ((l4_uint64_t)dev.read_bar_size(0x14, bar)) << 32;
+    }
+
+  // Clear attribute part
+  *size &= ~((l4_uint64_t)PCI_BAR_MEM_ATTR_MASK);
+  // Decode BAR size
+  *size = ~(*size) + 1;
+  return true;
+}
+
+static void
+xhci_handoff(Pci_iterator const &dev)
+{
+  enum : l4_uint32_t
+  {
     HC_CAP_ID_MASK               = 0xff,
     HC_CAP_ID_USB_LEGACY_SUPPORT = 1,
   };
 
   using Pci = Pci_iterator;
 
-  unsigned v = dev.pci_read(Pci::Cmd, 32);
+  unsigned cmd = dev.pci_read(Pci::Cmd, 32);
 
   // no mmio enabled -> skip
-  if (!(v & Pci::Memory_space))
+  if (!(cmd & Pci::Memory_space))
     return;
 
   if (0)
     // no bus-master -> skip
-    if (!(v & Pci::Bus_master))
+    if (!(cmd & Pci::Bus_master))
       return;
 
-  // read BAR[0]
-  v = dev.pci_read(0x10, 32);
+  // Temporarily disable memory space access, because to determine the BAR's
+  // size requires writing to it.
+  dev.pci_write(Pci::Cmd, cmd & ~Pci::Memory_space, 32);
 
-  // invalid -> skip
-  if (!v)
+  l4_uint64_t addr, size;
+  bool bar_valid = xhci_probe_bar(dev, &addr, &size);
+
+  // Restore memory space access.
+  dev.pci_write(Pci::Cmd, cmd, 32);
+
+  // invalid bar -> skip
+  if (!bar_valid)
     return;
-
-  // BAR[0] is an IO BAR, not XHCI compliant -> skip
-  if (v & 1)
-    return;
-
-  l4_uint64_t bar = v & ~PCI_BAR_MEM_ATTR_MASK;
-  // 64-bit BAR?
-  if ((v & PCI_BAR_MEM_TYPE_MASK) == PCI_BAR_MEM_TYPE_64)
-    {
-      // read BAR[1] and set it as the upper 32-bits of the 64-bit address
-      bar |= ((l4_uint64_t)dev.pci_read(0x14, 32)) << 32;
-    }
 
 #ifdef ARCH_amd64
-  /*
-   * Ensure that the BAR is mapped into our linear address space.
-   *
-   * Mapping a single page is sufficient, because the CAPLENGTH property of the
-   * XHCI controller is an 8-byte value, i.e the XHCI capability registers can
-   * at most span 256 byte, so a single page is enough to cover all of them.
-   * And for XHCI handoff all we care for are the capability registers!
-   *
-   * The XHCI capability register set starts at offset zero from the base
-   * address. According to the PCI specification base addresses must be
-   * naturally aligned, so if we truncate the base address to a page boundary
-   * and map only a single page, we can be sure that we mapped all memory we
-   * want to access.
-   */
-  ptab_map_range(_x86_pc_platform.boot32_info->ptab64_addr, trunc_page(bar),
-                 trunc_page(bar), PAGE_SIZE, PTAB_WRITE | PTAB_USER);
+  // Ensure that the BAR is mapped into our linear address space.
+  ptab_map_range(_x86_pc_platform.boot32_info->ptab64_addr, addr, addr, size,
+                 PTAB_WRITE | PTAB_USER);
 #else
   // Skip if we cannot access the BAR. The cast to "unsigned long" is required
   // as Io_register_block_mmio takes an "unsigned long".
-  if ((bar + HC_MAX_CAPLENGTH) != (unsigned long)(bar + HC_MAX_CAPLENGTH))
+  if ((addr + size) != (unsigned long)(addr + size))
     return;
 #endif
 
-  L4::Io_register_block_mmio base(bar);
+  L4::Io_register_block_mmio base(addr);
 
   // Find the Legacy Support Capability register
-  for (int cap = xhci_first_cap(&base); cap != 0;
+  for (unsigned cap = xhci_first_cap(&base); cap != 0;
        cap = xhci_next_cap(&base, cap))
     {
+      if (cap >= size)
+        {
+          printf("xHCI handoff failed: Extended capability outside of memory space.\n");
+          break;
+        }
+
       l4_uint32_t v = base.read<l4_uint32_t>(cap);
       if ((v & HC_CAP_ID_MASK) == HC_CAP_ID_USB_LEGACY_SUPPORT)
         {
