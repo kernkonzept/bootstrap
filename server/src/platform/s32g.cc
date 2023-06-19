@@ -13,7 +13,7 @@
 
 
 namespace {
-class Platform_s32 : public Platform_dt_arm
+class Platform_s32g : public Platform_dt_arm
 {
   bool probe() override { return true; }
 
@@ -52,4 +52,4 @@ class Platform_s32 : public Platform_dt_arm
 };
 }
 
-REGISTER_PLATFORM(Platform_s32);
+REGISTER_PLATFORM(Platform_s32g);
