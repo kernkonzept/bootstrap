@@ -254,7 +254,12 @@ struct Pci_iterator
   enum { Cmd = 0x4 };
 
   // bits in the Command register
-  enum Cmd_reg { Bus_master  = 1 << 2 };
+  enum Cmd_reg
+  {
+    Io_space     = 1 << 0,
+    Memory_space = 1 << 1,
+    Bus_master   = 1 << 2,
+  };
 
   Pci_iterator() : bus(0), dev(0), func(0) {}
   explicit Pci_iterator(unsigned bus, unsigned dev = 0, unsigned func = 0)
@@ -270,14 +275,14 @@ struct Pci_iterator
 
   void enable_io() const
   {
-    unsigned cmd = pci_read(4, 16);
-    pci_write(4, cmd | 1, 16);
+    unsigned cmd = pci_read(Cmd, 16);
+    pci_write(Cmd, cmd | Io_space, 16);
   }
 
   void enable_mmio() const
   {
-    unsigned cmd = pci_read(4, 16);
-    pci_write(4, cmd | 2, 16);
+    unsigned cmd = pci_read(Cmd, 16);
+    pci_write(Cmd, cmd | Memory_space, 16);
   }
 
   void disable_bus_master() const

@@ -495,15 +495,17 @@ xhci_handoff(Pci_iterator const &dev)
     HC_CAP_ID_USB_LEGACY_SUPPORT = 1,
   };
 
-  unsigned v = dev.pci_read(0x04, 32);
+  using Pci = Pci_iterator;
+
+  unsigned v = dev.pci_read(Pci::Cmd, 32);
 
   // no mmio enabled -> skip
-  if (!(v & 2))
+  if (!(v & Pci::Memory_space))
     return;
 
   if (0)
     // no bus-master -> skip
-    if (!(v & 4))
+    if (!(v & Pci::Bus_master))
       return;
 
   // read BAR[0]
