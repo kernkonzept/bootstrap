@@ -45,7 +45,7 @@ void Cache::Insn::disable()
 
 void Barrier::dsb_system()
 {
-  asm volatile("mcr p15, 0, r0, c7, c10, 4" : : : "memory");
+  asm volatile("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory");
 }
 
 void Barrier::dsb_cores()
@@ -55,12 +55,12 @@ void Barrier::dsb_cores()
 
 void Barrier::isb()
 {
-  asm volatile("mcr p15, 0, r0, c7, c5, 4" : : : "memory");
+  asm volatile("mcr p15, 0, %0, c7, c5, 4" : : "r" (0) : "memory");
 }
 
 void Barrier::dmb_system()
 {
-  asm volatile("mcr p15, 0, r0, c7, c10, 5" : : : "memory");
+  asm volatile("mcr p15, 0, %0, c7, c10, 5" : : "r" (0) : "memory");
 }
 
 void Barrier::dmb_cores()

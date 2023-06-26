@@ -26,7 +26,7 @@ public:
 
   static inline void ic_iallu()
   {
-    asm volatile("mcr p15, 0, r0, c7, c5, 0" : : : "memory");
+    asm volatile("ic iallu" : : : "memory");
   }
 
   static inline unsigned long get_ccsidr(unsigned long csselr)
