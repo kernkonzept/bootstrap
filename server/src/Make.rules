@@ -299,6 +299,13 @@ $(IMAGES_DIR)/%: $(od)%
 else
   INSTALL_FILES = bootstrap $(BOOTSTRAP_ELF_NAME) $(BOOTSTRAP_RAW)
 
+  ifneq ($(EFI_IMAGE),)
+$(od)bootstrap.efi: $(od)$(EFI_IMAGE)
+	$(VERBOSE)$(LN) -f $< $@
+
+	INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap.efi
+  endif
+
   ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips))
     ifeq ($(MKIMAGE_PRESENT),y)
       INSTALL_FILES += $(BOOTSTRAP_UIMAGE) $(BOOTSTRAP_ITB)
