@@ -483,6 +483,20 @@ endif
 
 INSTALL_TARGET := $(if $(od),,$(INSTALL_FILES))
 
+ifneq ($(BOOTSTRAP_ALL_PLATFORMS)$(BID_CHECKBUILD),)
+ifneq ($(PLATFORM_CHECK),y)
+all::
+	$(VERBOSE)BUILD_FAIL=""; \
+	echo "Performing bootstrap build check ..."; \
+	for p in $$(sed -En 's/^\[$(OSYSTEM)\] *([^ ]*) --.*/\1/p' $(OBJ_BASE)/Kconfig.generated.platforms.list); do \
+		$(MAKE) PT=$$p PLATFORM_CHECK=y BID_MESSAGE_TAG='$(BID_MESSAGE_TAG):'$$p || BUILD_FAIL+="\t$$p\n"; \
+	done; \
+	[ -z "$${BUILD_FAIL}" ] || ( \
+		printf "Bootstrap $(OSYSTEM) build check failed for:\n$${BUILD_FAIL}" && false \
+	)
+endif
+endif
+
 ifeq ($(ARCH),amd64)
 DEPS += $(foreach file,$(OBJ32), $(call BID_dot_fname,$(file)).cmd)
 
