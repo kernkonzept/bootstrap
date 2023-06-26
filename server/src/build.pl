@@ -236,6 +236,7 @@ sub build_objects(@)
 
   $img{attrs}{"l4i:loadaddr"} = $ENV{BOOTSTRAP_LINKADDR};
   $img{attrs}{"l4i:rambase"} = $ENV{OPT_RAM_BASE};
+  $img{attrs}{"l4i:uefi"} = $ENV{OPT_EFIMODE};
 
   my $volatile_data = 1;
 

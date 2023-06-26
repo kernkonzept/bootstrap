@@ -207,6 +207,7 @@ BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         L4DIR=$(L4DIR) \
                         BOOTSTRAP_LINKADDR=$(BOOTSTRAP_LINKADDR) \
                         OPT_RAM_BASE=$(RAM_BASE) \
+                        OPT_EFIMODE=$(if $(BOOTSTRAP_DO_UEFI),y,n) \
                         OPT_PLATFORM_TYPE=$(PLATFORM_TYPE) \
                         QEMU_BINARY_NAME="$(QEMU_BINARY_NAME)" \
                         QEMU_OPTIONS="$(QEMU_OPTIONS)"
