@@ -130,7 +130,8 @@ mp_launch_spin_addr:
 	.space 8
 
 do_bootstrap:
-	adr	x9, crt0_stack_high
+	adrp	x9, crt0_stack_high
+	add	x9, x9, :lo12:crt0_stack_high
 	mov	sp, x9
 
 	mrs	x8, cpacr_el1
