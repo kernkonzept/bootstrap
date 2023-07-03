@@ -65,32 +65,34 @@ SECTIONS
   _end = . ;
   PROVIDE (end = .);
 
-  .data.m :
-  {
-    _module_data_start = .;
-    *(.module_data)
-    _module_data_end = .;
-  }
-
   .rela.dyn : { *(.rela.dyn) }
   .rela.plt : { *(.rela.plt) }
   .rela.got : { *(.rela.got) }
   .rela.data : { *(.rela.data) *(.rela.data*) }
   . = ALIGN(512);
-  _edata = .;
-  _data_size = . - _data;
 
   . = ALIGN(4096);
   .dynsym : { *(.dynsym) }
   . = ALIGN(4096);
   .dynstr : { *(.dynstr) }
   . = ALIGN(4096);
+
+  .data.m :
+  {
+    _module_data_start = .;
+    *(.module_data)
+    _module_data_end = .;
+  }
+  _edata = .;
+  _data_size = . - _data;
+
   .note.gnu.build-id : { *(.note.gnu.build-id) }
+  .comment 0 : { *(.comment) }
+
   /DISCARD/ :
   {
     *(.rel.reloc)
     *(.eh_frame)
     *(.note.GNU-stack)
   }
-  .comment 0 : { *(.comment) }
 }
