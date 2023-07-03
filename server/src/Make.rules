@@ -74,6 +74,8 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
   CFLAGS              += -fshort-wchar
   DEFINES             += -DGNU_EFI_USE_MS_ABI
   LDFLAGS             += --no-gc-sections
+else
+  BOOTSTRAP_DO_MB2 := y
 endif
 
 BOOTSTRAP_SEARCH_PATH        ?= $(OBJ_DIR)
@@ -113,7 +115,8 @@ SRC_CC		+= exec.cc module.cc region.cc startup.cc init_kip.cc \
 		   memory.cc boot_modules.cc
 SRC_CC-$(BOOTSTRAP_DO_UEFI) += efi-support.cc
 
-SRC_CC_x86	+= ARCH-x86/reboot.cc multiboot2.cc base_critical.cc
+SRC_CC_x86	+= ARCH-x86/reboot.cc base_critical.cc
+SRC_CC_x86-$(BOOTSTRAP_DO_MB2) += multiboot2.cc
 SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc \
 		   ARCH-amd64/cpu_info.cc ARCH-amd64/paging.cc \
 		   ARCH-amd64/paging_alloc.cc
@@ -445,8 +448,9 @@ vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-x86
 
 SRC32_C		 = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c support.c cpu_info.c paging.c
 SRC32_C		+= $(if $(filter 1,$(BUILD_PIE)),mm_alloc.c)
-SRC32_CC	 = multiboot2.cc
-SRC32_S		 = boot.S boot_idt.S ARCH-x86/mb2.S
+SRC32_CC-$(BOOTSTRAP_DO_MB2) += multiboot2.cc
+SRC32_S		 = boot.S boot_idt.S
+SRC32_S-$(BOOTSTRAP_DO_MB2) += ARCH-x86/mb2.S
 OBJ32		 = $(SRC32_S:.S=.o32) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32)
 CC32		 = $(filter-out -m64, $(CC)) -m32
 CXX32		 = $(filter-out -m64, $(CXX)) -m32
