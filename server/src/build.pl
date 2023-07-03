@@ -338,7 +338,7 @@ sub postprocess
   error("Multiple or no image info headers found -- must not be") if $count != 1;
 
   my $fn_nm = $fn;
-  my ($imageBase, $_start, $_end, $_module_data_start, $bin_addr_end_bin);
+  my ($_start, $_end, $_module_data_start, $bin_addr_end_bin);
   my $restart_nm;
   do
     {
@@ -354,7 +354,6 @@ sub postprocess
               $restart_nm = 1;
               last;
             }
-          $imageBase          = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+T\s+ImageBase$/i;
           $_start             = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+T\s+_start$/i;
           $_end               = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BD]\s+_end$/i;
           $_module_data_start = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTNR]\s+_module_data_start$/i;
@@ -371,10 +370,6 @@ sub postprocess
   error("Did not find _start symbol in binary") unless defined $_start;
   error("Did not find _module_data_start symbol in binary")
     unless defined $_module_data_start;
-
-  # ImageBase comes from the gnu-efi package and points to the real start of the
-  # binary if it's present.
-  $_start = $imageBase if defined $imageBase;
 
   my $compensate_nm_bug = sub {
     # In some binutils distributions nm has a bug where it sign-extends 32-bit
