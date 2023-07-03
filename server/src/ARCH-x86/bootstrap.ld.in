@@ -22,10 +22,13 @@ PHDRS {
 
 SECTIONS
 {
+#ifndef GNU_EFI_USE_MS_ABI
+  /* Required by x86_pc.cc */
   .bda 0x400 (NOLOAD) : {
     . = 0xe;
     ebda_segment = .;
   }
+#endif
 
 #ifdef ARCH_amd64
   . = LINKADDR + SIZEOF_HEADERS;
