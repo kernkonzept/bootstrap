@@ -77,9 +77,10 @@ sub default_mod_merge_text(%)
     if $d{size_stripped};
   $size_str .= sprintf " =c> %dkB", round_kb($d{size_compressed})
     if $d{size_compressed};
+  my $nostrip_str = $d{nostrip} ? " (not stripped)" : "";
 
   print "$d{modname}: $d{path} ",
-        "[".int(round_kb($d{size_orig}))."kB$size_str]\n";
+        "[".int(round_kb($d{size_orig}))."kB$size_str]$nostrip_str\n";
 }
 
 sub default_output_begin
@@ -124,12 +125,28 @@ sub build_obj
   my $take_orig = 1;
   if ($strip and not exists $opts->{nostrip})
     {
-      system("$prog_objcopy -S $d{path} $modname.obj 2> /dev/null");
-      $take_orig = $?;
-      if ($take_orig == 0)
+      open(my $fd, '<:raw', "$d{path}") || die("Could not open '$d{path}': $!");
+
+      my $buf;
+      my $r = sysread($fd, $buf, 0x3c);
+      die "Unable to read $d{path}: $!" if !defined $r;
+      close($fd);
+
+      if ($r == 0x3c && substr($buf, 0x38, 4) eq "\x41\x52\x4d\x64")
         {
-          $d{size_stripped} = -s "$modname.obj";
-          undef $d{size_stripped} if $d{size_orig} == $d{size_stripped};
+          # Linux AARCH64 kernel image. 'objcopy -S' would remove the AArch64
+          # header. The resulting PE image format isn't supported by Uvmm.
+          $d{nostrip} = 1;
+        }
+      else
+        {
+          system("$prog_objcopy -S $d{path} $modname.obj 2> /dev/null");
+          $take_orig = $?;
+          if ($take_orig == 0)
+            {
+              $d{size_stripped} = -s "$modname.obj";
+              undef $d{size_stripped} if $d{size_orig} == $d{size_stripped};
+            }
         }
     }
 
