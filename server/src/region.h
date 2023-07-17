@@ -28,6 +28,9 @@ public:
 
     Arch_acpi = 3,
     Arch_nvs = 4,
+
+    /** Regions that are reserved early and discarded before any elf loading */
+    Boot_temporary = 5,
   };
 
   /** Basic noop constructor, to be able to have array without ini code */

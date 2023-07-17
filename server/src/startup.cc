@@ -831,7 +831,8 @@ l4_exec_add_region(Elf_handle *handle,
                        info.type, info.type == Region::Root ? rights : 0);
 
   for (Region *r = regions.begin(); r != regions.end(); ++r)
-    if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg)
+    if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg
+        && !(r->type() == Region::Boot && r->sub_type() == Region::Boot_temporary))
       {
         printf("  New region for list %s:\t", n.name());
         n.vprint();

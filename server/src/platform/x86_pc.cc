@@ -207,29 +207,29 @@ public:
 
     regions->add(Region::n((unsigned long)mbi,
                            (unsigned long)mbi + sizeof(*mbi),
-                           ".mbi", Region::Boot));
+                           ".mbi", Region::Boot, Region::Boot_temporary));
 
     if (mbi->flags & L4UTIL_MB_CMDLINE)
       regions->add(Region::n((unsigned long)mbi->cmdline,
                              (unsigned long)mbi->cmdline
                              + strlen((char const *)(l4_addr_t)mbi->cmdline) + 1,
-                             ".mbi", Region::Boot));
+                             ".mbi", Region::Boot, Region::Boot_temporary));
 
     l4util_mb_mod_t *mb_mod = (l4util_mb_mod_t*)(unsigned long)mbi->mods_addr;
     regions->add(Region::n((unsigned long)mb_mod,
                            (unsigned long)&mb_mod[mbi->mods_count],
-                           ".mbi", Region::Boot));
+                           ".mbi", Region::Boot, Region::Boot_temporary));
 
     if (mbi->flags & L4UTIL_MB_VIDEO_INFO)
       {
         if (mbi->vbe_mode_info)
           regions->add(Region::start_size(mbi->vbe_mode_info,
                                           sizeof(l4util_mb_vbe_mode_t),
-                                          ".mbi", Region::Boot));
+                                          ".mbi", Region::Boot, Region::Boot_temporary));
         if (mbi->vbe_ctrl_info)
           regions->add(Region::start_size(mbi->vbe_ctrl_info,
                                           sizeof(l4util_mb_vbe_ctrl_t),
-                                          ".mbi", Region::Boot));
+                                          ".mbi", Region::Boot, Region::Boot_temporary));
       }
 
 
@@ -237,7 +237,7 @@ public:
       regions->add(Region::n(mb_mod[i].cmdline,
                              (unsigned long)mb_mod[i].cmdline
                              + strlen((char const *)(l4_addr_t)mb_mod[i].cmdline) + 1,
-                             ".mbi", Region::Boot));
+                             ".mbi", Region::Boot, Region::Boot_temporary));
 
     for (unsigned i = 0; i < mbi->mods_count; ++i)
       {
