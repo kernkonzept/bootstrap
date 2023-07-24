@@ -611,6 +611,39 @@ struct Pci_com_drv_oxsemi : Pci_com_drv
   }
 };
 
+struct Pci_com_drv_exar : Pci_com_drv
+{
+  bool setup(Pci_iterator const &dev, Serial_board *board) const override
+  {
+    read_bars(dev, board);
+    board->flags = 0;
+    board->num_ports = 0;
+
+    switch (dev.device())
+      {
+      case 0x0352:
+        board->num_ports = 2;
+        board->base_baud = 7812500;
+        board->port_offset = 0x400;
+        board->base_bar = 0;
+        board->base_offset = 0;
+        board->reg_shift = 0;
+        break;
+      default:
+        break;
+      }
+
+    if (!board->num_ports)
+      return false;
+
+    printf("\n  found Exar PCI controller.\n");
+    dev.enable_mmio();
+
+    // No further setup required: By default, the device is in 16550 mode.
+    return true;
+  }
+};
+
 struct Pci_com_moschip : public Pci_com_drv
 {
   bool setup(Pci_iterator const &dev, Serial_board *board) const override
@@ -675,6 +708,7 @@ struct Pci_com_wch_chip : public Pci_com_drv
 static Pci_com_drv_fallback _fallback_pci_com;
 static Pci_com_drv_default _default_pci_com;
 static Pci_com_drv_oxsemi _oxsemi_pci_com;
+static Pci_com_drv_exar _exar_pci_com;
 static Pci_com_moschip _moschip;
 static Pci_com_agestar _agestar;
 static Pci_com_wch_chip _wch_chip;
@@ -699,6 +733,7 @@ Pci_com_dev _devs[] = {
   { PCI_DEVICE_ID(0x1c00, 0x3253), &_wch_chip }, // dual port card
   { PCI_DEVICE_ID(0x8086, 0x8c3d), &_default_pci_com },
   { PCI_DEVICE_ID(0x8086, 0x9d3d), &_default_pci_com },
+  { PCI_DEVICE_ID(0x13a8, 0x0352), &_exar_pci_com },
   { PCI_ANY_DEVICE, &_fallback_pci_com },
 };
 
