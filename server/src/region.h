@@ -12,6 +12,7 @@
 #define REGION_H
 
 #include <l4/sys/compiler.h>
+#include <l4/sys/kip>
 #include <l4/sys/l4int.h>
 
 #include "types.h"
@@ -24,10 +25,10 @@ public:
 
   enum Subtype_info
   {
-    Info_acpi_rsdp = 0,
+    Info_acpi_rsdp = L4::Kip::Mem_desc::Info_acpi_rsdp,
 
-    Arch_acpi = 3,
-    Arch_nvs = 4,
+    Arch_acpi = L4::Kip::Mem_desc::Arch_acpi_tables,
+    Arch_nvs = L4::Kip::Mem_desc::Arch_acpi_nvs,
 
     /** Regions that are reserved early and discarded before any elf loading */
     Boot_temporary = 5,

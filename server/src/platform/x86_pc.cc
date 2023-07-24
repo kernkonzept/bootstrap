@@ -15,6 +15,7 @@
  * Please see the COPYING-GPL-2 file for details.
  */
 
+#include <l4/sys/kip>
 #include <l4/util/mb_info.h>
 #include "support.h"
 #include "platform.h"
@@ -110,15 +111,19 @@ struct Platform_x86_1 : Platform_x86
 
             switch (mmap->type)
               {
-              case 1:
+              case MB_ART_MEMORY:
                 ram->add(Region::n(start, end, ".ram", Region::Ram));
                 break;
-              case 2:
-              case 3:
-              case 4:
+              case MB_ART_RESERVED:
+              case MB_ART_ACPI:
+              case MB_ART_NVS:
+                static_assert(MB_ART_ACPI == Region::Arch_acpi,
+                              "Multiboot ACPI tables memory type matches");
+                static_assert(MB_ART_NVS == Region::Arch_nvs,
+                              "Multiboot ACPI NVS memory type matches");
                 regions->add(Region::n(start, end, ".BIOS", Region::Arch, mmap->type));
                 break;
-              case 5:
+              case MB_ART_UNUSABLE:
                 regions->add(Region::n(start, end, ".BIOS", Region::No_mem));
                 break;
               case 20:
