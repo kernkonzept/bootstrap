@@ -15,18 +15,16 @@
 
 #include <l4/drivers/uart_16550.h>
 #include "support.h"
-#include "platform.h"
+#include "platform-mips.h"
 #include "macros.h"
 #include "startup.h"
 #include "mips-defs.h"
 
 namespace {
 
-class Platform_mips_sead3 : public Platform_single_region_ram<Platform_base>
+class Platform_mips_sead3 : public Platform_single_region_ram<Platform_mips>
 {
 public:
-  bool probe() override { return true; }
-
   void init() override
   {
     switch (PLATFORM_UART_NR)
@@ -61,12 +59,6 @@ public:
                          | L4_kernel_options::F_uart_baud
                          | L4_kernel_options::F_uart_irq;
   }
-
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
-  { return bootstrap_addr - Mips::KSEG0; }
-
-  l4_addr_t to_virt(l4_uint64_t phys_addr) override
-  { return phys_addr + Mips::KSEG0; }
 
   void reboot() override
   {

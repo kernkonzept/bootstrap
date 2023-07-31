@@ -17,12 +17,12 @@
 #include "panic.h"
 #include "startup.h"
 #include "mips-defs.h"
-#include "platform.h"
+#include "platform-mips.h"
 
 namespace {
 
 class Platform_mips_malta :
-  public Platform_base,
+  public Platform_mips,
   public Boot_modules_image_mode
 {
 private:
@@ -82,12 +82,6 @@ public:
                          | L4_kernel_options::F_uart_baud
                          | L4_kernel_options::F_uart_irq;
   }
-
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
-  { return bootstrap_addr - Mips::KSEG0; }
-
-  l4_addr_t to_virt(l4_uint64_t phys_addr) override
-  { return phys_addr + Mips::KSEG0; }
 
   void reboot() override
   {

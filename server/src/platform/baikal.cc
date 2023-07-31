@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 #include <l4/drivers/uart_16550.h>
-#include "platform.h"
+#include "platform-mips.h"
 #include "support.h"
 #include "macros.h"
 #include "panic.h"
@@ -20,12 +20,10 @@
 
 namespace {
 class Platform_mips_baikal_t :
-  public Platform_base,
+  public Platform_mips,
   public Boot_modules_image_mode
 {
 public:
-  bool probe() override { return true; }
-
   void init() override
   {
     kuart.base_baud = 781250;
@@ -58,12 +56,6 @@ public:
                          | L4_kernel_options::F_uart_baud
                          | L4_kernel_options::F_uart_irq;
   }
-
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
-  { return bootstrap_addr - Mips::KSEG0; }
-
-  l4_addr_t to_virt(l4_uint64_t phys_addr) override
-  { return phys_addr + Mips::KSEG0; }
 
   void reboot() override
   {

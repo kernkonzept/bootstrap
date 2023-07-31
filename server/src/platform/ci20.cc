@@ -9,21 +9,16 @@
 #include <l4/drivers/uart_16550.h>
 #include <l4/sys/compiler.h>
 #include "support.h"
-#include "platform.h"
+#include "platform-mips.h"
 #include "macros.h"
 #include "startup.h"
 #include "mips-defs.h"
 
 namespace {
 
-class Platform_mips_ci20 : public Platform_single_region_ram<Platform_base>
+class Platform_mips_ci20 : public Platform_single_region_ram<Platform_mips>
 {
 public:
- bool probe() override
-  {
-    return true;
-  }
-
   void init() override
   {
     kuart.base_baud    = 3000000;
@@ -75,12 +70,6 @@ public:
     // Note, the first 256MB are mirrored at 0x20000000
     mem_manager->ram->add(Region(0x30000000, 0x5fffffff, ".ram", Region::Ram));
   }
-
-  l4_uint64_t to_phys(l4_addr_t bootstrap_addr) override
-  { return bootstrap_addr - Mips::KSEG0; }
-
-  l4_addr_t to_virt(l4_uint64_t phys_addr) override
-  { return phys_addr + Mips::KSEG0; }
 
   void reboot() override
   {
