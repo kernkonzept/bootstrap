@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2015, 2020-2021, 2023-2024 Kernkonzept GmbH.
+ * Author(s): Adam Lackorzynski <adam@l4re.org
+ *            Marcus Haehnel <marcus.haehnel@kernkonzept.com>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 #pragma once
 
 #define BOOTSTRAP_MOD_INFO_MAGIC_HDR "<< L4Re-bootstrap-modinfo-hdr >>"
@@ -27,38 +35,38 @@ enum Mod_header_flags
 {
 };
 
-/// Info for each module
-class Mod_info
+class Mod_base
 {
-  char _magic[32];
-  unsigned long long _flags;
+protected:
+  template<typename T>
+  T* rel2abs(unsigned long long v) const
+  { return reinterpret_cast<T*>(reinterpret_cast<l4_addr_t>(this) + v); }
 
-  unsigned long long _start;
-  unsigned _size;
-  unsigned _size_uncompressed;
-  unsigned long long _name;
-  unsigned long long _cmdline;
-  unsigned long long _md5sum_compr;
-  unsigned long long _md5sum_uncompr;
-  unsigned long long _attrs; // always relative to this structure
-
-  inline char const *
-  abs(unsigned long long v) const
-  {
-    return reinterpret_cast<char const *>(reinterpret_cast<unsigned long>(this)
-                                          + v);
-  }
-
-  inline unsigned long long rel(char const *v)
+  template<typename T>
+  unsigned long long abs2rel(T *v)
   {
     return reinterpret_cast<unsigned long long>(v)
             - reinterpret_cast<unsigned long long>(this);
   }
+};
 
+/// Info for each module
+class Mod_info : private Mod_base
+{
+  struct { // avoid clang warnings about unused fields
+    char _magic[32];
+    unsigned long long _flags;
+
+    unsigned long long _start;
+    unsigned _size;
+    unsigned _size_uncompressed;
+    unsigned long long _name;
+    unsigned long long _cmdline;
+    unsigned long long _md5sum_compr;
+    unsigned long long _md5sum_uncompr;
+    unsigned long long _attrs; // always relative to this structure
+  };
 public:
-  inline unsigned long long flags() const
-  { return _flags; }
-
   inline unsigned size() const
   { return _size; }
 
@@ -67,24 +75,29 @@ public:
 
   inline unsigned size_uncompressed() const
   { return _size_uncompressed; }
+  enum { Num_base_modules = 3 };
 
-  inline char const *cmdline() const
-  { return abs(_cmdline); }
+  char const* name()           const { return rel2abs<char>(_name);           }
+  char const* cmdline()        const { return rel2abs<char>(_cmdline);        }
+  char const* start()          const { return rel2abs<char>(_start);          }
+  char const* md5sum_compr()   const { return rel2abs<char>(_md5sum_compr);   }
+  char const* md5sum_uncompr() const { return rel2abs<char>(_md5sum_uncompr); }
 
-  inline char const *name() const
-  { return abs(_name); }
+  void start(unsigned long long start)
+  { _start = start; }
 
-  inline char const *start() const
-  { return abs(_start); }
+  void start(char const *addr)
+  { _start = abs2rel(addr); }
 
-  inline void start(char const *addr)
-  { _start = rel(addr); }
+  Mod_info_flags flags() const
+  { return Mod_info_flags(_flags); }
 
-  inline char const *md5sum_compr() const
-  { return abs(_md5sum_compr); }
+  bool is_base_module() const
+  {
+    unsigned v = _flags & Mod_info_flag_mod_mask;
+    return v > 0 && v <= Num_base_modules;
+  }
 
-  inline char const *md5sum_uncompr() const
-  { return abs(_md5sum_uncompr); }
 
   inline bool compressed() const
   { return _size != _size_uncompressed; }
@@ -111,26 +124,23 @@ public:
   Mod_info *operator[](unsigned i) { return _mods + i; }
 };
 
-class Mod_header
+class Mod_header : private Mod_base
 {
-  char _magic[32];
-  unsigned _num_mods;
-  unsigned _flags;
-  unsigned long long _mbi_cmdline;
-  unsigned long long _mods;
-
-  template<typename T>
-  T *hdr_offset_cast(unsigned long long offset)
-  { return reinterpret_cast<T*>(reinterpret_cast<char *>(this) + offset); }
+  struct { // avoid clang warnings about unused private fields
+    char _magic[32];
+    unsigned _num_mods;
+    unsigned _flags;
+    unsigned long long _mbi_cmdline;
+    unsigned long long _mods;
+  };
 
 public:
   inline unsigned num_mods() const
   { return _num_mods; }
 
   inline Mod_info_list mods()
-  { return Mod_info_list(hdr_offset_cast<Mod_info>(_mods), _num_mods); }
+  { return Mod_info_list(rel2abs<Mod_info>(_mods), _num_mods); }
 
-  inline char const *
-  mbi_cmdline()
-  { return hdr_offset_cast<char>(_mbi_cmdline); }
+  inline char const *mbi_cmdline() const
+  { return rel2abs<char>(_mbi_cmdline); }
 } __attribute__((packed)) __attribute__((aligned(8)));

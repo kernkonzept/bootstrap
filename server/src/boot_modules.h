@@ -64,8 +64,6 @@ struct Internal_module_list
 class Boot_modules
 {
 public:
-  enum { Num_base_modules = 3 };
-
   /// Main information for each module.
   struct Module
   {
@@ -89,11 +87,6 @@ public:
   Region mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                     Region::Type type = Region::Boot);
   void merge_mod_regions();
-  static bool is_base_module(const Mod_info *mod)
-  {
-    unsigned v = mod->flags() & Mod_info_flag_mod_mask;
-    return v > 0 && v <= Num_base_modules;
-  };
 
 protected:
   void _move_module(unsigned index, void *dest, void const *src,
@@ -120,4 +113,3 @@ private:
   void decompress_mods(unsigned mod_count,
                        l4_addr_t total_size, l4_addr_t mod_addr);
 };
-
