@@ -4,6 +4,7 @@
  * Author(s): Georg Kotheimer <georg.kotheimer@kernkonzept.com>
  */
 
+#include <l4/bid_config.h>
 #include <sys/asm.h>
 
 .section ".text.init", "ax"
@@ -31,6 +32,18 @@ _start:
   bnez t1, _wait_for_bootstrap
 
   la sp, crt0_stack_high
+
+#ifdef CONFIG_BID_PIE
+  /* Calculate load address... subtract link address from real one */
+  adrp    x0, :got:_start
+  ldr     x0, [x0, #:got_lo12:_start]
+  adr     x1, _start
+  sub     x0, x1, x0
+
+  /* Do relocations */
+  bl reloc_static_pie
+#endif
+
   tail __main
 
 _wait_for_bootstrap:

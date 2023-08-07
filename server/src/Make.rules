@@ -47,6 +47,7 @@ BOOTSTRAP_LD_dep    := $(SRC_DIR)/ldscript.inc
 # Use PIE infrastructure where possible
 CAN_PIE_arm     := y
 CAN_PIE_arm64   := y
+CAN_PIE_riscv   := y
 BID_CAN_PIE      = $(CAN_PIE_$(ARCH))
 
 ifneq ($(BOOTSTRAP_CHECK_MD5),)

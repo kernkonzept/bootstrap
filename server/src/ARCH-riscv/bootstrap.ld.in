@@ -87,6 +87,13 @@ SECTIONS
   _bss_end = .;
   __global_pointer$ = MIN(__SDATA_BEGIN__ + 0x800,
                           MAX(__DATA_BEGIN__ + 0x800, _bss_end - 0x800));
+
+  /* Must be before _end so that they are retained even if modules are moved
+   * around. In contrast, the .rel.dyn section is not needed after the
+   * relocations have been processed. */
+  .dynamic : { *(.dynamic) }
+  .got     : { *(.got.plt) *(.got) }
+
   _end = . ;
   PROVIDE (end = .);
 
@@ -96,7 +103,20 @@ SECTIONS
   .hash    : { *(.hash)    }
   .dynsym  : { *(.dynsym)  }
   .dynstr  : { *(.dynstr)  }
-  .rel.dyn : { *(.rel.dyn) }
+
+  .rela.dyn :
+    {
+      *(.rela.init)
+      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)
+      *(.rela.fini)
+      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)
+      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)
+      *(.rela.ctors)
+      *(.rela.dtors)
+      *(.rela.got)
+      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)
+    }
+  .rela.plt : { *(.rela.plt) }
 
   /* Needs to be last so that l4image does not mess up PHDR offsets other
    * sections. */
