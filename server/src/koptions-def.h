@@ -37,7 +37,7 @@ namespace L4_kernel_options
   enum
   {
     Magic = 0x4C344B43,
-    Version_current = 2,
+    Version_current = 3,
   };
 
   enum Uart_type
@@ -54,6 +54,8 @@ namespace L4_kernel_options
 
   struct Uart
   {
+    l4_uint8_t   variant;      ///< Platform-specific UART variant
+    l4_uint8_t   _unused[7];
     l4_uint32_t  base_baud;    ///< Base baud rate of the UART (if applicable)
     l4_uint32_t  baud;         ///< Baud rate (this is the baud rate to use)
     l4_uint16_t  irqno;        ///< (Receive) IRQ
