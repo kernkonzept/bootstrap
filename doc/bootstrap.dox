@@ -52,10 +52,10 @@
  *       Use legacy port `<number>`, e.g. use `-comport=1` for the port
  *       commonly known as _COM1_, or
  *
- *     - `pci:<card>:<dev>`
+ *     - `pci:<card>:<port>`
  *
- *       Use serial port number `<dev>` at PCI card number `<card>`, e.g.
- *       use `-comport=pci:0:0` for the first port on the first PCI card.
+ *       Use serial port number `<port>` at PCI card number `<card>`, e.g.
+ *       use `-comport=pci:0:1` for the second port on the first PCI card.
  *
  *     - `pci:probe`
  *
