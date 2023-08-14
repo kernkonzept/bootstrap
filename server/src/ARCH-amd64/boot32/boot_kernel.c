@@ -77,8 +77,8 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   if (!mem_upper)
     mem_upper = 1024 * (1024 + mbi->mem_upper);
 
-  printf("Highest physical memory address found: 0x%llx (%lluMiB)\n",
-         mem_upper, mem_upper >> 20);
+  printf("Highest physical memory address found: 0x%llx (%llu MiB)\n",
+         mem_upper - 1, mem_upper >> 20);
   // our memory available for our initial identity mapped page table is
   // enough to cover 4GB of physical memory that must contain anything that
   // is required to boot, i.e. bootstrap, all modules, any required devices
@@ -108,11 +108,14 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   if (mem_upper > Max_initial_mem)
     mem_upper = Max_initial_mem;
 
+  mem_upper = round_superpage(mem_upper);
+
   boot32_info.rsdp_start = rsdp_start;
   boot32_info.rsdp_end = rsdp_end;
+  boot32_info.mem_end = mem_upper - 1;
 
   // now do base_paging_init(): sets up paging with one-to-one mapping
-  base_paging_init(round_superpage(mem_upper));
+  base_paging_init(mem_upper);
 
   printf("Loading 64bit part...\n");
   // switch from 32 Bit compatibility mode to 64 Bit mode

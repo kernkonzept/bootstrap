@@ -67,6 +67,37 @@ Memory *mem_manager = &_mem_manager;
 L4_kernel_options::Uart kuart;
 unsigned int kuart_flags;
 
+/**
+ * Calculate the maximum memory limit in MB.
+ *
+ * The limit is the highest physical address where conventional RAM is allowed.
+ * The memory is limited to 3 GB IA32 and unlimited on other systems.
+ */
+static constexpr
+unsigned long long
+get_memory_max_address()
+{
+#ifndef __LP64__
+  /* Limit memory, we cannot really handle more right now. In fact, the
+   * problem is roottask. It maps as many superpages/pages as it gets.
+   * After that, the remaining pages are mapped using l4sigma0_map_anypage()
+   * with a receive window of L4_WHOLE_ADDRESS_SPACE. In response Sigma0
+   * could deliver pages beyond the 3GB user space limit. */
+  return 3024ULL << 20;
+#endif
+
+  return ~0ULL;
+}
+
+/**
+ * Maximum virtual address accessible by bootstrap.
+ *
+ * \note The default sensible value mimics the behavior without this upper
+ *       bound. If some platform-specific or architecture-specific code
+ *       requires a stricter limit, it has to override the default value.
+ */
+l4_uint64_t mem_end = get_memory_max_address();
+
 /*
  * IMAGE_MODE means that all boot modules are linked together to one
  * big binary.
@@ -255,29 +286,6 @@ check_arg(char const *cmdline, const char *arg)
   return NULL;
 }
 
-
-/**
- * Calculate the maximum memory limit in MB.
- *
- * The limit is the highest physical address where conventional RAM is allowed.
- * The memory is limited to 3 GB IA32 and unlimited on other systems.
- */
-static
-unsigned long long
-get_memory_max_address()
-{
-#ifndef __LP64__
-  /* Limit memory, we cannot really handle more right now. In fact, the
-   * problem is roottask. It maps as many superpages/pages as it gets.
-   * After that, the remaining pages are mapped using l4sigma0_map_anypage()
-   * with a receive window of L4_WHOLE_ADDRESS_SPACE. In response Sigma0
-   * could deliver pages beyond the 3GB user space limit. */
-  return 3024ULL << 20;
-#endif
-
-  return ~0ULL;
-}
-
 /*
  * If available the '-maxmem=xx' command line option is used.
  */
@@ -376,47 +384,85 @@ setup_memory_map(char const *cmdline)
   dump_ram_map(true);
 }
 
-static void do_the_memset(unsigned long s, unsigned val, unsigned long len)
+/**
+ * Fill memory range with a value (with a printout).
+ *
+ * \param begin  The starting virtual address of the range to fill.
+ * \param end    The ending virtual address of the range to fill (inclusive,
+ *               i.e. the virtual address of the last byte that will be
+ *               actually filled).
+ * \param val    The value to fill the memory range with.
+ */
+static void verbose_memset(unsigned long begin, unsigned long end,
+                           l4_uint8_t val)
 {
-  printf("Presetting memory %16lx - %16lx to '0x%x'\n",
-         s, s + len - 1, val & 0xff);
-  memset((void *)s, val, len);
+  assert(begin <= end);
+
+  printf("Presetting memory %16lx - %16lx to '0x%x'\n", begin, end, val);
+  memset((void *)begin, val, end - begin + 1);
 }
 
-static void fill_mem(unsigned fill_value)
+/**
+ * Fill physical memory with a value.
+ *
+ * Every physical memory range (except those addresses that are occupied by
+ * allocated regions and that are beyond \ref mem_end) is filled by the given
+ * value.
+ *
+ * \param fill_value  The value to fill the memory ranges with.
+ */
+static void fill_mem(l4_uint8_t fill_value)
 {
-  for (Region const *r = ram.begin(); r != ram.end(); ++r)
+  for (Region const &ram_region : ram)
     {
-      unsigned long long b = r->begin();
-      // The regions list must be sorted!
-      for (Region const *reg = regions.begin(); reg != regions.end(); ++reg)
+      // <ram_region_begin, ram_region_end> is the working range.
+      unsigned long long ram_region_begin = ram_region.begin();
+      unsigned long long ram_region_end = ram_region.end();
+
+      assert(ram_region_begin <= ram_region_end);
+
+      // The working range is completely outside of accessible memory.
+      if (ram_region_begin > mem_end)
+        continue;
+
+      // The tail of the working range is outside of accessible memory.
+      if (ram_region_end > mem_end)
+        ram_region_end = mem_end;
+
+      // Avoid allocated memory regions during the filling of the working
+      // range. The algorithm assumes that the regions list is sorted.
+      for (Region const &region : regions)
         {
-          // completely before ram?
-          if (reg->end() < r->begin())
+          assert(region.begin() <= region.end());
+
+          // The region lies completely in front of the working range.
+          if (region.end() < ram_region_begin)
             continue;
-          // completely after ram?
-          if (reg->begin() > r->end())
+
+          // The region lies completely behind the working range. We skip all
+          // further regions due to the regions list being sorted.
+          if (region.begin() > ram_region_end)
             break;
 
-          if (reg->begin() <= r->begin())
-            b = reg->end() + 1;
-          else if (b > reg->begin()) // some overlapping
-            {
-              if (reg->end() + 1 > b)
-                b = reg->end() + 1;
-            }
-          else
-            {
-              do_the_memset(b, fill_value, reg->begin() - 1 - b + 1);
-              b = reg->end() + 1;
-            }
+          // At this point, we know that there is and overlap between the
+          // region and the working range.
+
+          // There is a leading non-overlapping space before the region within
+          // the working range. Fill the leading space.
+          if (region.begin() > ram_region_begin)
+            verbose_memset(ram_region_begin, region.begin() - 1, fill_value);
+
+          // The further space that we examine starts after the region.
+          ram_region_begin = region.end() + 1;
         }
 
-      if (b < r->end())
-        do_the_memset(b, fill_value, r->end() - b + 1);
+      // Fill the tailing non-overlapping space after the last region. We need
+      // to guard against the last overlapping region going beyond the working
+      // range.
+      if (ram_region_begin <= ram_region_end)
+        verbose_memset(ram_region_begin, ram_region_end, fill_value);
     }
 }
-
 
 /**
  * Add the bootstrap binary itself to the allocated memory regions.
@@ -686,7 +732,7 @@ startup(char const *cmdline)
 
   _mod_addr = l4_round_page(_mod_addr);
 
-  unsigned presetmem_value = 0;
+  l4_uint8_t presetmem_value = 0;
   bool presetmem = false;
 
   if (char const *s = check_arg(cmdline, "-presetmem="))

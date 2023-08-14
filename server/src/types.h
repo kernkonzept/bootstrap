@@ -26,6 +26,7 @@ struct boot32_info_t
   l4_uint32_t rsdp_end;
   l4_uint32_t ptab64_addr;
   l4_uint32_t ptab64_size;
+  l4_uint64_t mem_end;
 };
 
 #endif /* ! __TYPES_H__ */

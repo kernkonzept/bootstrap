@@ -25,6 +25,8 @@ typedef struct
   unsigned long mbi_low, mbi_high;
 } boot_info_t;
 
+extern l4_uint64_t mem_end;
+
 //const char * get_cmdline(l4util_mb_info_t *mbi);
 
 #ifdef __cplusplus

@@ -67,6 +67,7 @@ struct Platform_x86_1 : Platform_x86
 #ifdef ARCH_amd64
     rsdp_start = boot32_info->rsdp_start;
     rsdp_end = boot32_info->rsdp_end;
+    mem_end = boot32_info->mem_end;
 #endif
 
    // if we were passed the RSDP structure, save it aside
