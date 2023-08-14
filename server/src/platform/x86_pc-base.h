@@ -555,7 +555,7 @@ struct Pci_com_drv_default : Pci_com_drv
     board->base_bar = first_port;
     board->num_ports = board->bars[first_port].len / board->port_offset;
     board->flags = 0;
-    printf("   detected serial IO card: bar=%d ports=%d\n",
+    printf("\n   detected serial IO card: bar=%d ports=%d\n",
            first_port, board->num_ports);
     dev.enable_io();
     return true;
@@ -605,7 +605,7 @@ struct Pci_com_drv_oxsemi : Pci_com_drv
     if (!board->num_ports)
       return false;
 
-    printf("  found oxsemi PCI controller.\n");
+    printf("\n  found oxsemi PCI controller.\n");
     dev.enable_mmio();
     return true;
   }
@@ -628,7 +628,7 @@ struct Pci_com_moschip : public Pci_com_drv
     board->base_bar = first_port;
     board->num_ports = board->bars[first_port].len / board->port_offset;
     board->flags = 0;
-    printf("   detected serial IO card: bar=%d ports=%d\n",
+    printf("\n   detected serial IO card: bar=%d ports=%d\n",
            first_port, board->num_ports);
     dev.enable_io();
     return true;
@@ -646,7 +646,7 @@ struct Pci_com_agestar : public Pci_com_drv
     board->base_bar = board->first_io_bar();;
     board->num_ports = 2;
     board->flags = 0;
-    printf("   detected serial IO card: bar=%d ports=%d\n",
+    printf("\n   detected serial IO card: bar=%d ports=%d\n",
            board->base_bar, board->num_ports);
     dev.enable_io();
     return true;
@@ -665,7 +665,7 @@ struct Pci_com_wch_chip : public Pci_com_drv
     board->num_ports = 2;
     board->base_offset = 0xc0;
     board->flags = 0;
-    printf("   detected serial IO card: bar=%d ports=%d\n",
+    printf("\n   detected serial IO card: bar=%d ports=%d\n",
            board->base_bar, board->num_ports);
     dev.enable_io();
     return true;
@@ -712,15 +712,21 @@ _search_pci_serial_devs(Pci_iterator const &begin, Pci_iterator const &end,
   for (Pci_iterator i = begin; i != end; ++i)
     {
       if (print)
-        printf("%02x:%02x.%1x Class %02x.%02x Prog %02x: %04x:%04x\n",
-               i.bus, i.dev, i.func, i.classcode(), i.subclass(), i.prog(),
-               i.vendor(), i.device());
+        {
+          printf("\r%02x:%02x.%1x Class %02x.%02x Prog %02x: %04x:%04x",
+                 i.bus, i.dev, i.func, i.classcode(), i.subclass(), i.prog(),
+                 i.vendor(), i.device());
+          fflush(stdout);
+        }
 
-      for (unsigned devs = 0; devs < Num_known_devs; ++devs)
-        if (   (i.vendor_device() & _devs[devs].mask) == _devs[devs].vendor_device
-            && _devs[devs].driver->setup(i, board))
+      for (unsigned d = 0; d < Num_known_devs; ++d)
+        if ((i.vendor_device() & _devs[d].mask) == _devs[d].vendor_device
+            && _devs[d].driver->setup(i, board))
           return i;
     }
+
+  if (print)
+    putchar('\r');
 
   return end;
 }
@@ -739,13 +745,14 @@ search_pci_serial_devs(int card_idx, Serial_board *board)
   return 0;
 }
 
-static void
+[[noreturn]] static void
 scan_pci_uarts(Dual_uart *du, unsigned long baudrate)
 {
   Serial_board board;
   Pci_iterator end = Pci_iterator::end();
   // classes should be 7:0
   Pci_iterator i;
+  printf("Scanning for PCI UARTS...\n");
   for (int card = 0; i != end; ++i, ++card)
     {
       i = _search_pci_serial_devs(i, end, &board, true);
@@ -755,17 +762,20 @@ scan_pci_uarts(Dual_uart *du, unsigned long baudrate)
 
       for (unsigned p = 0; p < board.num_ports; ++p)
         {
-          printf("probed PCI UART %02x:%02x.%1x\n",
-                 i.bus, i.dev, i.func);
+          // Message goes to VGA only.
+          printf("  probed PCI UART %02x:%02x.%1x\n", i.bus, i.dev, i.func);
           Bs_uart u(&board, p, baudrate);
           du->set_uart2(&u);
-          printf("probed PCI UART %02x:%02x.%1x\n"
-                 "to use this port set: -comport=pci:%d:%d\n",
+          // Message goes to VGA and to the selected port of the probed UART.
+          printf("  probed PCI UART %02x:%02x.%1x\n"
+                 "  to use this port set: -comport=pci:%d:%d\n",
                  i.bus, i.dev, i.func, card, p);
           du->set_uart2(0);
         }
     }
-  printf("done scanning PCI uarts\n");
+  printf("Done scanning for PCI UARTs. Please reset or power-off.");
+  fflush(stdout);
+  l4_infinite_loop();
 }
 
 class Uart_vga : public L4::Uart
@@ -961,10 +971,7 @@ public:
           s += 4;
 
         if (pci && !strncmp(s, "probe", 5))
-          {
-            scan_pci_uarts(&du, 115200);
-            reboot();
-          }
+          scan_pci_uarts(&du, 115200); // does not return
 
         char *ep;
         comport = strtoul(s, &ep, 0);
