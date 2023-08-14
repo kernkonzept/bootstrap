@@ -6,6 +6,7 @@
  */
 
 #include <l4/drivers/uart_pl011.h>
+#include <l4/drivers/uart_16550.h>
 
 #include "acpi.h"
 #include "efi-support.h"
@@ -36,11 +37,13 @@ public:
     if (!spcr)
       panic("No SPCR found!");
 
-    if (spcr->type != Acpi::Spcr::Arm_pl011
+    if (   spcr->type != Acpi::Spcr::Arm_pl011
+        && spcr->type != Acpi::Spcr::Nsc16550
         && spcr->type != Acpi::Spcr::Arm_sbsa_32bit
         && spcr->type != Acpi::Spcr::Arm_sbsa)
       panic("EFI: unsupported uart type: %d", spcr->type);
 
+    kuart.variant = spcr->type;
     kuart.base_address = spcr->base.address;
     kuart.irqno = spcr->irq_gsiv;
     kuart.base_baud = 0;
@@ -73,9 +76,15 @@ public:
 
     // EFI console is gone. Use our own UART driver from now on...
     static L4::Io_register_block_mmio r(kuart.base_address);
-    static L4::Uart_pl011 _uart(kuart.base_baud);
-    _uart.startup(&r);
-    set_stdio_uart(&_uart);
+    static L4::Uart_16550 _uart_16550(kuart.base_baud);
+    static L4::Uart_pl011 _uart_pl011(kuart.base_baud);
+
+    L4::Uart *u = &_uart_pl011;
+    if (kuart.variant == Acpi::Spcr::Nsc16550)
+      u = &_uart_16550;
+
+    u->startup(&r);
+    set_stdio_uart(u);
   }
 
   void reboot() override
