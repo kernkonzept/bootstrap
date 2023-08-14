@@ -125,7 +125,7 @@ void kcmdline_parse(char const *cmdline,
       || strstr(cmdline, "-comspeed")
       || strstr(cmdline, "-comirq"))
     printf("WARNING: Command line options -comport, -comspeed and -comirq\n"
-           "         have been moved to bootstrap and are shared beetween\n"
+           "         have been moved to bootstrap and are shared between\n"
            "         Fiasco and bootstrap now. Please remove them from\n"
            "         your Fiasco command line, they do not have an effect\n"
            "         there.\n");
