@@ -14,6 +14,7 @@
 #include <l4/sys/compiler.h>
 #include <l4/sys/kip>
 #include <l4/sys/l4int.h>
+#include <assert.h>
 
 #include "types.h"
 
@@ -62,7 +63,9 @@ public:
   Region(unsigned long long begin, unsigned long long end,
          char const *name = 0, Type t = No_mem, short sub = 0)
   : _begin(begin), _end(end), _name(name), _t(t), _s(sub)
-  {}
+  {
+    assert(_begin <= _end);
+  }
 
   /**
    * Create a region ...
@@ -72,7 +75,9 @@ public:
    */
   Region(Region const &other, unsigned long long begin, unsigned long long end)
   : _begin(begin), _end(end), _name(other._name), _t(other._t), _s(other._s)
-  {}
+  {
+    assert(_begin <= _end);
+  }
 
   /**
    * Create a region from start and size.
@@ -85,7 +90,10 @@ public:
   static Region start_size(unsigned long long begin, unsigned long size,
                            char const *name = 0, Type t = No_mem,
                            short sub = 0)
-  { return Region(begin, begin + size - 1, name, t, sub); }
+  {
+    assert(size > 0);
+    return Region(begin, begin + size - 1, name, t, sub);
+  }
 
   /**
    * Create a region from start and size.
@@ -134,10 +142,21 @@ public:
   unsigned long long begin() const { return _begin; }
   /** Get the address of the last byte. */
   unsigned long long end() const { return _end; }
+
   /** Set the start address. */
-  void begin(unsigned long long b) { _begin = b; }
+  void begin(unsigned long long begin)
+  {
+    _begin = begin;
+    assert(_begin <= _end);
+  }
+
   /** Set the address of the last byte. */
-  void end(unsigned long long e) { _end = e; }
+  void end(unsigned long long end)
+  {
+    _end = end;
+    assert(_begin <= _end);
+  }
+
   /** Get the name of the region. */
   char const *name() const { return _name; }
   /** Get size of the region */

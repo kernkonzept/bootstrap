@@ -417,8 +417,6 @@ static void fill_mem(l4_uint8_t fill_value)
       unsigned long long ram_region_begin = ram_region.begin();
       unsigned long long ram_region_end = ram_region.end();
 
-      assert(ram_region_begin <= ram_region_end);
-
       // The working range is completely outside of accessible memory.
       if (ram_region_begin > mem_end)
         continue;
@@ -431,8 +429,6 @@ static void fill_mem(l4_uint8_t fill_value)
       // range. The algorithm assumes that the regions list is sorted.
       for (Region const &region : regions)
         {
-          assert(region.begin() <= region.end());
-
           // The region lies completely in front of the working range.
           if (region.end() < ram_region_begin)
             continue;
@@ -736,7 +732,7 @@ startup(char const *cmdline)
 
   if (char const *s = check_arg(cmdline, "-presetmem="))
     {
-      presetmem_value = strtoul(s + 11, NULL, 0);
+      presetmem_value = static_cast<l4_uint8_t>(strtoul(s + 11, NULL, 0));
       presetmem = true;
     }
 
