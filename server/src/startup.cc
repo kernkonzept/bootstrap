@@ -372,7 +372,7 @@ setup_memory_map(char const *cmdline)
           if (!parse_mem_layout(s, &sz, &offset))
             {
               parsed_mem_option = true;
-              ram.add(Region::n(offset, offset + sz, ".ram", Region::Ram));
+              ram.add(Region::start_size(offset, sz, ".ram", Region::Ram));
             }
         }
     }
@@ -475,9 +475,10 @@ init_regions()
 
   auto *p = Platform_base::platform;
 
-  regions.add(Region::n(p->to_phys((unsigned long)&_start),
-                        p->to_phys((unsigned long)&_end),
-                        ".bootstrap", Region::Boot));
+  unsigned long long pstart = p->to_phys((unsigned long)&_start);
+  unsigned long long pend   = p->to_phys((unsigned long)&_end);
+  regions.add(Region::start_size(pstart, pend - pstart, ".bootstrap",
+                                 Region::Boot));
 }
 
 /**
@@ -573,10 +574,10 @@ load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
     printf("  => can't load module (%s)\n", error_msg);
   else
     {
-      Region m = Region::n(mod.start, l4_round_page(mod.end));
+      Region m = Region::start_size(mod.start, l4_round_page(mod.end) - mod.start);
       if (!regions.sub(m))
         {
-          Region m = Region::n(mod.start, mod.end);
+          Region m = Region::start_size(mod.start, mod.end - mod.start);
           if (!regions.sub(m))
             {
               m.vprint();
@@ -883,7 +884,7 @@ l4_exec_read_exec(Elf_handle *handle,
   if (Verbose_load)
     printf("    [%p-%p]\n", (void *) mem_addr, (void *) (mem_addr + mem_size));
 
-  if (!ram.contains(Region::n(mem_addr, mem_addr + mem_size)))
+  if (!ram.contains(Region::start_size(mem_addr, mem_size)))
     {
       printf("To be loaded binary region is out of memory region.\n");
       printf(" Binary region: %lx - %lx\n", mem_addr, mem_addr + mem_size);
@@ -958,10 +959,9 @@ l4_exec_add_region(Elf_handle *handle,
 
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.
-  Region n = Region::n(mem_addr + info.offset,
-                       mem_addr + mem_size + info.offset,
-                       info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
-                       info.type, info.type == Region::Root ? rights : 0);
+  Region n = Region::start_size(mem_addr + info.offset, mem_size,
+                                info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
+                                info.type, info.type == Region::Root ? rights : 0);
 
   if (Region *r = find_region_overlap(n))
     {
@@ -1021,7 +1021,7 @@ l4_exec_gather_info(Elf_handle *handle,
   if (align > info->align)
     info->align = align;
 
-  auto r = Region::n(mem_addr, mem_addr + mem_size);
+  auto r = Region::start_size(mem_addr, mem_size);
   if (!ram.contains(r) || find_region_overlap(r))
     info->needs_relocation = true;
 

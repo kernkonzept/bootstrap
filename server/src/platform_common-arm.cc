@@ -18,8 +18,8 @@ void Platform_arm::setup_kernel_config_arm_common(l4_kernel_info_t *kip)
 
   // Ensure later stages do not overwrite the CPU boot-up code
   extern char cpu_bootup_code_start[], cpu_bootup_code_end[];
-  mem_manager->regions->add(Region::n(cpu_bootup_code_start,
-                                      cpu_bootup_code_end,
-                                      ".cpu_boot", Region::Root), true);
+  l4_size_t const size = cpu_bootup_code_end - cpu_bootup_code_start;
+  mem_manager->regions->add(Region::start_size(cpu_bootup_code_start, size,
+                                               ".cpu_boot", Region::Root), true);
 }
 

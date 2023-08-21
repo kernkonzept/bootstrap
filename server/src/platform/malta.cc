@@ -112,7 +112,7 @@ public:
     unsigned long b = ram > 256 ? 256 : ram;
     printf("  Memory 0: 00000000 - %08lx (%ldMB)\n",
            (b << 20) - 1, b);
-    mem_manager->ram->add(Region::start_size(0, b << 20, ".ram",
+    mem_manager->ram->add(Region::start_size(0ULL, b << 20, ".ram",
                                              Region::Ram));
 
     // post IO hole memory starts beyond 512MB

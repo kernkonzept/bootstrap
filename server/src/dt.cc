@@ -214,8 +214,7 @@ void Dt::setup_memory() const
 
   // Add device tree to memory map
   mem_manager->regions->add(
-    Region::n(_fdt, static_cast<l4_uint8_t const *>(_fdt) + fdt_totalsize(_fdt),
-              ".dtb", Region::Root));
+    Region::start_size(_fdt, fdt_totalsize(_fdt), ".dtb", Region::Root));
 }
 
 l4_uint64_t Dt::cpu_release_addr() const

@@ -122,8 +122,8 @@ Boot_modules::_move_module(unsigned i, void *dest,
 
   if (src == dest)
     {
-      mem_manager->regions->add(Region::n(dest, (char*)dest + size,
-                                          ::Mod_reg, Region::Root));
+      mem_manager->regions->add(Region::start_size(dest, size, ::Mod_reg,
+                                                   Region::Root));
       return;
     }
 
@@ -170,8 +170,8 @@ Boot_modules::_move_module(unsigned i, void *dest,
   memmove(vdest, vsrc, size);
   char *x = vdest + size;
   memset(x, 0, l4_round_page(x) - x);
-  mem_manager->regions->add(Region::n(dest, (char *)dest + size,
-                                      ::Mod_reg, Region::Root));
+  mem_manager->regions->add(Region::start_size(dest, size, ::Mod_reg,
+                                               Region::Root));
 }
 
 /// sorter data for up to 256 modules (stores module indexes)
@@ -539,7 +539,7 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
     panic("fatal: cannot decompress module: %s (no memory)\n",
           mod_name(mod));
 
-  if (!mem_manager->ram->contains(Region::n(dest, dest + dest_size)))
+  if (!mem_manager->ram->contains(Region::start_size(dest, dest_size)))
     panic("fatal: module %s does not fit into RAM", mod_name(mod));
 
   l4_addr_t image =
@@ -561,9 +561,9 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 void
 Boot_modules_image_mode::reserve()
 {
-  mem_manager->regions->add(Region((l4_addr_t)mod_header,
-                                   (l4_addr_t)mod_header + modinfo_payload_size() - 3,
-                                   ".modinfo", Region::Boot));
+  mem_manager->regions->add(Region::start_size(mod_header,
+                                               modinfo_payload_size() - 3,
+                                               ".modinfo", Region::Boot));
 
   for (Mod_info *m = module_infos; m != mod_end_iter(); ++m)
     {

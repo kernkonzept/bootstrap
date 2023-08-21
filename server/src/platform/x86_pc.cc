@@ -59,9 +59,9 @@ struct Platform_x86_1 : Platform_x86
 
 #ifdef ARCH_amd64
     // add the page-table on which we're running in 64bit mode
-    regions->add(Region::n(boot32_info->ptab64_addr,
-                           boot32_info->ptab64_addr + boot32_info->ptab64_size,
-                           ".bootstrap-ptab64", Region::Boot));
+    regions->add(Region::start_size(boot32_info->ptab64_addr,
+                                    boot32_info->ptab64_size,
+                                    ".bootstrap-ptab64", Region::Boot));
 #endif
 
 #ifdef ARCH_amd64
@@ -82,10 +82,10 @@ struct Platform_x86_1 : Platform_x86
    if (!(mbi->flags & L4UTIL_MB_MEM_MAP))
       {
         assert(mbi->flags & L4UTIL_MB_MEMORY);
-        ram->add(Region::n(0, mbi->mem_lower << 10, ".ram",
-                           Region::Ram));
-        ram->add(Region::n(0x100000, (mbi->mem_upper + 1024) << 10, ".ram",
-                           Region::Ram));
+        ram->add(Region::start_size(0ULL, mbi->mem_lower << 10, ".ram",
+                                    Region::Ram));
+        ram->add(Region::start_size(1ULL << 20, mbi->mem_upper << 10, ".ram",
+                                    Region::Ram));
 
         // Fix EBDA in conventional memory
         unsigned long p = *(l4_uint16_t const *)ebda_segment << 4;
@@ -97,7 +97,7 @@ struct Platform_x86_1 : Platform_x86
             if (r)
               {
                 if (e - 1 < r->end())
-                  ram->add(Region::n(e, r->end(), ".ram", Region::Ram), true);
+                  ram->add(Region(e, r->end(), ".ram", Region::Ram), true);
                 r->end(p);
               }
           }
@@ -107,13 +107,11 @@ struct Platform_x86_1 : Platform_x86
         l4util_mb_addr_range_t *mmap;
         l4util_mb_for_each_mmap_entry(mmap, mbi)
           {
-            unsigned long long start = (unsigned long long)mmap->addr;
-            unsigned long long end = (unsigned long long)mmap->addr + mmap->size;
-
             switch (mmap->type)
               {
               case MB_ART_MEMORY:
-                ram->add(Region::n(start, end, ".ram", Region::Ram));
+                ram->add(Region::start_size(mmap->addr, mmap->size, ".ram",
+                                            Region::Ram));
                 break;
               case MB_ART_RESERVED:
               case MB_ART_ACPI:
@@ -122,13 +120,16 @@ struct Platform_x86_1 : Platform_x86
                               "Multiboot ACPI tables memory type matches");
                 static_assert(MB_ART_NVS == Region::Arch_nvs,
                               "Multiboot ACPI NVS memory type matches");
-                regions->add(Region::n(start, end, ".BIOS", Region::Arch, mmap->type));
+                regions->add(Region::start_size(mmap->addr, mmap->size, ".BIOS",
+                                                Region::Arch, mmap->type));
                 break;
               case MB_ART_UNUSABLE:
-                regions->add(Region::n(start, end, ".BIOS", Region::No_mem));
+                regions->add(Region::start_size(mmap->addr, mmap->size, ".BIOS",
+                                                Region::No_mem));
                 break;
               case 20:
-                regions->add(Region::n(start, end, ".BIOS", Region::Arch, mmap->type));
+                regions->add(Region::start_size(mmap->addr, mmap->size, ".BIOS",
+                                                Region::Arch, mmap->type));
                 break;
               default:
                 break;
@@ -136,7 +137,7 @@ struct Platform_x86_1 : Platform_x86
           }
       }
 
-    regions->add(Region::n(0, 0x1000, ".BIOS", Region::Arch, 0));
+    regions->add(Region::start_size(0ULL, 0x1000, ".BIOS", Region::Arch, 0));
   }
 
   void late_setup(l4_kernel_info_t *) override
@@ -211,39 +212,39 @@ public:
   {
     Region_list *regions = mem_manager->regions;
 
-    regions->add(Region::n((unsigned long)mbi,
-                           (unsigned long)mbi + sizeof(*mbi),
-                           ".mbi", Region::Boot, Region::Boot_temporary));
+    regions->add(Region::start_size(mbi, sizeof(*mbi), ".mbi",
+                                    Region::Boot, Region::Boot_temporary));
 
     if (mbi->flags & L4UTIL_MB_CMDLINE)
-      regions->add(Region::n((unsigned long)mbi->cmdline,
-                             (unsigned long)mbi->cmdline
-                             + strlen((char const *)(l4_addr_t)mbi->cmdline) + 1,
-                             ".mbi", Region::Boot, Region::Boot_temporary));
+      regions->add(Region::start_size(mbi->cmdline,
+                                      strlen((char const *)
+                                             (l4_addr_t)mbi->cmdline) + 1, ".mbi",
+                                      Region::Boot, Region::Boot_temporary));
 
     l4util_mb_mod_t *mb_mod = (l4util_mb_mod_t*)(unsigned long)mbi->mods_addr;
-    regions->add(Region::n((unsigned long)mb_mod,
-                           (unsigned long)&mb_mod[mbi->mods_count],
-                           ".mbi", Region::Boot, Region::Boot_temporary));
+    l4_size_t const size = (unsigned long)&mb_mod[mbi->mods_count]
+                           - (unsigned long)mb_mod;
+    regions->add(Region::start_size(mb_mod, size, ".mbi", Region::Boot,
+                                    Region::Boot_temporary));
 
     if (mbi->flags & L4UTIL_MB_VIDEO_INFO)
       {
         if (mbi->vbe_mode_info)
           regions->add(Region::start_size(mbi->vbe_mode_info,
-                                          sizeof(l4util_mb_vbe_mode_t),
-                                          ".mbi", Region::Boot, Region::Boot_temporary));
+                                          sizeof(l4util_mb_vbe_mode_t), ".mbi",
+                                          Region::Boot, Region::Boot_temporary));
         if (mbi->vbe_ctrl_info)
           regions->add(Region::start_size(mbi->vbe_ctrl_info,
-                                          sizeof(l4util_mb_vbe_ctrl_t),
-                                          ".mbi", Region::Boot, Region::Boot_temporary));
+                                          sizeof(l4util_mb_vbe_ctrl_t), ".mbi",
+                                          Region::Boot, Region::Boot_temporary));
       }
 
 
     for (unsigned i = 0; i < mbi->mods_count; ++i)
-      regions->add(Region::n(mb_mod[i].cmdline,
-                             (unsigned long)mb_mod[i].cmdline
-                             + strlen((char const *)(l4_addr_t)mb_mod[i].cmdline) + 1,
-                             ".mbi", Region::Boot, Region::Boot_temporary));
+      regions->add(Region::start_size(mb_mod[i].cmdline,
+                                      strlen((char const *)
+                                             (l4_addr_t)mb_mod[i].cmdline) + 1,
+                                      ".mbi", Region::Boot, Region::Boot_temporary));
 
     for (unsigned i = 0; i < mbi->mods_count; ++i)
       {
@@ -311,7 +312,7 @@ public:
       panic("fatal: could not allocate memory for multi-boot info\n");
 
     // mark the region as reserved
-    mem_manager->regions->add(Region::start_size((l4_addr_t)_mb, total_size, ".mbi_rt",
+    mem_manager->regions->add(Region::start_size(_mb, total_size, ".mbi_rt",
                                                  Region::Root, L4_FPAGE_RWX));
     if (Verbose_mbi)
       printf("  reserved %ld bytes at %p\n", total_size, _mb);
@@ -410,9 +411,8 @@ public:
         memcpy(rsdp_buf, rsdp_tmp_buf, sizeof(rsdp_tmp_buf));
 
         mem_manager->regions->add(
-          Region::n((l4_addr_t)rsdp_buf,
-                    (l4_addr_t)rsdp_buf + sizeof(rsdp_tmp_buf), ".ACPI",
-                    Region::Info, Region::Info_acpi_rsdp));
+          Region::start_size(rsdp_buf, sizeof(rsdp_tmp_buf),
+                             ".ACPI", Region::Info, Region::Info_acpi_rsdp));
       }
 
     return l4mi;

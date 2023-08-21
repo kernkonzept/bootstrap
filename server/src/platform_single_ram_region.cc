@@ -67,9 +67,8 @@ setup_single_region_ram_memory_map()
          ram_size_mb, ram_size_mb != RAM_SIZE_MB ? " (Limited by Scan)" : "",
          (unsigned long)RAM_BASE, RAM_BASE + (ram_size_mb << 20) - 1);
   mem_manager->ram->add(
-      Region::n(RAM_BASE,
-                (unsigned long long)RAM_BASE + (ram_size_mb << 20),
-                ".ram", Region::Ram));
+      Region::start_size((unsigned long long)RAM_BASE, ram_size_mb << 20,
+                         ".ram", Region::Ram));
 }
 #endif
 

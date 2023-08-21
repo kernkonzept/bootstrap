@@ -149,8 +149,8 @@ class Platform_leon3 :
     printf("RAM:   %4d kB\n", (8192 << ram_size) / 1024);
     printf("SDRAM: %4d MB\n", sdram_size);
 
-    mem_manager->ram->add(Region::n(sdram_base, sdram_base + (sdram_size << 20),
-                                    ".sdram", Region::Ram));
+    mem_manager->ram->add(Region::start_size(sdram_base, sdram_size << 20,
+                                             ".sdram", Region::Ram));
   }
 };
 }

@@ -147,9 +147,8 @@ Region
 Efi::new_region(EFI_MEMORY_DESCRIPTOR const *m, char const *name,
                 Region::Type type, char sub)
 {
-  return Region::n(m->PhysicalStart,
-                   m->PhysicalStart + (0x1000 * m->NumberOfPages),
-                   name, type, sub);
+  return Region::start_size(m->PhysicalStart, 0x1000 * m->NumberOfPages, name,
+                            type, sub);
 }
 
 void
@@ -200,9 +199,9 @@ Efi::setup_memory()
 
   // add region for ACPI tables
   if (_acpi_rsdp)
-    regions->add(Region::n(l4_trunc_page((l4_addr_t)_acpi_rsdp),
-                           l4_trunc_page((l4_addr_t)_acpi_rsdp) + L4_PAGESIZE,
-                           ".ACPI", Region::Info, Region::Info_acpi_rsdp),
+    regions->add(Region::start_size(l4_trunc_page((l4_addr_t)_acpi_rsdp),
+                                    L4_PAGESIZE, ".ACPI",
+                                    Region::Info, Region::Info_acpi_rsdp),
                  true);
 
   // merge adjacent regions

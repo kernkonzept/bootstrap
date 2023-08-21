@@ -75,32 +75,6 @@ public:
   {}
 
   /**
-   * Create a region...
-   * @param begin The start address.
-   * @param end The address of the first byte after the region.
-   * @param name The name for the region (usually the binary name).
-   * @param t The type of the region.
-   * @param sub The subtype of the region.
-   */
-  static Region n(unsigned long long begin,
-                  unsigned long long end, char const *name = 0,
-                  Type t = No_mem, short sub = 0)
-  { return Region(begin, end - 1, name, t, sub); }
-
-  /**
-   * Create a region (using start and end pointers)
-   * @param begin start address
-   * @param end The address of the first byte after the region.
-   * @param name The name of the region
-   * @param t the type of the region
-   * @param sub the subtype of the region
-   */
-  static Region n(void const *begin,
-                  void const *end, char const *name = 0,
-                  Type t = No_mem, short sub = 0)
-  { return Region((l4_addr_t)begin, (l4_addr_t)end - 1, name, t, sub); }
-
-  /**
    * Create a region from start and size.
    * @param begin the start address of the region
    * @param size the size of the region in bytes
@@ -112,6 +86,19 @@ public:
                            char const *name = 0, Type t = No_mem,
                            short sub = 0)
   { return Region(begin, begin + size - 1, name, t, sub); }
+
+  /**
+   * Create a region from start and size.
+   * @param begin the start address of the region
+   * @param size the size of the region in bytes
+   * @param name the name of the region
+   * @param t the type of the region
+   * @param sub the subtype of the region
+   */
+  static Region start_size(void const *begin, unsigned long size,
+                           char const *name = 0, Type t = No_mem,
+                           short sub = 0)
+  { return start_size((l4_addr_t)begin, size, name, t, sub); }
 
   /**
    * Create a region for the given object.
@@ -191,8 +178,8 @@ public:
       return Region(No_mem);
 
     return Region(begin() > o.begin() ? begin() : o.begin(),
-	end() < o.end() ? end() : o.end(),
-	name(), type(), sub_type());
+                  end() < o.end() ? end() : o.end(),
+                  name(), type(), sub_type());
   }
 
   /** Check if the region is invalid */

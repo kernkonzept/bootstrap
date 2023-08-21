@@ -64,10 +64,10 @@ class Platform_ppc_mpc52000 :
     printf("  Detecting ram size ...\n");
     unsigned long ram_size = of_if.detect_ramsize();
     printf("    Total memory size is %luMB\n", ram_size / (1024 * 1024));
-    mem_manager->ram->add(Region::n(0x0, ram_size, ".ram", Region::Ram));
+    mem_manager->ram->add(Region::start_size(0x0ULL, ram_size, ".ram",
+                                             Region::Ram));
 
-    // FIXME: move this somewhere else, it has mothing to do with
-    // memory setup
+    // FIXME: move this somewhere else, it has nothing to do with memory setup
 #if 0
     /* detect OF devices */
     unsigned long drives_addr, drives_length;

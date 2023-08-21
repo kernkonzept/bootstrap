@@ -69,9 +69,9 @@ public:
   /// Main information for each module.
   struct Module
   {
-    char const *start;
-    char const *end;
-    char const *cmdline;
+    char const *start;          ///< The first byte of the module binary.
+    char const *end;            ///< The first byte after the module binary.
+    char const *cmdline;        ///< Pointer to the module command line.
 
     unsigned long size() const { return end - start; }
   };

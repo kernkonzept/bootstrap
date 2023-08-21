@@ -357,8 +357,8 @@ class Platform_arm_rpi : public Platform_arm,
     if (br.memory_size_mb() == 2048)
       mem_manager->ram->add(Region(second_start, 0x7fffffff, ".ram", Region::Ram));
 
-    mem_manager->regions->add(Region::n(0x0, 0x1000, ".mpspin",
-                                        Region::Arch, 0));
+    mem_manager->regions->add(Region::start_size(0ULL, 0x1000, ".mpspin",
+                                                 Region::Arch));
 
     // The following is just informational
     if (br.new_flag())
