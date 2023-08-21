@@ -385,12 +385,10 @@ setup_memory_map(char const *cmdline)
 }
 
 /**
- * Fill memory range with a value (with a printout).
+ * Fill memory range with a value with a printout.
  *
- * \param begin  The starting virtual address of the range to fill.
- * \param end    The ending virtual address of the range to fill (inclusive,
- *               i.e. the virtual address of the last byte that will be
- *               actually filled).
+ * \param begin  The starting address of the range to fill.
+ * \param end    The inclusive ending address of the range to fill.
  * \param val    The value to fill the memory range with.
  */
 static void verbose_memset(unsigned long begin, unsigned long end,
