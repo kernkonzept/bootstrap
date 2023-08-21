@@ -82,7 +82,7 @@ struct Platform_x86_1 : Platform_x86
    if (!(mbi->flags & L4UTIL_MB_MEM_MAP))
       {
         assert(mbi->flags & L4UTIL_MB_MEMORY);
-        ram->add(Region::n(0, (mbi->mem_lower + 1024) << 10, ".ram",
+        ram->add(Region::n(0, mbi->mem_lower << 10, ".ram",
                            Region::Ram));
         ram->add(Region::n(0x100000, (mbi->mem_upper + 1024) << 10, ".ram",
                            Region::Ram));
