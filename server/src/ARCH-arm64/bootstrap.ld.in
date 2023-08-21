@@ -84,10 +84,6 @@ SECTIONS
   _end = . ;
   PROVIDE (end = .);
 
-/* Only move modules to modaddr if bootstrap is being loaded by an elf
- * loader, and we do not need to copy images around at runtime (e.g. with
- * compression) */
-
   /* Moved here to ensure that these sections are located _after_ the text
    * section. In the other case we would get program sections with a virtual
    * address of 0 */
@@ -109,9 +105,6 @@ SECTIONS
     }
   .rela.plt : { *(.rela.plt) }
 
-#if defined(PLACE_MODULES_AT_MODADDR)
-  . = RAM_BASE + MODADDR;
-#endif
   .data.m :
   {
     _module_data_start = .;

@@ -75,14 +75,7 @@ SECTIONS
   .dynstr  : { *(.dynstr)  }
   .rel.dyn : { *(.rel.dyn) }
 
-/* Only move modules to modaddr if bootstrap is being loaded by an elf
- * loader, and we do not need to copy images around at runtime (e.g. with
- * compression) */
-#if defined(PLACE_MODULES_AT_MODADDR)
-  . = MODADDR;
-#else
   . = ALIGN(4096);
-#endif
   .data.m :
   {
     _module_data_start = .;
