@@ -116,6 +116,7 @@ void exit(int c) throw()
 
 void (*__exit_cleanup) (int) = 0;
 
+#ifndef NDEBUG
 extern "C" void __attribute__((noreturn))
 __assert(const char *assertion, const char * filename,
          unsigned int linenumber, const char * function) noexcept
@@ -129,6 +130,7 @@ __assert(const char *assertion, const char * filename,
   panic("Assertion");
   l4_infinite_loop();
 }
+#endif
 
 ssize_t
 write(int fd, const void *buf, size_t count)
