@@ -225,6 +225,7 @@ static
 L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
                                        void *kip, l4_addr_t offset)
 {
+  L4_kernel_options::Options *ko;
   const char *error_msg;
   Hdr_info hdr;
   hdr.mod = mod;
@@ -235,15 +236,14 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
     {
       hdr.start += offset;
       printf("  found kernel options (via ELF) at %lx\n", hdr.start);
-      return (L4_kernel_options::Options *)hdr.start;
+      ko = (L4_kernel_options::Options *)hdr.start;
     }
-
-  unsigned long a = (unsigned long)kip + sizeof(l4_kernel_info_t);
-
-  // kernel-option directly follow the KIP page
-  a = (a + L4_PAGESIZE - 1) & L4_PAGEMASK;
-
-  L4_kernel_options::Options *ko = (L4_kernel_options::Options *)a;
+  else
+    {
+      printf("  assuming kernel options directly following the KIP.\n");
+      auto a = l4_round_page((unsigned long)kip + sizeof(l4_kernel_info_t));
+      ko = (L4_kernel_options::Options *)a;
+    }
 
   if (ko->magic != L4_kernel_options::Magic)
     panic("Could not find kernel options page");
