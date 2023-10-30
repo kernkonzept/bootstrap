@@ -481,7 +481,8 @@ vpath %.S              $(SRC_DIR)/ARCH-amd64/boot32
 vpath ARCH-amd64/boot32/bootstrap32.ld.in $(SRC_DIR)
 vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-x86
 
-SRC32_C    = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c support.c cpu_info.c paging.c
+SRC32_C    = boot_cpu.c boot_kernel.c load_elf.c minilibc_support.c support.c \
+             cpu_info.c paging.c gcc_lib.c
 SRC32_C   += $(if $(filter 1,$(BUILD_PIE)),mm_alloc.c)
 SRC32_CC  += $(if $(filter y,$(BOOTSTRAP_DO_MB2)),multiboot2.cc)
 SRC32_S    = boot.S boot_idt.S
@@ -499,7 +500,7 @@ bootstrap32.elf: $(OBJ32) bootstrap32.bin ARCH-amd64/boot32/bootstrap32.ld $(OBJ
 	@$(LINK_MESSAGE)
 	$(VERBOSE)$(CC32) -o $@ -nostdlib -static \
 	  -Wl,-T,ARCH-amd64/boot32/bootstrap32.ld,--gc-sections \
-          $(filter-out %/bootstrap32.ld,$^) -lgcc -z noexecstack
+          $(filter-out %/bootstrap32.ld,$^) -z noexecstack
 	$(VERBOSE)chmod 755 $@
 
 bootstrap: bootstrap32.elf
