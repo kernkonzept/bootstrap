@@ -906,9 +906,6 @@ l4_exec_read_exec(Elf_handle *handle,
 
   f->name(m.cmdline ? m.cmdline :  ".[Unknown]");
 
-  Platform_base::platform->module_load_hook(mem_addr, file_size, mem_size,
-                                            f->name());
-
   return 0;
 }
 

@@ -48,10 +48,6 @@ public:
 
   void setup_kernel_config_arm_common(l4_kernel_info_t *kip);
 
-  virtual void module_load_hook(l4_addr_t addr, l4_umword_t file_sz,
-                                l4_umword_t mem_sz,
-                                char const* cmdline) override;
-
 private:
   EL_Support kernel_type = EL_Support::Unknown;
 

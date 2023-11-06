@@ -83,8 +83,3 @@ Platform_arm::setup_kernel_config(l4_kernel_info_t *kip)
     }
 }
 
-void Platform_arm::module_load_hook(l4_addr_t, l4_umword_t, l4_umword_t,
-                                    char const*)
-{
-  //TODO implement HYP userland check here
-}

@@ -57,14 +57,6 @@ public:
    */
   virtual void setup_kernel_options(L4_kernel_options::Options *) {}
 
-  /**
-   * Allows the platform to do platform specific setup when loading modules.
-   * It is guaranteed that this is called after setup_kernel_config().
-   */
-  virtual void module_load_hook(l4_addr_t /* addr */, l4_umword_t /* file_sz */,
-                                l4_umword_t /* mem_sz */,
-                                char const* /* cmdline */) {};
-
   virtual void boot_kernel(unsigned long entry)
   {
     typedef void (*func)(void);
