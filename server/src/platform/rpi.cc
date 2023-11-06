@@ -122,10 +122,13 @@ static constexpr const char *type_list[] = {
   "Zero 2 W",
   "Pi 400",
   "CM4",
+  "CM4S",
+  "Internal use only",
+  "5",
 };
 
 static constexpr const char *processor_list[] = {
-  "BCM2835", "BCM2836", "BCM2837", "BCM2711",
+  "BCM2835", "BCM2836", "BCM2837", "BCM2711", "BCM2712",
 };
 
 struct Old_rev
