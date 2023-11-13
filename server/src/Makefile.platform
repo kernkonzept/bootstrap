@@ -77,6 +77,7 @@ DEFAULT_RELOC_arm64-lx2160     := 0x02000000 # Because of u-boot regions
 SUPPORT_CC_arm64-msm8916       := platform/qcom.cc dt.cc
 SUPPORT_CC_arm64-msm8939       := platform/qcom.cc dt.cc
 SUPPORT_CC_arm64-sm8150        := platform/qcom.cc dt.cc
+SUPPORT_CC_arm64-ti_am         := platform/ti-am.cc dt.cc
 SUPPORT_CC_arm64-arm_sbsa      := acpi.cc platform/sbsa.cc
 IS_EFI_arm64-arm_sbsa          := y
 
