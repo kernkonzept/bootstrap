@@ -109,7 +109,7 @@ ctor_init()
 }
 
 
-void exit(int c) throw()
+void exit(int c) noexcept
 {
   _exit(c);
 }
