@@ -208,7 +208,9 @@ public:
 
         if (verbose)
           {
-            Print((CHAR16 *)L"%c%d: %dx%d ", memcmp(info,gop->Mode->Info,sizeof(*info)) == 0 ? '*' : ' ', i,
+            Print((CHAR16 *)L"%c%d: %dx%d ",
+                  memcmp(info, gop->Mode->Info, sizeof(*info)) == 0 ? '*' : ' ',
+                  i,
                   info->HorizontalResolution,
                   info->VerticalResolution);
             switch (info->PixelFormat)
