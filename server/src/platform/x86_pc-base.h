@@ -729,6 +729,7 @@ Pci_com_dev _devs[] = {
   { PCI_DEVICE_ID(0x9710, 0x9835), &_moschip },
   { PCI_DEVICE_ID(0x9710, 0x9865), &_moschip },
   { PCI_DEVICE_ID(0x9710, 0x9922), &_moschip },
+  { PCI_DEVICE_ID(0x125b, 0x9100), &_moschip },
   { PCI_DEVICE_ID(0x5372, 0x6872), &_agestar },
   { PCI_DEVICE_ID(0x1c00, 0x3253), &_wch_chip }, // dual port card
   { PCI_DEVICE_ID(0x8086, 0x8c3d), &_default_pci_com },
