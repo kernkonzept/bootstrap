@@ -984,14 +984,13 @@ public:
     exit(-100);
   }
 
-  void setup_uart(char const *cmdline)
+  void setup_uart(char const *cmdline, L4::Uart *screen_uart)
   {
     const char *s;
     int comport = -1;
     int comirq = -1;
     int pci = 0;
-    static Uart_vga _vga;
-    static Dual_uart du(&_vga);
+    static Dual_uart du(screen_uart);
     set_stdio_uart(&du);
 
     if ((s = check_arg(cmdline, "-comirq")))

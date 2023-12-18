@@ -8,6 +8,46 @@
 
 namespace {
 
+// This "Uart" uses the EFI services for screen printouts
+class Uart_efi : public L4::Uart
+{
+public:
+  void disable()
+  {
+    _enabled = false;
+  }
+
+private:
+  bool startup(L4::Io_register_block const *) override
+  {
+    return true;
+  }
+
+  int write(char const *s, unsigned long count, bool) const override
+  {
+    CHAR16 buf[2];
+    buf[1] = 0;
+
+    if (!_enabled)
+      return count;
+
+    for (unsigned long i = 0; i < count; ++i)
+      {
+        buf[0] = s[i];
+        Output(buf);
+      }
+
+    return count;
+  }
+
+  void shutdown() override {}
+  bool change_mode(Transfer_mode, Baud_rate) override { return true; }
+  int get_char(bool) const override { return -1; }
+  int char_avail() const override { return false; } // TODO input?
+
+  bool _enabled = true;
+};
+
 class Platform_x86_efi : public Platform_x86,
   public Boot_modules_image_mode
 {
@@ -211,8 +251,11 @@ public:
 
   void exit_boot_services() override
   {
+    _efi_uart.disable();
     efi.exit_boot_services();
   }
+
+  Uart_efi _efi_uart;
 };
 
 Platform_x86_efi _x86_pc_platform;
@@ -276,7 +319,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 
   Platform_base::platform = &_x86_pc_platform;
   _x86_pc_platform.init();
-  _x86_pc_platform.setup_uart(efi_cmdline);
+  _x86_pc_platform.setup_uart(efi_cmdline, &_x86_pc_platform._efi_uart);
 
   init_modules_infos();
 

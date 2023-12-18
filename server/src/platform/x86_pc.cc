@@ -646,7 +646,8 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
   if (!cmdline)
     cmdline = mod_info_mbi_cmdline(mod_header);
 #endif
-  _x86_pc_platform.setup_uart(cmdline);
+  static Uart_vga vga_uart;
+  _x86_pc_platform.setup_uart(cmdline, &vga_uart);
   _x86_pc_platform.disable_pci_bus_master();
 
   startup(cmdline);
