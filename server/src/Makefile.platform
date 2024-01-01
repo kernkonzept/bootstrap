@@ -52,6 +52,7 @@ SUPPORT_CC_arm-msm8909         := platform/qcom.cc dt.cc
 SUPPORT_CC_arm-msm8916         := platform/qcom.cc dt.cc
 SUPPORT_CC_arm-msm8939         := platform/qcom.cc dt.cc
 SUPPORT_CC_arm-msm8974         := platform/qcom.cc dt.cc
+SUPPORT_CC_arm-ti_am           := platform/ti-am.cc dt.cc
 
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc platform_single_ram_region.cc
