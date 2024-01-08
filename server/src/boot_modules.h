@@ -19,7 +19,7 @@
 struct Internal_module_base
 {
   Internal_module_base(const char *cmdline)
-  : _cmdline(cmdline)
+  : _next(nullptr), _cmdline(cmdline)
   {}
 
   unsigned cmdline_size() const { return strlen(_cmdline) + 1; }

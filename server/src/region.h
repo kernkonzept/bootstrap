@@ -39,7 +39,7 @@ public:
   Region() = default;
 
   /** Create an invalid region. */
-  Region(Type) : _begin(0), _end(0) {}
+  Region(Type) : Region(0ULL) {};
 
   /** Create a 1byte region at begin, basically for lookups */
   Region(unsigned long long begin)
