@@ -627,9 +627,7 @@ void __main(l4util_mb_info_t *mbi, unsigned long p2, char const *realmode_si,
   ctor_init();
   Platform_base::platform = &_x86_pc_platform;
   _x86_pc_platform.init();
-#ifdef IMAGE_MODE
   init_modules_infos();
-#endif
 #ifdef ARCH_amd64
   // remember this info to reserve the memory in setup_memory_map later
   _x86_pc_platform.boot32_info = boot32_info;
