@@ -60,7 +60,7 @@ public:
   virtual void boot_kernel(unsigned long entry)
   {
     typedef void (*func)(void);
-    ((func)entry)();
+    reinterpret_cast<func>(entry)();
     exit(-100);
   }
 

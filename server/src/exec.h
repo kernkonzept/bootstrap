@@ -19,15 +19,15 @@
 
 typedef int exec_sectype_t;
 
-#define EXEC_SECTYPE_READ		((exec_sectype_t)0x000001)
-#define EXEC_SECTYPE_WRITE		((exec_sectype_t)0x000002)
-#define EXEC_SECTYPE_EXECUTE		((exec_sectype_t)0x000004)
-#define EXEC_SECTYPE_ALLOC		((exec_sectype_t)0x000100)
-#define EXEC_SECTYPE_LOAD		((exec_sectype_t)0x000200)
-#define EXEC_SECTYPE_DYNAMIC		((exec_sectype_t)0x010000)
-#define EXEC_SECTYPE_KIP		((exec_sectype_t)0x100000)
-#define EXEC_SECTYPE_KOPT		((exec_sectype_t)0x110000)
-#define EXEC_SECTYPE_TYPE_MASK		((exec_sectype_t)0xff0000)
+#define EXEC_SECTYPE_READ	(exec_sectype_t{0x000001})
+#define EXEC_SECTYPE_WRITE	(exec_sectype_t{0x000002})
+#define EXEC_SECTYPE_EXECUTE	(exec_sectype_t{0x000004})
+#define EXEC_SECTYPE_ALLOC	(exec_sectype_t{0x000100})
+#define EXEC_SECTYPE_LOAD	(exec_sectype_t{0x000200})
+#define EXEC_SECTYPE_DYNAMIC	(exec_sectype_t{0x010000})
+#define EXEC_SECTYPE_KIP	(exec_sectype_t{0x100000})
+#define EXEC_SECTYPE_KOPT	(exec_sectype_t{0x110000})
+#define EXEC_SECTYPE_TYPE_MASK	(exec_sectype_t{0xff0000})
 
 struct Elf_handle
 {

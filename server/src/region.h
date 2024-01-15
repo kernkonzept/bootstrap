@@ -50,7 +50,8 @@ public:
    * @param ptr the start address for the 1byte region.
    */
   Region(void const *ptr)
-  : _begin((l4_addr_t)ptr), _end((l4_addr_t)ptr), _name(0), _t(No_mem), _s(0)
+  : _begin(reinterpret_cast<l4_addr_t>(ptr)),
+    _end(reinterpret_cast<l4_addr_t>(ptr)), _name(0), _t(No_mem), _s(0)
   {}
 
   /** Create a fully fledged region.
@@ -106,7 +107,7 @@ public:
   static Region start_size(void const *begin, unsigned long size,
                            char const *name = 0, Type t = No_mem,
                            short sub = 0)
-  { return start_size((l4_addr_t)begin, size, name, t, sub); }
+  { return start_size(reinterpret_cast<l4_addr_t>(begin), size, name, t, sub); }
 
   /**
    * Create a region for the given object.
@@ -119,7 +120,8 @@ public:
   template< typename T >
   static Region from_ptr(T const *begin, char const *name = 0,
                          Type t = No_mem, short sub = 0)
-  { return Region::start_size((l4_addr_t)begin, sizeof(T), name, t, sub); }
+  { return Region::start_size(reinterpret_cast<l4_addr_t>(begin), sizeof(T),
+                              name, t, sub); }
 
   /**
    * Create a region for an array of objects.
@@ -134,8 +136,8 @@ public:
   static Region array(T const *begin, unsigned long size, char const *name = 0,
                       Type t = No_mem, short sub = 0)
   {
-    return Region::start_size((l4_addr_t)begin, sizeof(T) * size,
-                              name, t, sub);
+    return Region::start_size(reinterpret_cast<l4_addr_t>(begin),
+                              sizeof(T) * size, name, t, sub);
   }
 
   /** Get the start address. */
@@ -164,7 +166,7 @@ public:
   /** Set the name of the region. */
   void name(char const *name) { _name = name; }
   /** Get the type of the region. */
-  Type type() const { return (Type)(_t); }
+  Type type() const { return static_cast<Type>(_t); }
   /** Set the type of the region. */
   void type(Type t) { _t = t; }
   /** Get the subtype of the region. */

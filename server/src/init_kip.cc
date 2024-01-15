@@ -79,7 +79,7 @@ init_kip(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
       (md++)->set(c->begin(), c->end() - 1, type, sub_type);
     }
 
-  l4i->user_ptr = (unsigned long)mbi;
+  l4i->user_ptr = reinterpret_cast<unsigned long>(mbi);
 
   /* set up sigma0 info */
   l4i->sigma0_eip = bi->sigma0_start;

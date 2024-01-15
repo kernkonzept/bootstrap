@@ -103,7 +103,7 @@ l4_uint64_t mem_end = get_memory_max_address();
  * big binary.
  */
 #ifdef IMAGE_MODE
-static l4_addr_t _mod_addr = (l4_addr_t)RAM_BASE + MODADDR;
+static l4_addr_t _mod_addr = l4_addr_t{RAM_BASE} + MODADDR;
 #else
 static l4_addr_t _mod_addr;
 #endif
@@ -194,7 +194,7 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset)
     {
       hdr.start += offset;
       printf("  found kernel info page (via ELF) at %lx\n", hdr.start);
-      return (l4_kernel_info_t *)hdr.start;
+      return reinterpret_cast<l4_kernel_info_t *>(hdr.start);
     }
 
   for (Region const &m : regions)
@@ -210,10 +210,10 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset)
 
       for (l4_addr_t p = l4_round_size(m.begin(), 12); p < end; p += 0x1000)
         {
-          if ( *(l4_uint32_t *)p == L4_KERNEL_INFO_MAGIC)
+          if ( *reinterpret_cast<l4_uint32_t *>(p) == L4_KERNEL_INFO_MAGIC)
             {
               printf("  found kernel info page at %lx\n", p);
-              return (l4_kernel_info_t *)p;
+              return reinterpret_cast<l4_kernel_info_t *>(p);
             }
         }
     }
@@ -236,13 +236,14 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
     {
       hdr.start += offset;
       printf("  found kernel options (via ELF) at %lx\n", hdr.start);
-      ko = (L4_kernel_options::Options *)hdr.start;
+      ko = reinterpret_cast<L4_kernel_options::Options *>(hdr.start);
     }
   else
     {
       printf("  assuming kernel options directly following the KIP.\n");
-      auto a = l4_round_page((unsigned long)kip + sizeof(l4_kernel_info_t));
-      ko = (L4_kernel_options::Options *)a;
+      auto a = l4_round_page(reinterpret_cast<unsigned long>(kip)
+                             + sizeof(l4_kernel_info_t));
+      ko = reinterpret_cast<L4_kernel_options::Options *>(a);
     }
 
   if (ko->magic != L4_kernel_options::Magic)
@@ -250,7 +251,8 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
 
   if (ko->version != L4_kernel_options::Version_current)
     panic("Cannot boot kernel with incompatible options version: %lu, need %u",
-          (unsigned long)ko->version, L4_kernel_options::Version_current);
+          static_cast<unsigned long>(ko->version),
+          L4_kernel_options::Version_current);
 
   return ko;
 }
@@ -469,8 +471,10 @@ init_regions()
 
   auto *p = Platform_base::platform;
 
-  unsigned long long pstart = p->to_phys((unsigned long)&_start);
-  unsigned long long pend   = p->to_phys((unsigned long)&_end);
+  unsigned long long pstart
+    = p->to_phys(reinterpret_cast<unsigned long>(&_start));
+  unsigned long long pend
+    = p->to_phys(reinterpret_cast<unsigned long>(&_end));
   regions.add(Region::start_size(pstart, pend - pstart, ".bootstrap",
                                  Region::Boot));
 }
@@ -532,13 +536,14 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
     {
       if (Verbose_load)
         {
-          printf("\n%p: ", (void*)m.start);
+          printf("\n%p: ", m.start);
           for (int i = 0; i < 4; ++i)
-            printf("%08x ", *((unsigned *)m.start + i));
+            printf("%08x ", *(reinterpret_cast<const unsigned *>(m.start) + i));
           printf("  ");
           for (int i = 0; i < 16; ++i)
             {
-              unsigned char c = *(unsigned char *)((char *)m.start + i);
+              char *c_ptr = const_cast<char *>(m.start + i);
+              unsigned char c = *(reinterpret_cast<unsigned char *>(c_ptr));
               printf("%c", c < 32 ? '.' : c);
             }
         }
@@ -769,7 +774,9 @@ startup(char const *cmdline)
   assert(mbi->mods_count <= MODS_MAX);
 
   boot_info_t boot_info;
-  l4util_l4mod_mod *mb_mod = (l4util_l4mod_mod *)(unsigned long)mbi->mods_addr;
+  l4util_l4mod_mod *mb_mod
+    = reinterpret_cast<l4util_l4mod_mod *>(
+        static_cast<unsigned long>(mbi->mods_addr));
   regions.optimize();
 
   /* setup kernel PART ONE */
@@ -886,9 +893,10 @@ l4_exec_read_exec(Elf_handle *handle,
       panic("Binary outside memory");
     }
 
-  auto *src = (char const *)m.start + file_ofs;
-  auto *dst = (char *)mem_addr;
-  if ((unsigned long)src % 8 || (unsigned long)dst % 8)
+  auto *src = m.start + file_ofs;
+  auto *dst = reinterpret_cast<char *>(mem_addr);
+  if (reinterpret_cast<unsigned long>(src) % 8
+      || reinterpret_cast<unsigned long>(dst) % 8)
     memcpy(dst, src, file_size);
   else
     memcpy_aligned(dst, src, file_size);

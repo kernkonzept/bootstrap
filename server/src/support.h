@@ -45,10 +45,16 @@ extern Mod_info *module_infos;
 void init_modules_infos();
 
 template<typename T>
-inline T *l4_round_page(T *p) { return (T*)l4_round_page((l4_addr_t)p); }
+inline T *l4_round_page(T *p)
+{
+  return reinterpret_cast<T*>(l4_round_page(reinterpret_cast<l4_addr_t>(p)));
+}
 
 template<typename T>
-inline T *l4_trunc_page(T *p) { return (T*)l4_trunc_page((l4_addr_t)p); }
+inline T *l4_trunc_page(T *p)
+{
+  return reinterpret_cast<T*>(l4_trunc_page(reinterpret_cast<l4_addr_t>(p)));
+}
 
 static inline void __attribute__((always_inline))
 clear_bss()

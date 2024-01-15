@@ -32,7 +32,7 @@ Region_list::find_free(Region const &search, unsigned long long _size,
         return 0;
 
       if (0)
-        printf("try start %p\n", (void *)start);
+        printf("try start %p\n", reinterpret_cast<void *>(start));
 
       Region *z = find(Region::start_size(start, _size));
       if (!z)

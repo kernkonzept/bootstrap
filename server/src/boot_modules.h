@@ -29,7 +29,7 @@ struct Internal_module_base
 
   void set(l4util_l4mod_mod *m, char *cmdline_store) const
   {
-    m->cmdline = (l4_addr_t)cmdline_store;
+    m->cmdline = reinterpret_cast<l4_addr_t>(cmdline_store);
     memcpy(cmdline_store, _cmdline, cmdline_size());
     set_region(m);
     m->flags = 0;

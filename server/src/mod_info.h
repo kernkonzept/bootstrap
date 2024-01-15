@@ -60,7 +60,7 @@ static inline char *
 mod_info_hdr_offs_to_charp(struct Mod_header *hdr,
                            unsigned long long offset)
 {
-  return (char *)((char *)hdr + offset);
+  return reinterpret_cast<char *>(hdr) + offset;
 }
 
 /* Header */
@@ -69,7 +69,7 @@ static inline char *
 mod_info_mbi_cmdline(struct Mod_header *hdr)
 {
   if (hdr->flags & Mod_header_flag_direct_addressing)
-    return (char *)(unsigned long)hdr->mbi_cmdline;
+    return reinterpret_cast<char *>(static_cast<unsigned long>(hdr->mbi_cmdline));
   return mod_info_hdr_offs_to_charp(hdr, hdr->mbi_cmdline);
 }
 
@@ -77,8 +77,9 @@ static inline struct Mod_info *
 mod_info_mods(struct Mod_header *hdr)
 {
   if (hdr->flags & Mod_header_flag_direct_addressing)
-    return (struct Mod_info *)(unsigned long)hdr->mods;
-  return (struct Mod_info *)mod_info_hdr_offs_to_charp(hdr, hdr->mods);
+    return reinterpret_cast<struct Mod_info *>(static_cast<unsigned long>(hdr->mods));
+  char *mod_info = mod_info_hdr_offs_to_charp(hdr, hdr->mods);
+  return reinterpret_cast<struct Mod_info *>(mod_info);
 }
 
 /* Modules */
@@ -87,5 +88,5 @@ mod_info_mod_ull(struct Mod_info *mi, unsigned long long v)
 {
   if (mi->flags & Mod_info_flag_direct_addressing)
     return v;
-  return (unsigned long long)(unsigned long)mi + v;
+  return static_cast<unsigned long long>(reinterpret_cast<unsigned long>(mi)) + v;
 }

@@ -330,8 +330,9 @@ static void mod_translate_addresses_to_absolute()
 {
   if (!(mod_header->flags & Mod_header_flag_direct_addressing))
     {
-      mod_header->mbi_cmdline = (l4_addr_t)mod_info_mbi_cmdline(mod_header);
-      mod_header->mods = (l4_addr_t)mod_info_mods(mod_header);
+      mod_header->mbi_cmdline
+        = reinterpret_cast<l4_addr_t>(mod_info_mbi_cmdline(mod_header));
+      mod_header->mods = reinterpret_cast<l4_addr_t>(mod_info_mods(mod_header));
       mod_header->flags |= Mod_header_flag_direct_addressing;
     }
 
@@ -360,7 +361,7 @@ static inline void max_payload_addr(unsigned long long v)
 
 static inline void max_payload_addr_str(unsigned long long v)
 {
-  max_payload_addr(v + strlen((char *)v) + 1);
+  max_payload_addr(v + strlen(reinterpret_cast<char *>(v)) + 1);
 }
 
 static void modinfo_gen_payload_size()
@@ -379,7 +380,7 @@ static void modinfo_gen_payload_size()
 static inline unsigned long long modinfo_payload_size()
 {
   // include mod_info_size
-  return modinfo_max_payload_addr - (l4_addr_t)mod_header;
+  return modinfo_max_payload_addr - reinterpret_cast<l4_addr_t>(mod_header);
 }
 
 void init_modules_infos()
@@ -387,7 +388,8 @@ void init_modules_infos()
 #if defined(__PIC__) || defined(__PIE__)
   // Fixup header addresses when being compiled position independent
   extern int _stext;      /* begin of image -- defined in bootstrap.ld.in */
-  l4_uint64_t off = (l4_uint64_t)&_stext - image_info.start_of_binary;
+  l4_uint64_t off
+    = reinterpret_cast<l4_uint64_t>(&_stext) - image_info.start_of_binary;
   image_info.start_of_binary   += off;
   image_info.end_of_binary     += off;
   image_info.module_data_start += off;
@@ -413,11 +415,13 @@ void init_modules_infos()
       || image_info.module_header == 0)
     panic("bootstrap ELF file post-processing did not run");
 
-  mod_header = (Mod_header *)(image_info.start_of_binary + image_info.module_header);
-  assert(((unsigned long)mod_header & 7ul) == 0);
+  l4_uint64_t mod_header_addr = image_info.start_of_binary
+                                + image_info.module_header;
+  mod_header = reinterpret_cast<Mod_header *>(mod_header_addr);
+  assert((reinterpret_cast<unsigned long>(mod_header) & 7ul) == 0);
 
   module_infos = mod_info_mods(mod_header);
-  assert(((unsigned long)module_infos & 7ul) == 0);
+  assert((reinterpret_cast<unsigned long>(module_infos) & 7ul) == 0);
 
   mod_translate_addresses_to_absolute();
   modinfo_gen_payload_size();
@@ -434,19 +438,25 @@ namespace {
  */
 
 static inline char const *mod_cmdline(Mod_info *mod)
-{ return (char const *)(l4_addr_t)mod->cmdline; }
+{ return reinterpret_cast<char const *>(static_cast<l4_addr_t>(mod->cmdline)); }
 
 static inline char const *mod_name(Mod_info *mod)
-{ return (char const *)(l4_addr_t)mod->name; }
+{ return reinterpret_cast<char const *>(static_cast<l4_addr_t>(mod->name)); }
 
 static inline char const *mod_start(Mod_info *mod)
-{ return (char const *)(l4_addr_t)mod->start; }
+{ return reinterpret_cast<char const *>(static_cast<l4_addr_t>(mod->start)); }
 
 static inline char const *mod_md5compr(Mod_info *mod)
-{ return (char const *)(l4_addr_t)mod->md5sum_compr; }
+{
+  return reinterpret_cast<char const *>(
+           static_cast<l4_addr_t>(mod->md5sum_compr));
+}
 
 static inline char const *mod_md5(Mod_info *mod)
-{ return (char const *)(l4_addr_t)mod->md5sum_uncompr; }
+{
+  return reinterpret_cast<char const *>(
+           static_cast<l4_addr_t>(mod->md5sum_uncompr));
+}
 
 static inline bool mod_compressed(Mod_info *mod)
 { return mod->size != mod->size_uncompressed; }
@@ -601,7 +611,7 @@ Boot_modules_image_mode::module(unsigned index, bool uncompress) const
       check_md5(mod_name(mod), mod_start(mod), mod->size, mod_md5(mod));
     }
 #else
-  (void)uncompress;
+  static_cast<void>(uncompress);
 #endif
   Module m;
   m.start   = mod_start(mod);
@@ -667,7 +677,8 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
   char const *ldest = l4_trunc_page(mod_start(m0) - m0->size_uncompressed);
 
   // try to find a free spot for decompressing the modules
-  char *destbuf = (char *)mem_manager->find_free_ram(total_size, mod_addr);
+  char *destbuf
+    = reinterpret_cast<char *>(mem_manager->find_free_ram(total_size, mod_addr));
   bool fwd = true;
 
   if (!destbuf || destbuf > rdest)
@@ -728,7 +739,10 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
 
           if (!mem_manager->ram->contains(dest) || regions->find(dest))
             {
-              destbuf = (char *)mem_manager->find_free_ram(total_size, (l4_addr_t)rdest);
+              l4_uint64_t free_ram
+                = mem_manager->find_free_ram(total_size,
+                                             reinterpret_cast<l4_addr_t>(rdest));
+              destbuf = reinterpret_cast<char *>(free_ram);
               printf("  cannot decompress at %p, use %p\n", rdest, destbuf);
             }
         }
@@ -781,7 +795,8 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
             {
               // overlaps with some non-module, assumingly an ELF region
               // so move us out of the way
-              char *to = (char *)mem_manager->find_free_ram(mod->size);
+              l4_uint64_t free_ram = mem_manager->find_free_ram(mod->size);
+              char *to = reinterpret_cast<char *>(free_ram);
               if (!to)
                 {
                   printf("fatal: could not find free RAM region for module\n"
@@ -819,27 +834,28 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 
   // Round up to ensure mbi is on its own page
   unsigned long mbi_size_full = l4_round_page(mbi_size);
-  auto *mbi = (l4util_l4mod_info *)mem_manager->find_free_ram(mbi_size_full);
+  l4_uint64_t mbi_ram = mem_manager->find_free_ram(mbi_size_full);
+  auto *mbi = reinterpret_cast<l4util_l4mod_info *>(mbi_ram);
   if (!mbi)
     panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size_full);
 
   Region_list *regions = mem_manager->regions;
-  regions->add(Region::start_size((l4_addr_t)mbi, mbi_size_full, ".mbi_rt",
+  regions->add(Region::start_size(mbi_ram, mbi_size_full, ".mbi_rt",
                                   Region::Root, L4_FPAGE_RWX));
   memset(mbi, 0, mbi_size);
 
   l4util_l4mod_mod *mods = reinterpret_cast<l4util_l4mod_mod *>(mbi + 1);
-  char *mbi_strs = (char *)(mods + mod_count);
+  char *mbi_strs = reinterpret_cast<char *>(mods + mod_count);
 
   mbi->mods_count  = mod_count;
-  mbi->mods_addr   = (l4_addr_t)mods;
+  mbi->mods_addr   = reinterpret_cast<l4_addr_t>(mods);
 
   unsigned long total_size = 0;
   for (Mod_info *mod = module_infos; mod < mod_end_iter(); ++mod)
     {
       if (mod->size == 0)
         panic("Module %zd '%s' empty, modules must not have zero size.",
-              mod - module_infos, (char *)mod->name);
+              mod - module_infos, reinterpret_cast<char *>(mod->name));
       if (!is_base_module(mod))
         {
           total_size += l4_round_page(mod->size_uncompressed);
@@ -854,7 +870,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
     decompress_mods(mod_header->num_mods, total_size, mod_addr);
   merge_mod_regions();
 #else // COMPRESS
-  (void)total_size;
+  static_cast<void>(total_size);
   move_modules(mod_addr);
 #endif // ! COMPRESS
 
@@ -874,13 +890,14 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
         if (char const *c = mod_cmdline(mod))
           {
             unsigned l = strlen(c) + 1;
-            mods[cnt].cmdline = (l4_addr_t)mbi_strs;
+            mods[cnt].cmdline = reinterpret_cast<l4_addr_t>(mbi_strs);
             memcpy(mbi_strs, c, l);
             mbi_strs += round_wordsize(l);
           }
 
-        mods[cnt].mod_start = (l4_addr_t)mod_start(mod);
-        mods[cnt].mod_end   = (l4_addr_t)mod_start(mod) + mod->size;
+        mods[cnt].mod_start = reinterpret_cast<l4_addr_t>(mod_start(mod));
+        mods[cnt].mod_end   = reinterpret_cast<l4_addr_t>(mod_start(mod)
+                                                          + mod->size);
         mods[cnt].flags     = mod->flags & Mod_info_flag_mod_mask;
         cnt++;
       }

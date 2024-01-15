@@ -39,7 +39,7 @@ static struct {
                       offsetof(L4_kernel_options::Options, out_buf) },
 };
 
-#define MEMBERSIZE(type, member) sizeof(((type *)0)->member)
+#define MEMBERSIZE(type, member) sizeof((reinterpret_cast<type *>(0))->member)
 
 static struct {
   const char *s;
@@ -55,7 +55,7 @@ static struct {
 static void kcmdline_show(L4_kernel_options::Options *lko)
 {
   printf("Location: %016lx  Size: %zd Bytes\n",
-         (unsigned long)lko, sizeof(*lko));
+         reinterpret_cast<unsigned long>(lko), sizeof(*lko));
   printf("Flags: %08x\n", lko->flags);
   for (unsigned i = 0; i < sizeof(boolean_opts) / sizeof(boolean_opts[0]); ++i)
     {
@@ -96,8 +96,9 @@ void kcmdline_parse(char const *cmdline,
           && (c[len] == ' ' || c[len] == '='))
         {
           lko->flags |= unsigned_opts[i].flag;
-          *(unsigned *)((char *)lko + unsigned_opts[i].offset)
-            = strtol(c + len + 1, 0, 0);
+          char *str = reinterpret_cast<char *>(lko) + unsigned_opts[i].offset;
+          unsigned *opt_addr = reinterpret_cast<unsigned *>(str);
+          *opt_addr = strtol(c + len + 1, 0, 0);
         }
     }
 
@@ -109,12 +110,12 @@ void kcmdline_parse(char const *cmdline,
       if ((c = strstr(cmdline, string_opts[i].s))
           && (c[len] == ' ' || c[len] == '='))
         {
-          char *dst = (char *)lko + string_opts[i].offset;
+          char *dst = reinterpret_cast<char *>(lko) + string_opts[i].offset;
           lko->flags |= string_opts[i].flag;
           c += len + 1;
           while (*c && *c != ' '
-                 && (dst < (char *)lko + string_opts[i].offset +
-                            string_opts[i].size - 1))
+                 && (dst < reinterpret_cast<char *>(lko) + string_opts[i].offset
+                           + string_opts[i].size - 1))
             *dst++ = *c++;
           *dst = 0;
         }

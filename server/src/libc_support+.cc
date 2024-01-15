@@ -140,7 +140,7 @@ write(int fd, const void *buf, size_t count)
 
   if (fd == STDOUT_FILENO || fd == STDERR_FILENO)
     {
-      char *b = (char *)buf;
+      char const *b = reinterpret_cast<char const *>(buf);
       int i = count;
       while (i--)
         {
