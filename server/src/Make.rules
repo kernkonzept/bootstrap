@@ -90,7 +90,7 @@ endif
 
 BOOTSTRAP_SEARCH_PATH        ?= $(OBJ_DIR)
 BOOTSTRAP_MODULES_LIST       ?= $(SRC_DIR)/modules.list
-BOOTSTRAP_MODULE_PATH_BINLIB ?= $(OBJ_BASE)/bin/$(SYSTEM)/$(BUILD_ABI):$(OBJ_BASE)/lib/$(SYSTEM)/$(BUILD_ABI):$(OBJ_BASE)/lib/$(SYSTEM)
+BOOTSTRAP_MODULE_PATH_BINLIB ?= $(OBJ_BASE)/bin/$(subst -,/,$(SYSTEM)):$(OBJ_BASE)/lib/$(subst -,/,$(SYSTEM))
 BOOTSTRAP_ELF_NAME           ?= bootstrap.elf
 MKIMAGE                      ?= mkimage
 MKIMAGE_PRESENT              := $(if $(shell command -v $(MKIMAGE)),y)
@@ -493,10 +493,10 @@ CXX32      = $(filter-out -m64, $(CXX)) -m32
 CC32FLAGS  = $(filter-out -m64, $(CFLAGS) $(CFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
 CXX32FLAGS = $(filter-out -m64, $(CXXFLAGS) $(CXXFLAGS_$(ARCH))) -m32 $(GCCNOSTACKPROTOPT)
 
-$(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(ARCH)_$(CPU)/libc32.a: FORCE
+$(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a: FORCE
 	$(VERBOSE)$(MAKE) O=$(OBJ_BASE) -C $(SRC_DIR)/ARCH-amd64/libc32
 
-bootstrap32.elf: $(OBJ32) bootstrap32.bin ARCH-amd64/boot32/bootstrap32.ld $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(ARCH)_$(CPU)/libc32.a
+bootstrap32.elf: $(OBJ32) bootstrap32.bin ARCH-amd64/boot32/bootstrap32.ld $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a
 	@$(LINK_MESSAGE)
 	$(VERBOSE)$(CC32) -o $@ -nostdlib -static \
 	  -Wl,-T,ARCH-amd64/boot32/bootstrap32.ld,--gc-sections \

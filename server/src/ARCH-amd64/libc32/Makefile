@@ -3,7 +3,7 @@ L4DIR    ?= $(PKGDIR)/../..
 
 TARGET    = libc32.a
 
-SYSTEMS   = amd64
+SYSTEMS   = amd64-plain
 
 # Not needed. This is not for general consumption
 NOTARGETSTOINSTALL = y
