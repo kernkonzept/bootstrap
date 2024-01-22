@@ -138,9 +138,10 @@ cpu_bootup_code_start:
 
 do_cpuid:
 	mrc	p15, 0, r4, c0, c0, 5      /* CPU ID */
-	and     r4, r4, #0xf               /* CPU id */
-	cmp	r4, #0                     /* CPU0 continues with bootstrap */
-	beq	do_bootstrap	
+	tst	r4, #0xff                  /* Test Aff0 field */
+	tsteq	r4, #(0xff <<  8)          /* Test Aff1 field */
+	tsteq	r4, #(0xff << 16)          /* Test Aff2 field */
+	beq	do_bootstrap               /* CPU0 continues with bootstrap */
 
 /* CPU1+ wait for bootup */
 
