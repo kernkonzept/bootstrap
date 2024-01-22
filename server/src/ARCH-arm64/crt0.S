@@ -95,7 +95,7 @@ crt_end_bin:  .8byte _module_data_end
 run:
 #endif
 	mrs	x9, MPIDR_EL1              /* CPU ID */
-	and	x9, x9, #0xf               /* CPU id */
+	and	x9, x9, #~(0xff << 24)     /* Just keep Aff[0-3] fields */
 	cmp	x9, #0                     /* CPU0 continues with bootstrap */
 	beq	do_bootstrap
 
