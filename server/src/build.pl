@@ -518,7 +518,7 @@ chdir $output_dir || die "Cannot change to directory '$output_dir': $!";
 
 my %entry = ( mbi_cmdline => '' );
 
-%entry = L4::ModList::get_module_entry($modulesfile, $entryname)
+%entry = L4::ModList::get_module_entry($modulesfile, $entryname, $module_path)
   if $modulesfile and $entryname;
 
 if ($cmd eq 'build')
