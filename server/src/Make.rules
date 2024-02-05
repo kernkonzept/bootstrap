@@ -318,9 +318,7 @@ $(od)bootstrap.efi: $(od)$(EFI_IMAGE)
     ifeq ($(MKIMAGE_PRESENT),y)
       INSTALL_FILES += $(BOOTSTRAP_UIMAGE) $(BOOTSTRAP_ITB)
     else
-      ifneq ($(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
-        $(error mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage/itb)
-      endif
+      $(warning mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage/itb)
     endif
   endif
 endif # ENTRY
