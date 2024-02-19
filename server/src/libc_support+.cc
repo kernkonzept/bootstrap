@@ -176,6 +176,11 @@ off_t lseek(int /*fd*/, off_t /*offset*/, int /*whence*/) __THROW
   return 0;
 }
 
+off64_t lseek64(int /*fd*/, off64_t /*offset*/, int /*whence*/) __THROW
+{
+  return 0;
+}
+
 void *__dso_handle = &__dso_handle;
 
 extern "C" void reboot(void) __attribute__((noreturn));
