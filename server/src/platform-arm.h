@@ -40,7 +40,7 @@ public:
   {
     // If we do not get an spin address from DT, all cores might start
     // at the same time and are caught by bootstrap
-    extern l4_umword_t mp_launch_spin_addr;
+    extern l4_umword_t mp_launch_spin_addr __attribute__((weak));
     asm volatile("" : : : "memory");
     Barrier::dmb_cores();
     lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
