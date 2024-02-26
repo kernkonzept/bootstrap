@@ -96,7 +96,6 @@ run:
 #endif
 	b	platform_cpu_bootup
 
-.global platform_cpu_bootup
 .type platform_cpu_bootup, #function
 .weak platform_cpu_bootup
 platform_cpu_bootup:
