@@ -127,7 +127,7 @@ SRC_CC_ppc32    += ARCH-ppc32/init_kip_v2-arch.cc \
 SRC_CC_sparc	+= ARCH-sparc/reboot.cc ARCH-sparc/head.cc
 SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE))
 
-SRC_S-$(INTERNAL_CRT0) += ARCH-$(ARCH)/crt0.S
+SRC_S-$(INTERNAL_CRT0) += ARCH-$(ARCH)/crt0.S $(SUPPORT_CRT0_$(ARCH)-$(PLATFORM_TYPE))
 SRC_S_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/cache.S
 SRC_S_x86-$(INTERNAL_CRT0) += ARCH-x86/mb2.S
 

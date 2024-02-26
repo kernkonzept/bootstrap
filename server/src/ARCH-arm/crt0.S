@@ -118,114 +118,16 @@ crt_end_bin_lsb: .word _module_data_end;
 
 run:
 #endif
-	mov	r5, #0x1000
-	sub	r5, r5, #1                 /* r5 == 0xfff */
-	mrc	p15, 0, r6, c0, c0, 0      /* Main ID */
-	lsr	r6, #4
-	and	r6, r6, r5
+	b	platform_cpu_bootup
 
-	/* Check for processors that understand CPU ID */
-	mov	r9, #0xb00
-	orr 	r9, #0x002
-	cmp	r6, r9
-	beq	do_cpuid
+.global platform_cpu_bootup
+.type platform_cpu_bootup, #function
+.weak platform_cpu_bootup
+platform_cpu_bootup:
+	/* Can be overridden by platform for special MP boot */
 
-	mov	r5, #0xf00
-	and	r6, r5
-
-	mov	r9, #0xc00
-	cmp	r6, r9
-	beq	do_cpuid
-
-	mov	r9, #0xd00
-	cmp	r6, r9
-	bne	do_bootstrap               /* None matched, normal startup */
-
-do_cpuid:
-	mrc	p15, 0, r4, c0, c0, 5      /* CPU ID */
-	tst	r4, #0xff                  /* Test Aff0 field */
-	tsteq	r4, #(0xff <<  8)          /* Test Aff1 field */
-	tsteq	r4, #(0xff << 16)          /* Test Aff2 field */
-	beq	do_bootstrap               /* CPU0 continues with bootstrap */
-
-/* CPU1+ wait for bootup */
-
-#if defined(PLATFORM_TYPE_rv) || defined(PLATFORM_TYPE_rv_pbx) || \
-    defined(PLATFORM_TYPE_rv_vexpress) || defined(PLATFORM_TYPE_rv_vexpress_a15)
-
-	// enable GIC CPU interface + prio mask for IRQs
-	mrc	p15, 0, r8, c0, c0, 0    // r8: cpu-id
-	and	r8, r8, #0x70
-	cmp	r8, #0x70
-
-	// get board ID and retrieve MPCore-base from table
-	movne	r7, #0x10000000
-	moveq	r7, #0x00010000
-	orreq	r7, #0x1c000000
-	ldr	r5, [r7]
-	bic	r5, #0xff
-
-	adr	r6, .Lboard_data_table
-2:
-	ldr	r4, [r6]
-	cmp	r4, #0
-	beq	3f
-	cmp	r4, r5
-	bne	4f
-
-	ldr	r9, [r6, #4]
-	cmp	r8, r9
-	beq	3f
-	cmp	r9, #0
-	beq	3f
-4:	add	r6, #12
-	b	2b
-
-3:
-	ldr	r4, [r6, #8]
-	mov	r8, #0x1
-	str	r8, [r4, #0]
-	mov	r8, #0xf0
-	str	r8, [r4, #4]
-
-1:
-	ldr	r6, [r7, #0x30]
-	cmp	r6, #0
-	movne	pc, r6
-	.inst	0xe320f003 /* wfi */
-	ldr	r8, [r4, #12]
-	str	r8, [r4, #16]
-	b	1b
-
-.Lboard_data_table:
-	/* VExpress */
-	.word	0x1190f500 /* Board ID */
-	.word	0x00000070 /* CPU ID */
-	.word	0x2c002000 /* MPCore base */
-
-	.word	0x1190f500 /* Board ID */
-	.word	0x00000000 /* CPU ID */
-	.word	0x1e000100 /* MPCore base */
-
-	/* Default value (with #0) must come last! */
-	/* Realview */
-	.word	0
-	.word	0
-	.word	0x1f000100
-
-#else
-	adr     r1, do_bootstrap
-	ldr     r0, .LCspin
-	add     r0, r0, r1
-
-1:	dsb
-	ldr	r1, [r0]
-	cmp	r1, #0
-	bxne	r1
-	wfe
-	b       1b
-#endif
-
+.global do_bootstrap
+.type do_bootstrap, #function
 do_bootstrap:
 #ifdef __ARM_FP
 .fpu vfp
@@ -252,7 +154,6 @@ no_fpu:
 1:	b	1b
 
 .LCstack: .word (crt0_stack_high - do_bootstrap)
-.LCspin: .word (mp_launch_spin_addr - do_bootstrap)
 
 .section ".bss"
 
@@ -262,7 +163,3 @@ crt0_stack_low:
 	.space	8192
 	.global crt0_stack_high
 crt0_stack_high:
-
-	.global mp_launch_spin_addr
-mp_launch_spin_addr:
-	.space 4

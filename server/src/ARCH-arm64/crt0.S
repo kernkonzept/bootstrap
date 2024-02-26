@@ -94,19 +94,16 @@ crt_end_bin:  .8byte _module_data_end
 
 run:
 #endif
-	mrs	x9, MPIDR_EL1              /* CPU ID */
-	and	x9, x9, #~(0xff << 24)     /* Just keep Aff[0-3] fields */
-	cmp	x9, #0                     /* CPU0 continues with bootstrap */
-	beq	do_bootstrap
+	b	platform_cpu_bootup
 
-1:	dsb	sy
-	ldr	x9, mp_launch_spin_addr
-	cmp	x9, #0
-	beq	2f                         /* Not yet */
-	blr	x9
-2:	wfe
-	b	1b
+.global platform_cpu_bootup
+.type platform_cpu_bootup, #function
+.weak platform_cpu_bootup
+platform_cpu_bootup:
+	/* Can be overridden by platform for special MP boot */
 
+.global do_bootstrap
+.type do_bootstrap, #function
 do_bootstrap:
 	adr	x9, crt0_stack_high
 	mov	sp, x9
