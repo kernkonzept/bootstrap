@@ -47,6 +47,11 @@ _start:
 10:
 #endif
 
+	// IRQs, FIQs off
+	mrs r4, cpsr
+	orr r4, #0xc0
+	msr cpsr_c, r4
+
 	/*
 	 * It might be the case that we're not run at the position where we
 	 * have been linked to. If this is the case we copy ourselves to the
@@ -144,11 +149,6 @@ do_cpuid:
 	beq	do_bootstrap               /* CPU0 continues with bootstrap */
 
 /* CPU1+ wait for bootup */
-
-	// IRQs, FIQs off
-	mrs r4, cpsr
-	orr r4, #0xc0
-	msr cpsr_c, r4
 
 #if defined(PLATFORM_TYPE_rv) || defined(PLATFORM_TYPE_rv_pbx) || \
     defined(PLATFORM_TYPE_rv_vexpress) || defined(PLATFORM_TYPE_rv_vexpress_a15)
