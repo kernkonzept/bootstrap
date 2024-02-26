@@ -14,7 +14,6 @@ cpu_bootup_code_start:
 
 .global platform_cpu_bootup
 .type platform_cpu_bootup, #function
-.weak platform_cpu_bootup
 platform_cpu_bootup:
 	mrc	p15, 0, r4, c0, c0, 5      /* CPU ID */
 	tst	r4, #0x0f                  /* Test Aff0 field */
