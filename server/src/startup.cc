@@ -501,11 +501,7 @@ static void fill_mem(l4_uint8_t fill_value)
     }
 }
 
-/**
- * Add the bootstrap binary itself to the allocated memory regions.
- */
-static void
-init_regions()
+static Region bootstrap_region()
 {
   extern int _start;	/* begin of image -- defined in crt0.S */
   extern int _end;	/* end   of image -- defined by bootstrap.ld */
@@ -516,9 +512,23 @@ init_regions()
     = p->to_phys(reinterpret_cast<unsigned long>(&_start));
   unsigned long long pend
     = p->to_phys(reinterpret_cast<unsigned long>(&_end));
-  regions.add(Region::start_size(pstart, pend - pstart, ".bootstrap",
-                                 Region::Boot));
+  return Region::start_size(pstart, pend - pstart, ".bootstrap", Region::Boot);
 }
+
+/**
+ * Add the bootstrap binary itself to the allocated memory regions.
+ */
+static void
+init_regions()
+{ regions.add(bootstrap_region()); }
+
+/**
+ * Remove the bootstrap binary itself as it ceases to exist when jumping to the
+ * kernel.
+ */
+static void
+finalize_regions()
+{ regions.sub(bootstrap_region()); }
 
 /**
  * Add all sections of the given ELF binary to the allocated regions.
@@ -887,9 +897,6 @@ startup(char const *cmdline)
 #endif
     }
 
-  regions.optimize();
-  regions.dump();
-
   // Note: we have to ensure that the original ELF binaries are not modified
   // or overwritten up to this point. However, the memory regions for the
   // original ELF binaries are freed during load_elf_module() but might be
@@ -900,6 +907,10 @@ startup(char const *cmdline)
   // longer be used from here on.
   if (presetmem)
     fill_mem(presetmem_value);
+
+  finalize_regions();
+  regions.optimize();
+  regions.dump();
 
   printf("  Starting kernel ");
   print_module_name(L4_CONST_CHAR_PTR(mb_mod[0].cmdline),
