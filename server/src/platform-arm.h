@@ -9,6 +9,7 @@
 
 #include "platform.h"
 #include "koptions-def.h"
+#include "support.h"
 #include "arch/arm/mem.h"
 
 #include <l4/sys/kip.h>
@@ -17,6 +18,20 @@ class Platform_arm : public Platform_base
 {
 public:
   enum class EL_Support { EL2, EL1, Unknown };
+
+  void init_regions() override
+  {
+    // Ensure later stages do not overwrite the CPU boot-up code
+    extern char cpu_bootup_code_start[] __attribute__((weak));
+    extern char cpu_bootup_code_end[] __attribute__((weak));
+    if (cpu_bootup_code_start)
+      {
+        l4_size_t const size = cpu_bootup_code_end - cpu_bootup_code_start;
+        mem_manager->regions->add(Region::start_size(cpu_bootup_code_start, size,
+                                                     ".cpu_boot", Region::Root),
+                                  true);
+      }
+  }
 
   static void reboot_psci()
   {

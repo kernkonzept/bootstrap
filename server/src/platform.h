@@ -57,6 +57,8 @@ public:
    */
   virtual void setup_kernel_options(L4_kernel_options::Options *) {}
 
+  virtual void init_regions() {}
+
   virtual void boot_kernel(unsigned long entry)
   {
     typedef void (*func)(void);

@@ -15,16 +15,5 @@ void Platform_arm::setup_kernel_config_arm_common(l4_kernel_info_t *kip)
 {
   kernel_type = l4_kip_kernel_has_feature(kip, "arm:hyp")
                 ? EL_Support::EL2 : EL_Support::EL1;
-
-  // Ensure later stages do not overwrite the CPU boot-up code
-  extern char cpu_bootup_code_start[] __attribute__((weak));
-  extern char cpu_bootup_code_end[] __attribute__((weak));
-  if (cpu_bootup_code_start)
-    {
-      l4_size_t const size = cpu_bootup_code_end - cpu_bootup_code_start;
-      mem_manager->regions->add(Region::start_size(cpu_bootup_code_start, size,
-                                                   ".cpu_boot", Region::Root),
-                                true);
-    }
 }
 
