@@ -60,12 +60,18 @@ SUPPORT_CC_arm-msm8974         := platform/qcom.cc dt.cc
 SUPPORT_CC_arm-ti_am           := platform/ti-am.cc dt.cc
 SUPPORT_CC_arm-arm_fvp_base    := platform/arm_fvp_base.cc
 SUPPORT_CRT0_arm-arm_fvp_base  := ARCH-arm/spin_addr_boot-generic.S
+SUPPORT_CC_arm-arm_fvp_base_r  := platform/arm_fvp_base_r.cc
+SUPPORT_CRT0_arm-arm_fvp_base_r := ARCH-arm/spin_addr_boot-generic.S
+DEFAULT_RELOC_arm-arm_fvp_base_r := 0
 
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc platform_single_ram_region.cc
 SUPPORT_CC_arm64-rv_vexpress_a15 := platform/rv_vexpress.cc platform_single_ram_region.cc
 SUPPORT_CC_arm64-arm_fvp_base  := platform/arm_fvp_base.cc
 SUPPORT_CRT0_arm64-arm_fvp_base   := ARCH-arm64/spin_addr_boot-generic.S
+SUPPORT_CC_arm64-arm_fvp_base_r := platform/arm_fvp_base_r.cc
+SUPPORT_CRT0_arm64-arm_fvp_base_r := ARCH-arm64/spin_addr_boot-generic.S
+DEFAULT_RELOC_arm64-arm_fvp_base_r := 0
 SUPPORT_CC_arm64-armada37xx    := platform/armada37xx.cc
 SUPPORT_CC_arm64-rcar3         := platform/rcar3.cc
 DEFAULT_RELOC_arm64-rcar3      := 0x09000000
