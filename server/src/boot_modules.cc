@@ -98,14 +98,11 @@ Boot_modules::mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
 void
 Boot_modules::merge_mod_regions()
 {
-  Region_list *regions = mem_manager->regions;
-  for (Region *r = regions->begin(); r != regions->end(); ++r)
-    {
-      if (r->name() == ::Mod_reg)
-        r->sub_type(L4_FPAGE_RWX);
-    }
+  for (Region &r : *mem_manager->regions)
+    if (r.name() == ::Mod_reg)
+      r.sub_type(L4_FPAGE_RWX);
 
-  regions->optimize();
+  mem_manager->regions->optimize();
 }
 
 
@@ -414,16 +411,13 @@ static bool
 drop_mod_region(Mod_info *mod)
 {
   // remove the module region for now
-  for (Region *r = mem_manager->regions->begin();
-       r != mem_manager->regions->end();)
+  for (Region &r : *mem_manager->regions)
     {
-      if (r->name() == ::Mod_reg && r->sub_type() == mod->index())
+      if (r.name() == ::Mod_reg && r.sub_type() == mod->index())
         {
-          mem_manager->regions->remove(r);
+          mem_manager->regions->remove(&r);
           return true;
         }
-      else
-        ++r;
     }
 
   return false;
@@ -508,9 +502,7 @@ Boot_modules_image_mode::reserve()
                                                ".modinfo", Region::Boot));
 
   for (Mod_info const &m : mod_header->mods())
-    {
-      mem_manager->regions->add(m.region());
-    }
+    mem_manager->regions->add(m.region());
 }
 
 int
@@ -582,22 +574,21 @@ decomp_move_mod(Mod_info *mod, char *destbuf)
 }
 
 void
-Boot_modules_image_mode::decompress_mods(unsigned mod_count,
-                                         l4_addr_t total_size, l4_addr_t mod_addr)
+Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_addr)
 {
   Mod_info *mod_info = mod_header->mods().begin();
-  Region_list *regions = mem_manager->regions;
-  assert (mod_count > Mod_info::Num_base_modules);
+  assert (mod_header->num_mods() > Mod_info::Num_base_modules);
 
   printf("Compressed modules:\n");
   for (Mod_info const &mod : mod_header->mods())
-    if (mod.compressed())
-      print_mod(&mod);
+    {
+      if (mod.compressed())
+        print_mod(&mod);
 
-  // sort the modules according to the start address
-  for (unsigned i = 0; i < mod_count; ++i)
-    if (!mod_info[i].is_base_module())
-      mod_insert_sorted(i, Mbi_mod_cmp(this));
+      // sort the modules according to the start address
+      if (!mod.is_base_module())
+        mod_insert_sorted(mod.index(), Mbi_mod_cmp(this));
+    }
 
   // possibly decompress directly behind the end of the first module
   // We can do this, when we start decompression from the last module
@@ -618,18 +609,18 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
       // memory
       char const *rpos = rdest;
       char const *lpos = ldest;
-      for (unsigned i = 0; i < mod_count; ++i)
+      for (Mod_info const &mod : mod_header->mods())
         {
-          Mod_info *mod = &mod_info[mod_sorter[i]];
-          if (mod->is_base_module())
+          if (mod.is_base_module())
             continue;
-          char const *mstart = mod->start();
-          char const *mend = mod->start() + mod->size();
+          char const *mstart = mod.start();
+          char const *mend = mod.start() + mod.size();
           // remove the module region for now
-          for (Region *r = regions->begin(); r != regions->end();)
+          for (Region *r = mem_manager->regions->begin();
+               r != mem_manager->regions->end();)
             {
-              if (r->name() == ::Mod_reg && r->sub_type() == mod->index())
-                r = regions->remove(r);
+              if (r->name() == ::Mod_reg && r->sub_type() == mod.index())
+                r = mem_manager->regions->remove(r);
               else
                 ++r;
             }
@@ -641,9 +632,9 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
               rdest += delta;
             }
 
-          if (ldest && lpos + mod->size_uncompressed() > mstart)
+          if (ldest && lpos + mod.size_uncompressed() > mstart)
             {
-              l4_addr_t delta = l4_round_page(lpos + mod->size_uncompressed() - mstart);
+              l4_addr_t delta = l4_round_page(lpos + mod.size_uncompressed() - mstart);
               if ((l4_addr_t)ldest > delta)
                 {
                   lpos -= delta;
@@ -653,21 +644,21 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
                 ldest = 0;
             }
 
-          rpos += l4_round_page(mod->size_uncompressed());
-          lpos += l4_round_page(mod->size_uncompressed());
+          rpos += l4_round_page(mod.size_uncompressed());
+          lpos += l4_round_page(mod.size_uncompressed());
         }
 
       Region dest = Region::array(ldest, total_size);
       destbuf = const_cast<char *>(ldest);
       fwd = true;
-      if (!ldest || !mem_manager->ram->contains(dest) || regions->find(dest))
+      if (!ldest || !mem_manager->ram->contains(dest) || mem_manager->regions->find(dest))
         {
           printf("  cannot decompress at %p, try %p\n", ldest, rdest);
           dest = Region::array(rdest, total_size); // try the move behind version
           destbuf = const_cast<char *>(rdest);
           fwd = false;
 
-          if (!mem_manager->ram->contains(dest) || regions->find(dest))
+          if (!mem_manager->ram->contains(dest) || mem_manager->regions->find(dest))
             {
               l4_uint64_t free_ram
                 = mem_manager->find_free_ram(total_size,
@@ -712,31 +703,28 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
     }
 
   // move kernel, sigma0 and roottask out of the way
-  for (unsigned i = 0; i < mod_count; ++i)
+  for (Mod_info &mod : mod_header->mods())
     {
-      Mod_info *mod = mod_header->mods()[i];
-      if (!mod->is_base_module())
+      if (!mod.is_base_module())
         continue;
 
-      Region mr = mod->region();
-      for (Region *r = regions->begin(); r != regions->end(); ++r)
+      Region mr = mod.region();
+      for (Region &r : *mem_manager->regions)
         {
-          if (r->overlaps(mr) && r->name() != ::Mod_reg)
+          if (r.overlaps(mr) && r.name() != ::Mod_reg)
             {
               // overlaps with some non-module, assumingly an ELF region
               // so move us out of the way
-              l4_uint64_t free_ram = mem_manager->find_free_ram(mod->size());
-              char *to = reinterpret_cast<char *>(free_ram);
+              l4_uint64_t to = mem_manager->find_free_ram(mod.size());
               if (!to)
                 {
                   printf("fatal: could not find free RAM region for module\n"
-                         "       need %lx bytes\n",
-                         static_cast<unsigned long>(mod->size()));
+                         "       need %x bytes\n", mod.size());
                   mem_manager->ram->dump();
-                  regions->dump();
+                  mem_manager->regions->dump();
                   panic("\n");
                 }
-              move_module(i, to);
+              move_module(mod.index(), reinterpret_cast<char *>(to));
               break;
             }
         }
@@ -757,7 +745,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 
   assert(mod_count >= 1);
 
-  for (Mod_info &mod : mod_header->mods())
+  for (Mod_info const &mod : mod_header->mods())
     mbi_size += round_wordsize(strlen(mod.cmdline()) + 1);
 
   for (Internal_module_base const *m = internal_mods.root; m; m = m->next())
@@ -778,11 +766,11 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
   l4util_l4mod_mod *mods = reinterpret_cast<l4util_l4mod_mod *>(mbi + 1);
   char *mbi_strs = reinterpret_cast<char *>(mods + mod_count);
 
-  mbi->mods_count  = mod_count;
+  mbi->mods_count  = mod_header->num_mods();
   mbi->mods_addr   = reinterpret_cast<l4_addr_t>(mods);
 
   unsigned long total_size = 0;
-  for (Mod_info &mod : mod_header->mods())
+  for (Mod_info const &mod : mod_header->mods())
     {
       if (mod.size() == 0)
         panic("Module %hu '%s' empty, modules must not have zero size.",
@@ -797,7 +785,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 
 #ifdef CONFIG_BOOTSTRAP_COMPRESS
   if (mod_header->num_mods() > Mod_info::Num_base_modules)
-    decompress_mods(mod_header->num_mods(), total_size, mod_addr);
+    decompress_mods(total_size, mod_addr);
 #else // CONFIG_BOOTSTRAP_COMPRESS
   static_cast<void>(total_size);
   move_modules(mod_addr);
@@ -806,18 +794,16 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 
   unsigned cnt = 0;
   for (unsigned run = 0; run < 2; ++run)
-    for (unsigned i = 0; i < mod_header->num_mods(); ++i)
+    for (Mod_info const &mod : mod_header->mods())
       {
-        Mod_info *mod = mod_header->mods()[i];
-
-        if (   (run == 0 && !mod->is_base_module())
-            || (run == 1 &&  mod->is_base_module()))
+        if (   (run == 0 && !mod.is_base_module())
+            || (run == 1 &&  mod.is_base_module()))
           continue;
 
-        check_md5(mod->name(), mod->start(),
-                  mod->size_uncompressed(), mod->md5sum_uncompr());
+        check_md5(mod.name(), mod.start(),
+                  mod.size_uncompressed(), mod.md5sum_uncompr());
 
-        if (char const *c = mod->cmdline())
+        if (char const *c = mod.cmdline())
           {
             unsigned l = strlen(c) + 1;
             mods[cnt].cmdline = reinterpret_cast<l4_addr_t>(mbi_strs);
@@ -825,17 +811,16 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
             mbi_strs += round_wordsize(l);
           }
 
-        mods[cnt].mod_start = reinterpret_cast<l4_addr_t>(mod->start());
-        mods[cnt].mod_end   = mods[cnt].mod_start + mod->size();
-        mods[cnt].flags     = mod->flags() & Mod_info_flag_mod_mask;
+        mods[cnt].mod_start = reinterpret_cast<l4_addr_t>(mod.start());
+        mods[cnt].mod_end   = mods[cnt].mod_start + mod.size();
+        mods[cnt].flags     = mod.flags() & Mod_info_flag_mod_mask;
         cnt++;
       }
 
   for (Internal_module_base const *m = internal_mods.root; m; m = m->next())
     {
-      m->set(&mods[cnt], mbi_strs);
+      m->set(&mods[mbi->mods_count++], mbi_strs);
       mbi_strs += round_wordsize(m->cmdline_size());
-      ++cnt;
     }
 
   return mbi;

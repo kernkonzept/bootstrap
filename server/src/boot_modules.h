@@ -108,6 +108,5 @@ public:
   int base_mod_idx(Mod_info_flags mod_info_module_flag) override;
 
 private:
-  void decompress_mods(unsigned mod_count,
-                       l4_addr_t total_size, l4_addr_t mod_addr);
+  void decompress_mods(l4_addr_t total_size, l4_addr_t mod_addr);
 };
