@@ -4,7 +4,10 @@
 #include "panic.h"
 #include <assert.h>
 #include "mod_info.h"
-#ifdef COMPRESS
+
+#include <l4/bid_config.h>
+
+#ifdef CONFIG_BOOTSTRAP_COMPRESS
 #include "uncompress.h"
 #endif
 
@@ -206,7 +209,7 @@ mod_insert_sorted(unsigned short v, CMP const &cmp)
   ++mod_sorter_end;
 }
 
-#ifdef COMPRESS
+#ifdef CONFIG_BOOTSTRAP_COMPRESS
 static inline unsigned mod_sorter_num()
 {
   return mod_sorter_end - mod_sorter;
@@ -408,7 +411,7 @@ namespace {
  * Helper functions for modules
  */
 
-#ifdef COMPRESS // only used with compression
+#ifdef CONFIG_BOOTSTRAP_COMPRESS // only used with compression
 static bool
 drop_mod_region(Mod_info *mod)
 {
@@ -471,7 +474,7 @@ static inline void check_md5(const char *, void const *, unsigned, const char *)
 {}
 #endif // ! DO_CHECK_MD5
 
-#ifdef COMPRESS
+#ifdef CONFIG_BOOTSTRAP_COMPRESS
 static void
 decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 {
@@ -496,7 +499,7 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
   mod->size(mod->size_uncompressed());
   mem_manager->regions->add(mod->region(true, type));
 }
-#endif // COMPRESS
+#endif // CONFIG_BOOTSTRAP_COMPRESS
 }
 
 void
@@ -529,7 +532,7 @@ Boot_modules_image_mode::module(unsigned index, bool uncompress) const
   // want access to the module, if we have compression we need to decompress
   // the module first
   Mod_info *mod = mod_header->mods()[index];
-#ifdef COMPRESS
+#ifdef CONFIG_BOOTSTRAP_COMPRESS
   // we currently assume a module as compressed when the size != size_compressed
   if (uncompress && mod->compressed())
     {
@@ -556,7 +559,7 @@ Boot_modules_image_mode::num_modules() const
   return mod_header->num_mods();
 }
 
-#ifdef COMPRESS
+#ifdef CONFIG_BOOTSTRAP_COMPRESS
 static void
 decomp_move_mod(Mod_info *mod, char *destbuf)
 {
@@ -741,7 +744,7 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
         }
     }
 }
-#endif // COMPRESS
+#endif // CONFIG_BOOTSTRAP_COMPRESS
 
 /**
  * Create the basic multi-boot structure in IMAGE_MODE
@@ -794,14 +797,14 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
         }
     }
 
-#ifdef COMPRESS
+#ifdef CONFIG_BOOTSTRAP_COMPRESS
   if (mod_header->num_mods() > Mod_info::Num_base_modules)
     decompress_mods(mod_header->num_mods(), total_size, mod_addr);
   merge_mod_regions();
-#else // COMPRESS
+#else // CONFIG_BOOTSTRAP_COMPRESS
   static_cast<void>(total_size);
   move_modules(mod_addr);
-#endif // ! COMPRESS
+#endif // ! CONFIG_BOOTSTRAP_COMPRESS
 
   unsigned cnt = 0;
   for (unsigned run = 0; run < 2; ++run)

@@ -10,6 +10,7 @@
 
 use strict;
 use warnings;
+use feature qw/state/;
 
 BEGIN { unshift @INC, $ENV{L4DIR}.'/tool/lib'
            if $ENV{L4DIR} && -d $ENV{L4DIR}.'/tool/lib/L4';}
@@ -27,17 +28,18 @@ my $cross_compile_prefix = $ENV{CROSS_COMPILE} || '';
 my $arch                 = $ENV{OPT_ARCH}     || "x86";
 my $platform_type        = $ENV{OPT_PLATFORM_TYPE};
 
-my $module_path   = $ENV{SEARCHPATH}    || ".";
-my $prog_objcopy  = $ENV{OBJCOPY}       || "${cross_compile_prefix}objcopy";
-my $prog_cc       = $ENV{CC}            || "${cross_compile_prefix}gcc";
-my $prog_nm       = $ENV{NM}            || "${cross_compile_prefix}nm";
-my $prog_cp       = $ENV{PROG_CP}       || "cp";
-my $prog_gzip     = $ENV{PROG_GZIP}     || "gzip";
-my $compress      = $ENV{OPT_COMPRESS}  || 0;
-my $strip         = $ENV{OPT_STRIP}     || 1;
-my $output_dir    = $ENV{OUTPUT_DIR}    || '.';
-my $make_inc_file = $ENV{MAKE_INC_FILE} || "mod.make.inc";
-my $flags_cc      = $ENV{FLAGS_CC}      || '';
+my $module_path    = $ENV{SEARCHPATH}     || ".";
+my $prog_objcopy   = $ENV{OBJCOPY}        || "${cross_compile_prefix}objcopy";
+my $prog_cc        = $ENV{CC}             || "${cross_compile_prefix}gcc";
+my $prog_nm        = $ENV{NM}             || "${cross_compile_prefix}nm";
+my $prog_cp        = $ENV{PROG_CP}        || "cp";
+my $prog_gzip      = $ENV{PROG_GZIP}      || "gzip";
+my $compress       = $ENV{COMPRESS}       || 0;
+my $can_decompress = $ENV{CAN_DECOMPRESS} || 0;
+my $strip          = $ENV{OPT_STRIP}      || 1;
+my $output_dir     = $ENV{OUTPUT_DIR}     || '.';
+my $make_inc_file  = $ENV{MAKE_INC_FILE}  || "mod.make.inc";
+my $flags_cc       = $ENV{FLAGS_CC}       || '';
 
 sub usage()
 {
@@ -152,6 +154,13 @@ sub build_obj
   system("$prog_cp $d{path} $modname.obj") if $take_orig;
 
   $opts->{compress} = undef if $compress;
+
+  state $warned_decompress = 0;
+  unless ($can_decompress or not exists $opts->{compress} or $warned_decompress)
+    {
+      print("WARNING: bootstrap cannot decompress. Image will likely not boot.\n");
+      $warned_decompress = 1;
+    }
   my %imgmod = L4::Image::fill_module("$modname.obj", $opts,
                                        basename((split(/\s+/, $cmdline))[0]),
                                        $flags, $cmdline);
@@ -226,6 +235,7 @@ sub build_objects(@)
   $img{attrs}{"l4i:loadaddr"} = $ENV{BOOTSTRAP_LINKADDR};
   $img{attrs}{"l4i:rambase"} = $ENV{OPT_RAM_BASE};
   $img{attrs}{"l4i:uefi"} = $ENV{OPT_EFIMODE};
+  $img{attrs}{"bootstrap:features"} = "compress-gz" if $can_decompress;
 
   my $volatile_data = 1;
 

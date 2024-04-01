@@ -29,4 +29,13 @@ config BOOTSTRAP_THUMB_ENTRY
 
 	  If in doubt, choose n.
 
+config BOOTSTRAP_COMPRESS
+	bool "Support for compressed modules"
+	help
+	  Allow bootstrap to decompress modules that have been compressed.
+	  Using compressed modules reduces the size of an l4image at the cost of
+	  increased startup time due to the required unpacking.
+
+	  Modules will not be automatically compressed when building.
+
 endmenu

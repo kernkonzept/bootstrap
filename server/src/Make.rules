@@ -188,7 +188,6 @@ endif
 vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-$(ARCH)
 
 # can be overwritten by Makeconf.local
-COMPRESS	?= 0
 BUILD_PIE	?= 0
 
 ifeq ($(BUILD_PIE),1)
@@ -216,7 +215,8 @@ BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         MAKE_INC_FILE=$(PWD)/mod.make.inc \
                         FLAGS_CC="$(CARCHFLAGS) $(CCXX_FLAGS) -I$(SRC_DIR)" \
                         OUTPUT_DIR="$(BOOTSTRAP_OUTPUT_DIR)" \
-                        OPT_ARCH=$(ARCH) OPT_COMPRESS=$(COMPRESS) \
+                        OPT_ARCH=$(ARCH) \
+                        CAN_DECOMPRESS=$(CONFIG_BOOTSTRAP_COMPRESS) \
                         L4DIR=$(L4DIR) \
                         BOOTSTRAP_LINKADDR=$(BOOTSTRAP_LINKADDR) \
                         OPT_RAM_BASE=$(RAM_BASE) \
@@ -237,7 +237,7 @@ endif
 
 # we need to re-do if some things change
 .redo-change-tracker: FORCE
-	$(VERBOSE)echo "$(ENTRY) '$(COMPRESS)' '$(BOOTSTRAP_CMDLINE)' '$(BOOTSTRAP_SEARCH_PATH):$(BOOTSTRAP_MODULE_PATH_BINLIB)' '$(RAM_SIZE_MB)' '$(PLATFORM_TYPE)' '$(PLATFORM_UART_NR)' '$(od)' '$(OPT_STRIP)' '$(call default_reloc,$(ARCH))' '$(BOOTSTRAP_DO_UEFI)'" > $@.tmp
+	$(VERBOSE)echo "$(ENTRY) '$(BOOTSTRAP_CMDLINE)' '$(BOOTSTRAP_SEARCH_PATH):$(BOOTSTRAP_MODULE_PATH_BINLIB)' '$(RAM_SIZE_MB)' '$(PLATFORM_TYPE)' '$(PLATFORM_UART_NR)' '$(od)' '$(OPT_STRIP)' '$(call default_reloc,$(ARCH))' '$(BOOTSTRAP_DO_UEFI)'" > $@.tmp
 	$(if $(BUILD_MOD_CMD),$(VERBOSE)$(call BUILD_MOD_CMD,dump) >> $@.tmp)
 	$(VERBOSE)$(call move_if_changed,$@,$@.tmp)
 
@@ -328,11 +328,8 @@ $(od)bootstrap.efi: $(od)$(EFI_IMAGE)
   endif
 endif # ENTRY
 
-ifneq ($(COMPRESS),0)
-SRC_CC             += uncompress.cc gunzip.cc
+SRC_CC-$(CONFIG_BOOTSTRAP_COMPRESS) += uncompress.cc gunzip.cc
 CXXFLAGS_gunzip.cc := -fno-strict-aliasing
-CPPFLAGS           += -DCOMPRESS
-endif
 
 ifneq ($(RAM_SIZE_MB),)
 CPPFLAGS	+= -DRAM_SIZE_MB=$(RAM_SIZE_MB)
