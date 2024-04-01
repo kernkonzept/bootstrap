@@ -103,7 +103,6 @@ sub build_obj
 {
   my ($file, $cmdline, $modname, $flags, $opts) = @_;
   my %d;
-  my %imgmod;
 
   $d{path} = L4::ModList::search_file($file, $module_path)
     || die "Cannot find file $file! Used search path: $module_path";
@@ -136,7 +135,7 @@ sub build_obj
         {
           # Linux AARCH64 kernel image. 'objcopy -S' would remove the AArch64
           # header. The resulting PE image format isn't supported by Uvmm.
-          $d{nostrip} = 1;
+          $opts->{nostrip} = 1;
         }
       else
         {
@@ -152,42 +151,15 @@ sub build_obj
 
   system("$prog_cp $d{path} $modname.obj") if $take_orig;
 
-  my $uncompressed_size = -s "$modname.obj";
-
-  my $c_unc = Digest::MD5->new;
-  open(M, "$modname.obj") || die "Failed to open $modname.obj: $!";
-  binmode M;
-  $c_unc->addfile(*M);
-  close M;
-
-  if ($compress and
-      not L4::ModList::is_gzipped_file("$modname.obj"))
-    {
-       system("$prog_gzip -9f $modname.obj && mv $modname.obj.gz $modname.obj");
-       $d{size_compressed} = -s "$modname.obj";
-    }
+  $opts->{compress} = undef if $compress;
+  my %imgmod = L4::Image::fill_module("$modname.obj", $opts,
+                                       basename((split(/\s+/, $cmdline))[0]),
+                                       $flags, $cmdline);
+  error($imgmod{error}) if $imgmod{error};
 
   $d{modname} = $modname;
 
   &{$output_formatter{module}}(%d);
-
-  my $c_compr = Digest::MD5->new;
-  open(M, "$modname.obj") || die "Failed to open $modname.obj: $!";
-  $c_compr->addfile(*M);
-  close M;
-
-  my $size = -s "$modname.obj";
-  my $md5_compr = $c_compr->hexdigest;
-  my $md5_uncompr = $c_unc->hexdigest;
-
-  $imgmod{filepath}          = "$modname.obj";
-  $imgmod{flags}             = $flags;
-  $imgmod{size}              = $size;
-  $imgmod{size_uncompressed} = $uncompressed_size;
-  $imgmod{name}              = basename((split(/\s+/, $cmdline))[0]);
-  ($imgmod{cmdline}          = $cmdline) =~ s,^\S+\/,,;
-  $imgmod{md5sum_compr}      = $md5_compr;
-  $imgmod{md5sum_uncompr}    = $md5_uncompr;
 
   return %imgmod;
 }
