@@ -921,7 +921,7 @@ static Region *
 find_region_overlap(Region const &n)
 {
   for (Region *r = regions.begin(); r != regions.end(); ++r)
-    if (r->overlaps(n) && r->name() != Boot_modules::Mod_reg
+    if (r->overlaps(n) && r->name() != Mod_info::Mod_reg
         && !(r->type() == Region::Boot && r->sub_type() == Region::Boot_temporary))
       return r;
 

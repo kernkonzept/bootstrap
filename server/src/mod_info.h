@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <l4/sys/l4int.h>
+#include <region.h>
+
 #define BOOTSTRAP_MOD_INFO_MAGIC_HDR "<< L4Re-bootstrap-modinfo-hdr >>"
 #define BOOTSTRAP_MOD_INFO_MAGIC_MOD "<< L4Re-bootstrap-modinfo-mod >>"
 
@@ -98,10 +101,18 @@ public:
     return v > 0 && v <= Num_base_modules;
   }
 
+  Region region(bool round = false, Region::Type type = Region::Boot) const
+  {
+    return Region::start_size(start(), round ? l4_round_page(size()) : size(),
+                              Mod_reg, type, index());
+  }
+
+  short index() const;
 
   inline bool compressed() const
   { return _size != _size_uncompressed; }
 
+  static char const *const Mod_reg;
 } __attribute__((packed)) __attribute__((aligned(8)));
 
 class Mod_info_list
@@ -144,3 +155,5 @@ public:
   inline char const *mbi_cmdline() const
   { return rel2abs<char>(_mbi_cmdline); }
 } __attribute__((packed)) __attribute__((aligned(8)));
+
+extern Mod_header *mod_header;

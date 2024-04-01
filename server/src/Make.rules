@@ -125,7 +125,7 @@ CFLAGS_memcpy_aligned.c = -ffreestanding
 
 SRC_CC		+= exec.cc module.cc region.cc startup.cc init_kip.cc \
 		   libc_support+.cc koptions.cc \
-		   memory.cc boot_modules.cc
+		   memory.cc boot_modules.cc mod_info.cc
 SRC_CC-$(BOOTSTRAP_DO_UEFI) += efi-support.cc
 
 SRC_CC_x86	+= ARCH-x86/reboot.cc base_critical.cc

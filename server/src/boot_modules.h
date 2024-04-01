@@ -74,8 +74,6 @@ public:
     unsigned long size() const { return end - start; }
   };
 
-  static char const *const Mod_reg;
-
   virtual ~Boot_modules() = 0;
   virtual void reserve() = 0;
   virtual Module module(unsigned index, bool uncompress = true) const = 0;

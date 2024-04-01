@@ -12,7 +12,7 @@
 #include <l4/util/mb_info.h>
 
 static char const Mod_reg[] = ".Module";
-char const *const Boot_modules::Mod_reg = ::Mod_reg;
+char const *const Mod_info::Mod_reg = ::Mod_reg;
 
 /* */
 enum
@@ -406,17 +406,6 @@ namespace {
  * Helper functions for modules
  */
 
-static inline Region mod_region(Mod_info const *mod, bool round = false,
-                                Region::Type type = Region::Boot)
-{
-  unsigned long sz = mod->size();
-  if (round)
-    sz = l4_round_page(sz);
-  return Region::start_size(mod->start(), sz,
-                            ::Mod_reg,
-                            type, mod - mod_header->mods().begin());
-}
-
 #ifdef COMPRESS // only used with compression
 static bool
 drop_mod_region(Mod_info *mod)
@@ -425,8 +414,7 @@ drop_mod_region(Mod_info *mod)
   for (Region *r = mem_manager->regions->begin();
        r != mem_manager->regions->end();)
     {
-      if (r->name() == ::Mod_reg
-          && r->sub_type() == mod - mod_header->mods().begin())
+      if (r->name() == ::Mod_reg && r->sub_type() == mod->index())
         {
           mem_manager->regions->remove(r);
           return true;
@@ -441,9 +429,8 @@ drop_mod_region(Mod_info *mod)
 static inline void
 print_mod(Mod_info const *mod)
 {
-  unsigned index = mod - mod_header->mods().begin();
   printf("  mod%02u: %8p-%8p: %s\n",
-         index, mod->start(), mod->start() + mod->size(), mod->name());
+         mod->index(), mod->start(), mod->start() + mod->size(), mod->name());
 }
 #endif
 
@@ -505,7 +492,7 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 
   mod->start(reinterpret_cast<char const *>(dest));
   mod->size(mod->size_uncompressed());
-  mem_manager->regions->add(mod_region(mod, true, type));
+  mem_manager->regions->add(mod->region(true, type));
 }
 #endif // COMPRESS
 }
@@ -519,7 +506,7 @@ Boot_modules_image_mode::reserve()
 
   for (Mod_info const &m : mod_header->mods())
     {
-      mem_manager->regions->add(::mod_region(&m));
+      mem_manager->regions->add(m.region());
     }
 }
 
@@ -528,7 +515,7 @@ Boot_modules_image_mode::base_mod_idx(Mod_info_flags mod_info_mod_type)
 {
   for (Mod_info const &m : mod_header->mods())
     if ((m.flags() & Mod_info_flag_mod_mask) == mod_info_mod_type)
-      return &m - mod_header->mods().begin();
+      return m.index();
 
   return -1;
 }
@@ -586,7 +573,7 @@ decomp_move_mod(Mod_info *mod, char *destbuf)
 #endif
       drop_mod_region(mod);
       mod->start(destbuf);
-      mem_manager->regions->add(mod_region(mod, true, Region::Root));
+      mem_manager->regions->add(mod->region(true, Region::Root));
     }
   print_mod(mod);
 }
@@ -638,7 +625,7 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
           // remove the module region for now
           for (Region *r = regions->begin(); r != regions->end();)
             {
-              if (r->name() == ::Mod_reg && r->sub_type() == mod - mod_info)
+              if (r->name() == ::Mod_reg && r->sub_type() == mod->index())
                 r = regions->remove(r);
               else
                 ++r;
@@ -728,7 +715,7 @@ Boot_modules_image_mode::decompress_mods(unsigned mod_count,
       if (!mod->is_base_module())
         continue;
 
-      Region mr = ::mod_region(mod);
+      Region mr = mod->region();
       for (Region *r = regions->begin(); r != regions->end(); ++r)
         {
           if (r->overlaps(mr) && r->name() != ::Mod_reg)
@@ -795,8 +782,8 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
   for (Mod_info &mod : mod_header->mods())
     {
       if (mod.size() == 0)
-        panic("Module %zd '%s' empty, modules must not have zero size.",
-              &mod - mod_header->mods().begin(), mod.name());
+        panic("Module %hu '%s' empty, modules must not have zero size.",
+              mod.index(), mod.name());
       if (!mod.is_base_module())
         {
           total_size += l4_round_page(mod.size_uncompressed());
