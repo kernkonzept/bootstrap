@@ -321,8 +321,6 @@ Boot_modules::move_modules(unsigned long modaddr)
       move_module(mod_sorter[i], cursor);
       cursor += l4_round_page(mod.size());
     }
-
-  merge_mod_regions();
 }
 
 
@@ -800,11 +798,11 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 #ifdef CONFIG_BOOTSTRAP_COMPRESS
   if (mod_header->num_mods() > Mod_info::Num_base_modules)
     decompress_mods(mod_header->num_mods(), total_size, mod_addr);
-  merge_mod_regions();
 #else // CONFIG_BOOTSTRAP_COMPRESS
   static_cast<void>(total_size);
   move_modules(mod_addr);
 #endif // ! CONFIG_BOOTSTRAP_COMPRESS
+  merge_mod_regions();
 
   unsigned cnt = 0;
   for (unsigned run = 0; run < 2; ++run)
