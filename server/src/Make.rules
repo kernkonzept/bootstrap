@@ -209,7 +209,7 @@ BOOTSTRAP_LINKADDR = $(patsubst -Ttext-segment=%,%,$(filter -Ttext-segment=%,$(L
 BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         CROSS_COMPILE=$(CROSS_COMPILE) \
                         MAKE_INC_FILE=$(PWD)/mod.make.inc \
-                        FLAGS_CC="$(CCXX_FLAGS) $(CARCHFLAGS) -I$(SRC_DIR)" \
+                        FLAGS_CC="$(CARCHFLAGS) $(CCXX_FLAGS) -I$(SRC_DIR)" \
                         OUTPUT_DIR="$(BOOTSTRAP_OUTPUT_DIR)" \
                         OPT_ARCH=$(ARCH) OPT_COMPRESS=$(COMPRESS) \
                         L4DIR=$(L4DIR) \
