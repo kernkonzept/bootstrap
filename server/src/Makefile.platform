@@ -69,6 +69,10 @@ DEFAULT_RELOC_arm-s32z         := 0x00500000
 SUPPORT_CC_arm-sr6p7g7         := platform/sr6p7g7.cc
 DEFAULT_RELOC_arm-sr6p7g7      := 0x00000000
 
+SUPPORT_CC_arm-arm_mps3_an536  := platform/arm_mps3_an536.cc
+SUPPORT_CRT0_arm-arm_mps3_an536  := ARCH-arm/spin_addr_boot-generic.S
+DEFAULT_RELOC_arm-arm_mps3_an536 := 0
+
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc platform_single_ram_region.cc
 SUPPORT_CC_arm64-rv_vexpress_a15 := platform/rv_vexpress.cc platform_single_ram_region.cc
