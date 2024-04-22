@@ -5,6 +5,7 @@
  */
 
 #include "dt.h"
+#include "isa_parser.h"
 #include "platform_riscv.h"
 #include "startup.h"
 #include "support.h"
@@ -121,10 +122,62 @@ Platform_riscv_base::riscv_cpu_hartid(Dt::Node cpu, l4_uint32_t &hartid) const
   return cpu.get_prop_u32("reg", hartid);
 }
 
+struct Isa_ext_bitmap
+{
+  enum { Words = cxx::array_size(l4_kip_platform_info_arch().isa_ext) };
+  l4_uint32_t bits[Words] = { 0 };
+
+  void set(L4_riscv_isa_ext ext)
+  { bits[ext / 32] |= 1 << (ext % 32); }
+
+  bool empty() const
+  {
+    for (l4_uint32_t w : bits)
+      if (w != 0)
+        return false;
+    return true;
+  }
+
+  Isa_ext_bitmap & operator &= (Isa_ext_bitmap const &o)
+  {
+    for (unsigned i = 0; i < cxx::array_size(bits); ++i)
+      bits[i] &= o.bits[i];
+    return *this;
+  }
+};
+
+struct Isa_ext_def
+{
+  char const *name;
+  L4_riscv_isa_ext bit;
+};
+
+/**
+ * Defines mapping from RISC-V ISA extension name to the corresponding
+ * L4_riscv_isa_ext ID.
+ *
+ * New entries should be added according to the following ordering rules
+ * described in the RISC-V unprivileged specification. Entries within each group
+ * shall be ordered alphabetically.
+ * 1. Standard unprivileged extensions, starting with a "Z" followed by an
+ *    alphabetical name, where the first letter following the "Z" conventionally
+ *    indicates the most closely related alphabetical extension category. They
+ *    should be ordered first by category, then alphabetically within a
+ *    category.
+ * 2. Standard supervisor-level extensions, starting with "Ss" or "Sv"
+ *    (virtual-memory architecture extension).
+ * 3. Standard hypervisor-level extensions, starting with "Sh".
+ * 4. Standard machine-level extensions, starting with "Sm".
+ * 5. Non-standard extensions, starting with a single "X".
+ */
+static constexpr Isa_ext_def isa_ext_def[] =
+{
+};
+
 bool
 Platform_riscv_base::parse_isa_ext(l4_kip_platform_info_arch &arch_info) const
 {
-  l4_uint32_t isa_ext = 0;
+  Isa_ext_bitmap isa_ext;
 
   Dt::Node cpus = dt.node_by_path("/cpus");
   if(!cpus.is_valid())
@@ -138,39 +191,44 @@ Platform_riscv_base::parse_isa_ext(l4_kip_platform_info_arch &arch_info) const
         // Not a cpu node.
         return; // continue
 
-      if (!strncmp(isa, "rv32", 4) || !strncmp(isa, "rv64", 4))
-        // Skip rv32/rv64 prefix.
-        isa += 4;
-      else
+      if (strncmp(isa, "rv32", 4) && strncmp(isa, "rv64", 4))
         // Cpu does not have a valid riscv isa.
         return; // continue
 
-      l4_uint32_t tmp_isa_ext = 0;
-      for (size_t i = 0; i < strlen(isa); i++)
+      Isa_parser isa_parser(isa + 4); // +4 is to skip the rv32/rv64 prefix
+      Isa_ext_bitmap tmp_isa_ext;
+      while (isa_parser.next_ext())
         {
-          // Z (unprivileged)/S (privileged)/X (vendor) extensions follow
-          // separated by underscores.
-          if (isa[i] == '_')
-            break;
+          cxx::String const ext = isa_parser.ext();
 
-          // Standard extensions are mapped to the first 26 bits.
-          char c = isa[i];
-          if(c >= 'a' && c <= 'z')
-            tmp_isa_ext |= 1 << (c - 'a');
+          // Single-letter standard extensions are mapped to the first 26 bits.
+          if (ext.len() == 1 && ext[0] >= 'a' && ext[0] <= 'z')
+            {
+              tmp_isa_ext.set(static_cast<L4_riscv_isa_ext>(ext[0] - 'a'));
+              continue;
+            }
+
+          for (auto const &def : isa_ext_def)
+            if (static_cast<size_t>(ext.len()) == strlen(def.name)
+                && !strncasecmp(ext.start(), def.name, ext.len()))
+              tmp_isa_ext.set(def.bit);
         }
 
+      if (isa_parser.has_err())
+        Dt::warn("Errors occurred while parsing ISA string: %s", isa);
+
       // Merge with isa_ext of the other cpus (common subset).
-      if(isa_ext == 0)
+      if(isa_ext.empty())
         isa_ext = tmp_isa_ext;
       else
         isa_ext &= tmp_isa_ext;
     });
 
-  if(isa_ext == 0)
+  if(isa_ext.empty())
     // No cpu with a valid riscv isa was found.
     return false;
 
-  arch_info.isa_ext = isa_ext;
+  memcpy(arch_info.isa_ext, isa_ext.bits, cxx::array_size(arch_info.isa_ext));
   return true;
 }
 
