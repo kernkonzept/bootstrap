@@ -172,6 +172,7 @@ struct Isa_ext_def
  */
 static constexpr Isa_ext_def isa_ext_def[] =
 {
+  { "sstc", L4_riscv_isa_ext_sstc },
 };
 
 bool
