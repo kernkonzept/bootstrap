@@ -11,7 +11,7 @@
 #include "acpi.h"
 #include "efi-support.h"
 #include "panic.h"
-#include "platform.h"
+#include "platform-arm.h"
 #include "startup.h"
 #include "support.h"
 
@@ -19,7 +19,7 @@ namespace {
 
 char const * const psci_methods[] = { "unsupported", "SMC", "HVC" };
 
-class Platform_arm_sbsa : public Platform_base,
+class Platform_arm_sbsa : public Platform_arm,
                           public Boot_modules_image_mode
 {
   enum Psci_method { Psci_unsupported, Psci_smc, Psci_hvc };
