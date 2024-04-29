@@ -37,12 +37,6 @@ public:
     if (!spcr)
       panic("No SPCR found!");
 
-    if (   spcr->type != Acpi::Spcr::Arm_pl011
-        && spcr->type != Acpi::Spcr::Nsc16550
-        && spcr->type != Acpi::Spcr::Arm_sbsa_32bit
-        && spcr->type != Acpi::Spcr::Arm_sbsa)
-      panic("EFI: unsupported uart type: %d", spcr->type);
-
     kuart.variant = spcr->type;
     kuart.base_address = spcr->base.address;
     kuart.irqno = spcr->irq_gsiv;
@@ -81,7 +75,17 @@ public:
 
   void exit_boot_services() override
   {
+    if (!(kuart_flags & L4_kernel_options::F_noserial)
+        && kuart.variant != Acpi::Spcr::Arm_pl011
+        && kuart.variant != Acpi::Spcr::Nsc16550
+        && kuart.variant != Acpi::Spcr::Arm_sbsa_32bit
+        && kuart.variant != Acpi::Spcr::Arm_sbsa)
+      panic("EFI: unsupported uart type: %d", kuart.variant);
+
     efi.exit_boot_services();
+
+    if (kuart_flags & L4_kernel_options::F_noserial)
+      return;
 
     // EFI console is gone. Use our own UART driver from now on...
     static L4::Io_register_block_mmio r(kuart.base_address);
