@@ -61,6 +61,8 @@ public:
                       ? Psci_hvc
                       : Psci_smc;
     printf("PSCI: %s\n", psci_methods[_psci_method]);
+
+    efi.setup_gop();
   }
 
   Boot_modules *modules() override { return this; }
@@ -68,6 +70,13 @@ public:
   void setup_memory_map() override
   {
     efi.setup_memory();
+  }
+
+  l4util_l4mod_info *construct_mbi(unsigned long mod_addr,
+                                   Internal_module_list const &mods) override
+  {
+    l4util_l4mod_info *mbi = Boot_modules_image_mode::construct_mbi(mod_addr, mods);
+    return efi.construct_mbi(mbi);
   }
 
   void exit_boot_services() override
