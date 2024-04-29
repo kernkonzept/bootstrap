@@ -212,6 +212,9 @@ Efi::setup_memory()
 
 l4util_l4mod_info *Efi::construct_mbi(l4util_l4mod_info *mbi)
 {
+  if (!_video_fb_size)
+    return mbi;
+
   // we use the copy here instead of reading it out directly because
   // EFI is already exited in setup_memory_map which is called much too
   // early
