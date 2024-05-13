@@ -62,6 +62,10 @@ struct Platform_x86_1 : Platform_x86
     regions->add(Region::start_size(boot32_info->ptab64_addr,
                                     boot32_info->ptab64_size,
                                     ".bootstrap-ptab64", Region::Boot));
+    // also ensure boot32_info is reserved
+    regions->add(Region::start_size(boot32_info,
+                                    sizeof(struct boot32_info_t),
+                                    ".boot32_info", Region::Boot));
 #endif
 
 #ifdef ARCH_amd64
