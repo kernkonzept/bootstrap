@@ -57,7 +57,9 @@ struct Platform_arm_fvp_base_common : public Platform_arm,
     // FVP is a virtual platform, so be flexible wrt our memory
     // configuration
     unsigned size_mb = RAM_SIZE_MB;
-    assert(sizeof(unsigned long) == 8 || size_mb <= 2048);
+    if (sizeof(unsigned long) == 4 && size_mb > 2048)
+      size_mb = 2048;
+
     mem_manager->ram->add(
       Region::start_size(Ram_base_low,
                          ((size_mb < 2048 ? size_mb : 2048) << 20),
