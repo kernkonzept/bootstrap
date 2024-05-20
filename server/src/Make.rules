@@ -328,8 +328,8 @@ $(od)bootstrap.efi: $(od)$(EFI_IMAGE)
   endif
 endif # ENTRY
 
-SRC_CC-$(CONFIG_BOOTSTRAP_COMPRESS) += uncompress.cc gunzip.cc
-CXXFLAGS_gunzip.cc := -fno-strict-aliasing
+SRC_CC-$(CONFIG_BOOTSTRAP_COMPRESS) += uncompress.cc
+REQUIRES_LIBS-$(CONFIG_BOOTSTRAP_COMPRESS) += zlib
 
 ifneq ($(RAM_SIZE_MB),)
 CPPFLAGS	+= -DRAM_SIZE_MB=$(RAM_SIZE_MB)

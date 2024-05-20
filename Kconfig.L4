@@ -31,11 +31,16 @@ config BOOTSTRAP_THUMB_ENTRY
 
 config BOOTSTRAP_COMPRESS
 	bool "Support for compressed modules"
+	depends on HAVE_BIDPC_ZLIB
 	help
 	  Allow bootstrap to decompress modules that have been compressed.
 	  Using compressed modules reduces the size of an l4image at the cost of
 	  increased startup time due to the required unpacking.
 
 	  Modules will not be automatically compressed when building.
+
+comment "GZIP/ZLIB decompression not available due to missing zlib package"
+	depends on !HAVE_BIDPC_ZLIB
+
 
 endmenu

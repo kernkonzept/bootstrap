@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2024 Kernkonzept GmbH.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *            Marcus Haehnel marcus.haehnel@kernkonzept.com
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /**
  * \file	bootstrap/server/src/uncompress.cc
  * \brief	Support for on-the-fly uncompressing of boot modules
@@ -20,98 +28,68 @@
 #include <l4/sys/l4int.h>
 #include <l4/sys/consts.h>
 
+#define ZLIB_CONST
+#include <zlib.h>
+
 #include "startup.h"
-#include "gunzip.h"
 #include "uncompress.h"
 
-static void const *filestart;
+alignas(long) static char static_buf[16 << 10];
+static char* free_ptr = &static_buf[0];
 
-enum { lin_alloc_buffer_size = 32 << 10 };
-unsigned long lin_alloc_buffer[(lin_alloc_buffer_size + sizeof(unsigned long) - 1)/ sizeof(unsigned long)];
+void free(void * /*address*/)
+{}
 
-/*
- * Upper address for the allocator for gunzip
- */
-l4_addr_t
-gunzip_upper_mem_linalloc(void)
+void* malloc(size_t size)
 {
-  return (l4_addr_t)lin_alloc_buffer + sizeof(lin_alloc_buffer);
-}
-
-/*
- * Returns true if file is compressed, false if not
- */
-static void
-file_open(void const *start, int size)
-{
-  filepos = 0;
-  filestart = start;
-  filemax = size;
-  fsmax = 0xffffffff; /* just big */
-  compressed_file = 0;
-
-  gunzip_test_header();
-}
-
-static int
-module_read(void *buf, int size)
-{
-  memcpy(buf, (const void *)((l4_addr_t)filestart + filepos), size);
-  filepos += size;
-  return size;
-}
-
-int
-grub_read(unsigned char *buf, int len)
-{
-  /* Make sure "filepos" is a sane value */
-  if (/*(filepos < 0) || */(filepos > filemax))
-    filepos = filemax;
-
-  /* Make sure "len" is a sane value */
-  if ((len < 0) || (len > (signed)(filemax - filepos)))
-    len = filemax - filepos;
-
-  /* if target file position is past the end of
-     the supported/configured filesize, then
-     there is an error */
-  if (filepos + len > fsmax)
+  unsigned long remaining = &static_buf[sizeof(static_buf)] - free_ptr;
+  size = (size + sizeof(long) - 1U) & (sizeof(long) - 1U);
+  if (size > remaining)
     {
-      printf("Filesize error %ld + %d > %ld\n", filepos, len, fsmax);
-      return 0;
+      printf("Cannot alloc %lu bytes, only %lu available\n", size, remaining);
+      return nullptr;
     }
 
-  if (compressed_file)
-    return gunzip_read (buf, len);
-
-  return module_read(buf, len);
+  void *current = free_ptr;
+  free_ptr += size;
+  return current;
 }
 
 void *
-decompress(const char *name, void const *start, void *destbuf,
+decompress(const char *name, const char *start, char *destbuf,
            int size, int size_uncompressed)
 {
-  int read_size;
+  z_stream strm;
+  strm.zalloc = Z_NULL;
+  strm.zfree = Z_NULL;
+  strm.opaque = Z_NULL;
+  strm.avail_in = size;
+  strm.next_in = reinterpret_cast<z_const Bytef *>(start);
+  strm.avail_out = size_uncompressed;
+  strm.next_out = reinterpret_cast<Bytef *>(destbuf);
 
-  if (!size_uncompressed)
-    return NULL;
-
-  file_open(start, size);
-
-  // don't move data around if the data isn't compressed
-  if (!compressed_file)
-    return (void*)start;
+  int ret = inflateInit2(&strm, 31);
+  if (ret != Z_OK)
+    {
+      printf("Failed to initialize inflate: %i\n", ret);
+      return NULL;
+    }
 
   printf("  Uncompressing %s from %p to %p (%d to %d bytes, %+lld%%).\n",
         name, start, destbuf, size, size_uncompressed,
-	100*(unsigned long long)size_uncompressed/size - 100);
+        100*(unsigned long long)size_uncompressed/size - 100);
 
-  // Add 10 to detect too short given size
-  if ((read_size = grub_read((unsigned char*)destbuf, size_uncompressed + 10))
-      != size_uncompressed)
+  ret = inflate(&strm, Z_FINISH);
+  if (ret != Z_STREAM_END)
     {
-      printf("Incorrect decompression: should be %d bytes but got %d bytes. Errnum = %d\n",
-             size_uncompressed, read_size, errnum);
+      printf("Failed to decompress: %i\n", ret);
+      return NULL;
+    }
+
+  if (strm.avail_out != 0)
+    {
+      printf("Incorrect decompression: should be %d bytes but got %d bytes.\n",
+             size_uncompressed, size_uncompressed - strm.avail_out);
       return NULL;
     }
 

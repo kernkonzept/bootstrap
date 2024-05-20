@@ -479,7 +479,8 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 
   l4_addr_t image =
     reinterpret_cast<l4_addr_t>(decompress(mod->name(), mod->start(),
-                                           (void*)dest, mod->size(),
+                                           reinterpret_cast<char *>(dest),
+                                           mod->size(),
                                            mod->size_uncompressed()));
   if (image != dest)
     panic("fatal cannot decompress module: %s (decompression error)\n",
