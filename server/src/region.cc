@@ -253,8 +253,8 @@ Region_list::optimize()
         return;
 
       if (n->type() == c->type() && n->sub_type() == c->sub_type()
-          && n->name() == c->name() &&
-          l4_round_page(c->end()) >= l4_trunc_page(n->begin()))
+          && n->name() == c->name() && n->eager() == c->eager()
+          && l4_round_page(c->end()) >= l4_trunc_page(n->begin()))
         {
           c->end(n->end());
           remove(n);
