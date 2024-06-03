@@ -155,6 +155,7 @@ no_fpu:
 	adr a4, _start          /* Get address of _start after relocation (changes to pc - ~30 or so) */
 	add a1, a1, a2          /* Calculate where the GOT is */
 	ldr a2, [a1, a3]        /* GOT + _start(GOT) = offset of _start from begin of file */
+	bic a2, a2, #1          /* Clear potential thumb mode indicator */
 	sub a1, a4, a2          /* Current addr of _start - offset from beginning of file = load addr */
 	bl reloc_static_pie
 #endif
