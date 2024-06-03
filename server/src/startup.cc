@@ -792,8 +792,8 @@ startup(char const *cmdline)
   l4_addr_t fiasco_offset = 0;
   unsigned first_node = plat->first_node();
   unsigned num_nodes = plat->num_nodes();
-  l4_addr_t sigma0_offset[num_nodes] = { 0 };
-  l4_addr_t roottask_offset[num_nodes] = { 0 };
+  l4_addr_t sigma0_offset[num_nodes];
+  l4_addr_t roottask_offset[num_nodes];
 
   if (idx_kern < 0)
     panic("No kernel module available");
