@@ -810,8 +810,6 @@ startup(char const *cmdline)
       if (idx_sigma0 >= 0)
         add_elf_regions(mods->module(idx_sigma0), Region::Sigma0,
                         &sigma0_offset[i], n);
-      else
-        continue;
 
       int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, n);
       if (idx_roottask >= 0)
