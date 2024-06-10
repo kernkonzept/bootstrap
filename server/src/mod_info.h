@@ -159,6 +159,10 @@ public:
     }
   };
 
+  Mod_attr_list()
+  : _head(nullptr)
+  {}
+
   Mod_attr_list(char const *kvs)
   : _head(nullptr)
   {
