@@ -173,7 +173,7 @@ public:
   Iterator begin() const { return Iterator(_head); }
   Iterator end() const { return Iterator(); }
 
-  cxx::String find(cxx::String const &key)
+  cxx::String find(cxx::String const &key) const
   {
     for (auto const &i : *this)
       if (i.key == key)
