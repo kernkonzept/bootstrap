@@ -544,6 +544,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
   const char *error_msg;
 
   si.mod = m;
+  si.needs_relocation = !m.attrs.find("reloc").empty();
   info.type = type;
   info.mod = m;
 
