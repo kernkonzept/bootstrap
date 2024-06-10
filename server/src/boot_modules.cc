@@ -543,6 +543,7 @@ Boot_modules_image_mode::module(unsigned index, bool uncompress) const
   m.start   = mod->start();
   m.end     = m.start + mod->size();
   m.cmdline = mod->name();
+  m.attrs   = mod->attrs();
   return m;
 }
 
