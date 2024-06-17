@@ -64,8 +64,6 @@ public:
 
   void setup_kernel_config_arm_common(l4_kernel_info_t *kip);
 
-  virtual bool has_qemu_tltbr_errata() { return false; }
-
 private:
   EL_Support kernel_type = EL_Support::Unknown;
 

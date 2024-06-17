@@ -75,12 +75,6 @@ class Platform_arm_mps3_an536 : public Platform_arm,
     mem_manager->ram->add(
       Region::start_size(Ram_base, Ram_size, ".ram", Region::Ram));
   }
-
-  bool has_qemu_tltbr_errata() override
-  {
-    // QEMU incorrectly does not define the TLTBR register for PMSAv8.
-    return true;
-  }
 };
 
 }
