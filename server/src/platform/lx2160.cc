@@ -51,6 +51,16 @@ class Platform_arm_lx2160 : public Platform_dt_arm
     MC_GCR1_P2_STOP = 1UL << 30, // Processor 2 Stop
   };
 
+  static l4_uint64_t read_a72_cpuactlr_el1()
+  {
+    l4_umword_t v;
+    if constexpr (sizeof(long) == 4)
+      asm volatile ("mrrc p15, 0, %Q0, %R0, c15" : "=r"(v));
+    else
+      asm volatile ("mrs %0, S3_1_c15_c2_0" : "=r"(v));
+    return v;
+  }
+
   void late_setup(l4_kernel_info_t *) override
   {
     dt.check_for_dt();
@@ -69,6 +79,9 @@ class Platform_arm_lx2160 : public Platform_dt_arm
     L4::Io_register_block_mmio mc_reg(mc_addr);
     mc_reg.set<l4_uint32_t>(MC_GCR1, MC_GCR1_P1_STOP | MC_GCR1_P2_STOP);
     printf("  Paused DPAA2 management complex.\n");
+
+    if (!(read_a72_cpuactlr_el1() & (1ULL << 31)))
+      printf("  WARNING: CPUACTLR_EL1[31] is not set -- see corresponding LX2160 erratum!\n");
   }
 
   void reboot() override
