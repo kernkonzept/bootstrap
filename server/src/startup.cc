@@ -843,7 +843,8 @@ startup(char const *cmdline)
   for (unsigned i = 0; i < num_nodes; i++)
     {
       unsigned n = first_node + i;
-      l4_kernel_info_t *l4i = find_kip(mods->module(idx_kern), fiasco_offset, n);
+      l4_kernel_info_t *l4i = i == 0 ? kip : find_kip(mods->module(idx_kern),
+                                                      fiasco_offset, n);
       if (!l4i)
         continue;
 
