@@ -391,25 +391,16 @@ protected:
     vprintf(format, args);
   }
 
-  template<typename R, typename CB, typename... Args>
-  struct invoke_cb_t
+  template<typename F, typename... Args>
+  inline static bool invoke_cb(F f, Args... args)
   {
-    static constexpr Cb _(CB &&cb, Args &&... args)
-    { return cb(args...); }
-  };
-
-  template<typename CB, typename... Args>
-  struct invoke_cb_t<void, CB, Args...>
-  {
-    static constexpr Cb _(CB &&cb, Args &&... args)
-    { return cb(args...), Continue; }
-  };
-
-  template<typename CB, typename... Args>
-  static Cb invoke_cb(CB &&cb, Args &&... args)
-  {
-    return invoke_cb_t<decltype(cb(args...)), CB, Args...>::_(
-      cb, cxx::forward<Args>(args)...);
+    if constexpr (cxx::is_same_v<void, decltype(f(args...))>)
+      {
+        f(args...);
+        return Continue;
+      }
+    else
+      return f(args...);
   }
 
   void const *_fdt;
