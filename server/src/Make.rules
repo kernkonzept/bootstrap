@@ -118,6 +118,9 @@ endif
 
 INTERNAL_CRT0 := $(strip $(INTERNAL_CRT0))
 
+CFLAGS          += -fno-threadsafe-statics
+CXXFLAGS        += -fno-threadsafe-statics
+
 CFLAGS_arm64    += -mstrict-align
 CXXFLAGS_arm64  += -mstrict-align
 CFLAGS_arm      += -mno-unaligned-access
