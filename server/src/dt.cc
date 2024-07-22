@@ -201,6 +201,9 @@ void Dt::setup_memory() const
       info("Reserved memory areas:\n");
       rsrv_mem.for_each_subnode([](Dt::Node rsrv)
         {
+          if (!rsrv.is_enabled())
+            return;
+
           char const *name = rsrv.get_name(".reserved");
           rsrv.for_each_reg([=](l4_uint64_t start, l4_uint64_t sz)
             {
