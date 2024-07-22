@@ -22,6 +22,8 @@
 #include "boot_modules.h"
 #include "mmio_16550.h"
 #include "arch/arm/mem.h"
+#include "platform_dt-arm.h"
+#include "panic.h"
 
 namespace {
 
@@ -253,11 +255,24 @@ struct Mbox_armmem : public Mbox_gen
   l4_uint32_t size() { return response_buffer()[1]; }
 };
 
-
-class Platform_arm_rpi : public Platform_arm,
-                         public Boot_modules_image_mode
+static inline bool is_rpi5()
 {
-  bool probe() override { return true; }
+  unsigned long m;
+
+#ifdef ARCH_arm64
+  asm volatile("mrs %0, midr_el1" : "=r" (m));
+#endif
+#ifdef ARCH_arm
+  asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r" (m));
+#endif
+  return (m & 0xff0ffff0) == 0x410fd0b0; // It's an A76 -> rpi5
+}
+
+class Platform_arm_rpi_mbox : public Platform_arm,
+                              public Boot_modules_image_mode
+{
+  bool probe() override
+  { return !is_rpi5(); }
 
   void init() override
   {
@@ -277,8 +292,10 @@ class Platform_arm_rpi : public Platform_arm,
     asm volatile("mrs %0, midr_el1" : "=r" (m));
     if ((m & 0xff0ffff0) == 0x410fd030)
       rpi_ver = 3;
-    else
+    else if ((m & 0xff0ffff0) == 0x410fd080)
       rpi_ver = 4;
+    else
+      panic("Unexpected CPU type");
 #endif
 
     switch (rpi_ver)
@@ -399,6 +416,37 @@ class Platform_arm_rpi : public Platform_arm,
 private:
   l4_addr_t _base;
 };
+
+
+class Platform_arm_rpi_dt : public Platform_dt_arm
+{
+  bool probe() override
+  { return is_rpi5(); }
+
+  void init() override
+  {
+    unsigned long _base = 0x1000000000;
+    kuart.base_address = _base + 0x7d001000; // Debug probe
+    kuart.irqno        = 32 + 121;
+
+    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+    kuart_flags       |=   L4_kernel_options::F_uart_base
+                         | L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_irq;
+
+    static L4::Io_register_block_mmio r(kuart.base_address);
+    static L4::Uart_pl011 _uart(kuart.base_baud);
+    _uart.startup(&r);
+    set_stdio_uart(&_uart);
+  }
+
+  void reboot() override
+  {
+    reboot_psci();
+  }
+};
+
 }
 
-REGISTER_PLATFORM(Platform_arm_rpi);
+REGISTER_PLATFORM(Platform_arm_rpi_mbox);
+REGISTER_PLATFORM(Platform_arm_rpi_dt);
