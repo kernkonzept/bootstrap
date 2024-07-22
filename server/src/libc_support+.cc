@@ -15,6 +15,9 @@
  * Please see the COPYING-GPL-2 file for details.
  */
 
+#define NOT_IN_libc
+#include <libc-symbols.h>
+
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
