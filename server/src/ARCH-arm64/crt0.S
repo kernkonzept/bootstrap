@@ -68,6 +68,8 @@ _start:
 
 	/* Figure how to move */
         ldr     x7, crt_end_bin
+	add     x7, x7, #7	/* Round up to word size for ldr and str... */
+	bic     x7, x7, #7	/* ...below */
 	subs	x8, x5, x4	/* x8 is the distance between the blocks */
 	b.pl	move_behind
 

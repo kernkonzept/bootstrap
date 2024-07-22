@@ -73,6 +73,8 @@ _start:
 
 	/* Figure how to move */
         ldr     r7, crt_end_bin_lsb
+	add     r7, r7, #3	/* Round up to word size for ldr and str... */
+	bic     r7, r7, #3	/* ...below */
 	subs	r8, r5, r4	/* r8 is the distance between the blocks */
 	bpl	move_behind
 
