@@ -27,7 +27,7 @@ class Platform_arm_fvp_base_r : public Platform_arm_fvp_base_common<true>
 
   // Only the 32-bit variant is AMP. On 64-bit it's an SMP system.
 #ifdef ARCH_arm
-  unsigned num_nodes() override
+  unsigned num_nodes() const override
   { return 4; }
 
   unsigned current_node() override

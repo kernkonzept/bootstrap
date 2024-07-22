@@ -85,7 +85,7 @@ class Platform_s32z final : public Platform_arm, public Boot_modules_image_mode
   { return true; }
 
   // Each RTU must run it's own fiasco image
-  unsigned num_nodes() override
+  unsigned num_nodes() const override
   { return 4; }
 
   // Depending on the cluster, node 0 (RTU0) or 4 (RTU1) is the first one...

@@ -16,6 +16,8 @@
 class Platform_base
 {
 public:
+  enum { Max_num_nodes = 6 };
+
   virtual ~Platform_base() = 0;
   virtual void init() = 0;
   virtual void setup_memory_map() = 0;
@@ -29,8 +31,8 @@ public:
   virtual l4_addr_t to_virt(l4_uint64_t phys_addr)
   { return phys_addr; }
 
-  /** Number of AMP nodes on platform. */
-  virtual unsigned num_nodes()
+  /** Number of AMP nodes on platform. See also Max_num_nodes. */
+  virtual unsigned num_nodes() const
   { return 1; }
 
   /** Id of first AMP node on platform. */

@@ -20,7 +20,7 @@ class Platform_sr6p7g7 : public Platform_arm, public Boot_modules_image_mode
 {
   bool probe() { return true; }
 
-  unsigned num_nodes() override
+  unsigned num_nodes() const override
   { return 6; }
 
   // Three clusters (Aff1) with up to 2 cores each (Aff0) -> 0..5

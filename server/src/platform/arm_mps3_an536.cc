@@ -59,7 +59,7 @@ class Platform_arm_mps3_an536 : public Platform_arm,
 
   Boot_modules *modules() override { return this; }
 
-  unsigned num_nodes() override
+  unsigned num_nodes() const override
   { return 2; }
 
   void setup_kernel_options(L4_kernel_options::Options *lko) override

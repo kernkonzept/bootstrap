@@ -800,9 +800,12 @@ startup(char const *cmdline)
   int idx_kern = mods->base_mod_idx(Mod_info_flag_mod_kernel);
   l4_addr_t fiasco_offset = 0;
   unsigned first_node = plat->first_node();
-  unsigned num_nodes = plat->num_nodes();
-  l4_addr_t sigma0_offset[num_nodes];
-  l4_addr_t roottask_offset[num_nodes];
+  unsigned const num_nodes = plat->num_nodes();
+  if (num_nodes > Platform_base::Max_num_nodes)
+    panic("Adapt Max_num_nodes");
+
+  l4_addr_t sigma0_offset[Platform_base::Max_num_nodes];
+  l4_addr_t roottask_offset[Platform_base::Max_num_nodes];
 
   if (idx_kern < 0)
     panic("No kernel module available");
