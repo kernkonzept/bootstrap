@@ -247,7 +247,7 @@ ifneq ($(ENTRY),)
 
 INSTALL_FILES  = $(BOOTSTRAP_ELF_NAME) bootstrap_$(ENTRY_FN) bootstrap_$(ENTRY_FN).elf
 ifeq ($(ARCH)$(BOOTSTRAP_DO_UEFI),amd64)
-INSTALL_FILES += bootstrap32.elf
+INSTALL_FILES += bootstrap32.elf bootstrap_$(ENTRY_FN).elf32
 BOOTSTRAP_LINK_SOURCE = bootstrap32.elf
 else
 BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
@@ -259,6 +259,9 @@ $(od)bootstrap_$(ENTRY_FN): $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
 
 $(od)bootstrap_$(ENTRY_FN).elf: $(od)$(BOOTSTRAP_LINK_SOURCE)
+	$(VERBOSE)$(LN) -f $< $@
+
+$(od)bootstrap_$(ENTRY_FN).elf32: $(od)$(BOOTSTRAP_LINK_SOURCE)
 	$(VERBOSE)$(LN) -f $< $@
 
 $(od)bootstrap_$(ENTRY_FN).efi: $(od)$(EFI_IMAGE)
