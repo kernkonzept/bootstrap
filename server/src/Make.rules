@@ -250,8 +250,8 @@ ifneq ($(ENTRY),)
 
 INSTALL_FILES  = $(BOOTSTRAP_ELF_NAME) bootstrap_$(SUFFIX) bootstrap_$(SUFFIX).elf
 ifeq ($(ARCH)$(BOOTSTRAP_DO_UEFI),amd64)
-INSTALL_FILES += bootstrap32.elf bootstrap_$(ENTRY_FN).elf32
-BOOTSTRAP_LINK_SOURCE = bootstrap32.elf
+INSTALL_FILES += bootstrap.elf32 bootstrap_$(ENTRY_FN).elf32
+BOOTSTRAP_LINK_SOURCE = bootstrap.elf32
 else
 BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
 endif
@@ -504,14 +504,14 @@ CXX32FLAGS = $(filter-out -m64, $(CXXFLAGS) $(CXXFLAGS_$(ARCH))) -m32 $(GCCNOSTA
 $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a: FORCE
 	$(VERBOSE)$(MAKE) O=$(OBJ_BASE) -C $(SRC_DIR)/ARCH-amd64/libc32
 
-bootstrap32.elf: $(OBJ32) bootstrap32.bin ARCH-amd64/boot32/bootstrap32.ld $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a
+bootstrap.elf32: $(OBJ32) bootstrap32.bin ARCH-amd64/boot32/bootstrap32.ld $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a
 	@$(LINK_MESSAGE)
 	$(VERBOSE)$(CC32) -o $@ -nostdlib -static \
 	  -Wl,-T,ARCH-amd64/boot32/bootstrap32.ld,--gc-sections \
           $(filter-out %/bootstrap32.ld,$^) -z noexecstack
 	$(VERBOSE)chmod 755 $@
 
-bootstrap: bootstrap32.elf
+bootstrap: bootstrap.elf32
 	$(VERBOSE)$(LN) -f $^ $@
 
 bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
@@ -559,7 +559,7 @@ $(eval $(call BID_MAKE_RULE_template,%.o32,%.S,CC32))
 
 $(foreach svar,C CC S,\
   $(foreach src,$(SRC32_$(svar)),\
-    $(eval $(call make_per_obj_vars,bootstrap32.elf,$(strip $(call gen_SRC_$(svar)_obj,$(src),))32,$(src))) \
+    $(eval $(call make_per_obj_vars,bootstrap.elf32,$(strip $(call gen_SRC_$(svar)_obj,$(src),))32,$(src))) \
   ) \
 )
 endif
