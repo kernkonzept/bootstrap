@@ -695,9 +695,22 @@ struct Pci_com_wch_chip : public Pci_com_drv
     board->port_offset = 8;
     board->base_baud = L4::Uart_16550::Base_rate_x86;
     board->base_bar = board->first_io_bar();
-    board->num_ports = 2;
     board->base_offset = 0xc0;
     board->flags = 0;
+
+    switch(dev.device())
+      {
+      case 0x3253:
+        board->num_ports = 2;
+        break;
+      case 0x3470:
+        board->num_ports = 4;
+        break;
+      default:
+        board->num_ports = 2;
+        break;
+      }
+
     printf("\n   detected serial IO card: bar=%d ports=%d\n",
            board->base_bar, board->num_ports);
     dev.enable_io();
@@ -732,6 +745,7 @@ Pci_com_dev _devs[] = {
   { PCI_DEVICE_ID(0x125b, 0x9100), &_moschip },
   { PCI_DEVICE_ID(0x5372, 0x6872), &_agestar },
   { PCI_DEVICE_ID(0x1c00, 0x3253), &_wch_chip }, // dual port card
+  { PCI_DEVICE_ID(0x1c00, 0x3470), &_wch_chip }, // 4-port card, M2 PCIe
   { PCI_DEVICE_ID(0x8086, 0x8c3d), &_default_pci_com },
   { PCI_DEVICE_ID(0x8086, 0x9d3d), &_default_pci_com },
   { PCI_DEVICE_ID(0x13a8, 0x0352), &_exar_pci_com },
