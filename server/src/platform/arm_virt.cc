@@ -21,6 +21,27 @@ class Platform_arm_virt : public Platform_dt_arm
 {
   bool probe() override { return true; }
 
+  l4_addr_t get_fdt_addr() const override
+  {
+    if (dt.have_fdt())
+      return reinterpret_cast<l4_addr_t>(dt.fdt());
+
+    /* This is a QEMU special: QEMU copies the FDT to the start of the
+     * RAM but does not provide the address in case the payload is
+     * started as ELF.
+     * Further, Fiasco wants to have this part of the RAM, so copy the FDT
+     * somewhere else. */
+    void *fdt = (void *)0x4000'0000;
+    if (fdt_check_header(fdt) == 0)
+      {
+        unsigned sz = fdt_totalsize(fdt);
+        l4_addr_t dst = l4_trunc_page(reinterpret_cast<unsigned long>(&_start) - sz);
+        memmove((void *)dst, fdt, sz);
+        return dst;
+      }
+    return 0;
+  }
+
   void init() override
   {
     // set defaults for reg_shift and baud_rate
@@ -39,28 +60,6 @@ class Platform_arm_virt : public Platform_dt_arm
     static L4::Uart_pl011 _uart(kuart.base_baud);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
-
-    /* This is a QEMU special. QEMU copies the FDT to the start of the
-     * RAM but does not provide the address in case the payload is
-     * started as ELF.
-     * Further, Fiasco wants to have this part of the RAM, so copy the FDT
-     * somewhere else. */
-    void *fdt = (void *)RAM_BASE;
-    if (fdt_check_header(fdt) == 0)
-      {
-        _Pragma("GCC diagnostic push")
-        _Pragma("GCC diagnostic ignored \"-Wnonnull\"") // if RAM_BASE == 0
-        _Pragma("GCC diagnostic ignored \"-Warray-bounds\"") // if RAM_BASE == 0
-        unsigned s = fdt_totalsize(fdt);
-        unsigned long dst = l4_trunc_page((unsigned long)&_start - s);
-        memmove((void *)dst, fdt, s);
-        _Pragma("GCC diagnostic pop")
-#if defined(ARCH_arm64)
-        boot_args.r[0] = dst;
-#elif defined(ARCH_arm)
-        boot_args.r[2] = dst;
-#endif
-      }
   }
 
   void setup_fw_cfg()
