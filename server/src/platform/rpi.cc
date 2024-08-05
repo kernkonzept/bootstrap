@@ -417,7 +417,7 @@ private:
   l4_addr_t _base;
 };
 
-
+#if __SIZEOF_POINTER__ > 4
 class Platform_arm_rpi_dt : public Platform_dt_arm
 {
   bool probe() override
@@ -445,8 +445,11 @@ class Platform_arm_rpi_dt : public Platform_dt_arm
     reboot_psci();
   }
 };
+#endif
 
 }
 
 REGISTER_PLATFORM(Platform_arm_rpi_mbox);
+#if __SIZEOF_POINTER__ > 4
 REGISTER_PLATFORM(Platform_arm_rpi_dt);
+#endif
