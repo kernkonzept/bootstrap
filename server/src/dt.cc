@@ -27,8 +27,6 @@ void Dt::init(unsigned long fdt_addr)
            fdt_strerror(fdt_check), fdt_check);
       return;
     }
-
-  info("FDT available (size=%d)\n", fdt_totalsize(_fdt));
 }
 
 void Dt::check_for_dt() const

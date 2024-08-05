@@ -48,7 +48,8 @@ public:
     l4_infinite_loop();
   }
 
-  virtual void init_dt(Internal_module_list &) {}
+  virtual void init_dt() {}
+  virtual void add_dt_module(Internal_module_list &) {}
 
   /**
    * Invoked late during startup, when the memory map is already set up and all
@@ -92,6 +93,7 @@ public:
       if (*p && (*p)->probe())
         {
           platform = *p;
+          platform->init_dt();
           platform->init();
           break;
         }

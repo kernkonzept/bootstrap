@@ -760,7 +760,7 @@ startup(char const *cmdline)
 
   Internal_module_list internal_mods;
 
-  plat->init_dt(internal_mods);
+  plat->add_dt_module(internal_mods);
 
   regions.init(__regs, "regions");
   ram.init(__ram, "RAM", get_memory_max_size(cmdline), get_memory_max_address());

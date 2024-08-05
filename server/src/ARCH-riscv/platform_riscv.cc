@@ -13,8 +13,6 @@
 
 void Platform_riscv_base::init()
 {
-  static L4::Uart_sbi _uart;
-  set_stdio_uart(&_uart);
 }
 
 l4_addr_t Platform_riscv_base::get_fdt_addr() const
@@ -22,9 +20,12 @@ l4_addr_t Platform_riscv_base::get_fdt_addr() const
   return boot_args.r[1];
 }
 
-void Platform_riscv_base::init_dt(Internal_module_list &mods)
+void Platform_riscv_base::init_dt()
 {
-  Platform_dt<Platform_base>::init_dt(mods);
+  static L4::Uart_sbi _uart;
+  set_stdio_uart(&_uart);
+
+  Platform_dt<Platform_base>::init_dt();
   dt.check_for_dt();
 
   // Now that the device tree is available, set up the kernel UART.

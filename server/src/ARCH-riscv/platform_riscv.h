@@ -14,7 +14,7 @@ public:
   bool probe() override { return true; }
   void init() override;
   l4_addr_t get_fdt_addr() const override;
-  void init_dt(Internal_module_list &mods) override;
+  void init_dt() override;
   void setup_kernel_config(l4_kernel_info_t*kip) override;
   void boot_kernel(unsigned long entry) override;
 

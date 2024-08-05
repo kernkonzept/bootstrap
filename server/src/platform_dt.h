@@ -42,9 +42,13 @@ public:
     dt.setup_memory();
   }
 
-  void init_dt(Internal_module_list &mods) override
+  void init_dt() override
   {
     dt.init(get_fdt_addr());
+  }
+
+  void add_dt_module(Internal_module_list &mods) override
+  {
     if (dt.have_fdt())
       mods.push_front(&mod_fdt);
   }
