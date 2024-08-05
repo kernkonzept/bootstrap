@@ -261,6 +261,7 @@ l4_uint64_t Dt::cpu_release_addr() const
   return cpu_release_addr;
 }
 
+// grep "d0 0d fe ed " minicom.log | perl -e 'print pack("C*", map { hex($_) } split / +/, <>)' > dtb
 void Dt::dump() const
 {
   auto size = fdt_totalsize(_fdt);
