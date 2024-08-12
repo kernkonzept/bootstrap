@@ -128,6 +128,7 @@ struct Hdr_info : Elf_handle
   unsigned hdr_type;
   l4_addr_t start;
   l4_size_t size;
+  l4_addr_t file_ofs;
 };
 
 struct Section_info : Elf_handle
@@ -172,6 +173,28 @@ dump_mbi(l4util_mb_info_t *mbi)
 }
 #endif
 
+/**
+ * Search for the right KIP.
+ *
+ * AMP kernels have multiple KIPs that are L4_PAGESIZE spaced. Search the one
+ * matching `node`.
+ */
+static
+l4_kernel_info_t *search_kip(l4_kernel_info_t *kip, l4_size_t size,
+                             unsigned node)
+{
+  while (size >= sizeof(*kip))
+    {
+      if (kip->node == node)
+        return kip;
+
+      kip = reinterpret_cast<l4_kernel_info_t *>(
+              reinterpret_cast<char *>(kip) + L4_PAGESIZE);
+      size -= L4_PAGESIZE;
+    }
+
+  return nullptr;
+}
 
 /**
  * Scan the memory regions with type == Region::Kernel for a
@@ -190,23 +213,33 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset,
   if (exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL) != 1)
     panic("could not find kernel info page, maybe your kernel is too old");
 
-  hdr.start += offset;
-  auto *kip = reinterpret_cast<l4_kernel_info_t *>(hdr.start);
-  // AMP kernels have multiple KIPs that are L4_PAGESIZE spaced. On some UP
-  // or SMP kernels the KIP ELF region only covers the static part.
-  while (hdr.size >= sizeof(*kip))
-    {
-      if (kip->node == node)
-        {
-          printf("  found node %u kernel info page (via ELF) at %p\n", node, kip);
-          return kip;
-        }
-      kip = reinterpret_cast<l4_kernel_info_t *>(
-              reinterpret_cast<char *>(kip) + L4_PAGESIZE);
-      hdr.size -= L4_PAGESIZE;
-    }
+  auto *kip = reinterpret_cast<l4_kernel_info_t *>(hdr.start + offset);
+  kip = search_kip(kip, hdr.size, node);
+  if (kip)
+    printf("  found node %u kernel info page (via ELF) at %p\n", node, kip);
 
-  return nullptr;
+  return kip;
+}
+
+/**
+ * Check the kernel boot module if a KIP exists for an AMP node.
+ */
+static
+bool kip_exists_for_node(Boot_modules::Module const &mod, unsigned node)
+{
+  const char *error_msg;
+  Hdr_info hdr;
+  hdr.mod = mod;
+  hdr.hdr_type = EXEC_SECTYPE_KIP;
+
+  // Find the KIP elf section. If we don't find one, we err on the safe side
+  // and assume that a KIP exists.
+  if (exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL) != 1)
+    return true;
+
+  auto *kip = reinterpret_cast<l4_kernel_info_t const *>(mod.start
+                                                         + hdr.file_ofs);
+  return search_kip(const_cast<l4_kernel_info_t *>(kip), hdr.size, node);
 }
 
 static
@@ -782,6 +815,9 @@ startup(char const *cmdline)
   for (unsigned i = 0; i < num_nodes; i++)
     {
       unsigned n = first_node + i;
+      if (!kip_exists_for_node(mods->module(idx_kern), n))
+        continue;
+
       int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, n);
       if (idx_sigma0 >= 0)
         add_elf_regions(mods->module(idx_sigma0), Region::Sigma0,
@@ -1028,7 +1064,7 @@ l4_exec_add_region(Elf_handle *handle,
 
 static int
 l4_exec_find_hdr(Elf_handle *handle,
-                 l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
+                 l4_addr_t file_ofs, l4_size_t /*file_size*/,
                  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
                  l4_size_t mem_size, l4_size_t /*align*/,
                  exec_sectype_t section_type)
@@ -1038,6 +1074,7 @@ l4_exec_find_hdr(Elf_handle *handle,
     {
       hdr.start = mem_addr;
       hdr.size = mem_size;
+      hdr.file_ofs = file_ofs;
       return 1;
     }
   return 0;
