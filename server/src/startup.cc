@@ -187,51 +187,26 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset,
   Hdr_info hdr;
   hdr.mod = mod;
   hdr.hdr_type = EXEC_SECTYPE_KIP;
-  int r = exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL);
+  if (exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL) != 1)
+    panic("could not find kernel info page, maybe your kernel is too old");
 
-  if (r == 1)
+  hdr.start += offset;
+  auto *kip = reinterpret_cast<l4_kernel_info_t *>(hdr.start);
+  // AMP kernels have multiple KIPs that are L4_PAGESIZE spaced. On some UP
+  // or SMP kernels the KIP ELF region only covers the static part.
+  while (hdr.size >= sizeof(*kip))
     {
-      hdr.start += offset;
-      auto *kip = reinterpret_cast<l4_kernel_info_t *>(hdr.start);
-      // AMP kernels have multiple KIPs that are L4_PAGESIZE spaced. On some UP
-      // or SMP kernels the KIP ELF region only covers the static part.
-      while (hdr.size >= sizeof(*kip))
+      if (kip->node == node)
         {
-          if (kip->node == node)
-            {
-              printf("  found node %u kernel info page (via ELF) at %p\n", node, kip);
-              return kip;
-            }
-          kip = reinterpret_cast<l4_kernel_info_t *>(
-                  reinterpret_cast<char *>(kip) + L4_PAGESIZE);
-          hdr.size -= L4_PAGESIZE;
+          printf("  found node %u kernel info page (via ELF) at %p\n", node, kip);
+          return kip;
         }
-
-      return nullptr;
+      kip = reinterpret_cast<l4_kernel_info_t *>(
+              reinterpret_cast<char *>(kip) + L4_PAGESIZE);
+      hdr.size -= L4_PAGESIZE;
     }
 
-  for (Region const &m : regions)
-    {
-      if (m.type() != Region::Kernel)
-        continue;
-
-      l4_addr_t end;
-      if (sizeof(unsigned long) < 8 && m.end() >= (1ULL << 32))
-        end = ~0UL - 0x1000;
-      else
-        end = m.end();
-
-      for (l4_addr_t p = l4_round_size(m.begin(), 12); p < end; p += 0x1000)
-        {
-          if ( *reinterpret_cast<l4_uint32_t *>(p) == L4_KERNEL_INFO_MAGIC)
-            {
-              printf("  found kernel info page at %lx\n", p);
-              return reinterpret_cast<l4_kernel_info_t *>(p);
-            }
-        }
-    }
-
-  panic("could not find kernel info page, maybe your kernel is too old");
+  return nullptr;
 }
 
 static
