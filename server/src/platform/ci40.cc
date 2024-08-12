@@ -21,8 +21,6 @@ class Platform_mips_ci40 : public Platform_single_region_ram<Platform_mips>
 public:
   void init() override
   {
-    unsigned long uart_base;
-
     kuart.base_baud    = 115740;
     kuart.reg_shift    = 2;
     kuart.base_address = 0x18101500; // UART1
