@@ -417,7 +417,6 @@ private:
   l4_addr_t _base;
 };
 
-#if __SIZEOF_POINTER__ > 4
 class Platform_arm_rpi_dt : public Platform_dt_arm
 {
   bool probe() override
@@ -425,14 +424,8 @@ class Platform_arm_rpi_dt : public Platform_dt_arm
 
   void init() override
   {
-    unsigned long _base = 0x1000000000;
-    kuart.base_address = _base + 0x7d001000; // Debug probe
-    kuart.irqno        = 32 + 121;
-
-    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
-    kuart_flags       |=   L4_kernel_options::F_uart_base
-                         | L4_kernel_options::F_uart_baud
-                         | L4_kernel_options::F_uart_irq;
+    dt.check_for_dt();
+    dt.get_stdout_uart("arm,pl011", parse_gic_irq, &kuart, &kuart_flags);
 
     static L4::Io_register_block_mmio r(kuart.base_address);
     static L4::Uart_pl011 _uart(kuart.base_baud);
@@ -445,11 +438,8 @@ class Platform_arm_rpi_dt : public Platform_dt_arm
     reboot_psci();
   }
 };
-#endif
 
 }
 
 REGISTER_PLATFORM(Platform_arm_rpi_mbox);
-#if __SIZEOF_POINTER__ > 4
 REGISTER_PLATFORM(Platform_arm_rpi_dt);
-#endif
