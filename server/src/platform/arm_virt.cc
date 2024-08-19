@@ -26,12 +26,10 @@ class Platform_arm_virt : public Platform_dt_arm
     if (dt.have_fdt())
       return reinterpret_cast<l4_addr_t>(dt.fdt());
 
-    /* This is a QEMU special: QEMU copies the FDT to the start of the
-     * RAM but does not provide the address in case the payload is
-     * started as ELF.
-     * Further, Fiasco wants to have this part of the RAM, so copy the FDT
-     * somewhere else. */
-    void *fdt = (void *)0x4000'0000;
+    /* This is a QEMU special: QEMU copies the FDT to the start of the RAM but
+     * does not provide the address in case the payload is started as ELF.
+     * Fiasco wants to have this part of the RAM, so copy the FDT. */
+    void const *fdt = reinterpret_cast<void const *>(0x4000'0000);
     if (fdt_check_header(fdt) == 0)
       {
         unsigned sz = fdt_totalsize(fdt);
