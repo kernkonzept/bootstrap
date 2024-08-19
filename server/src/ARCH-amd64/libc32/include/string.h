@@ -1,56 +1,95 @@
-#ifndef _STRING_H
-#define _STRING_H
+#ifndef	_STRING_H
+#define	_STRING_H
 
-#include <cdefs.h>
-#include <stddef.h>
-
-#include <memcpy.h>
-
-__BEGIN_DECLS
-
-char *strcpy(char *dest, const char *src);
-char *strncpy(char *dest, const char *src, size_t n);
-
-void *memccpy(void *dest, const void *src, int c, size_t n);
-void *memmove(void *dest, const void *src, size_t n);
-
-int memccmp(const void *s1, const void *s2, int c, size_t n);
-int memcmp(const void *s1, const void *s2, size_t n);
-int strcmp(const char *s1, const char *s2);
-int strncmp(const char *s1, const char *s2, size_t n);
-
-int strcasecmp(const char *s1, const char *s2);
-int strncasecmp(const char *s1, const char *s2, size_t n);
-
-#if (__GNUC__>=3)
-size_t strlen(const char *s) __attribute__((pure));
-#else
-size_t strlen(const char *s);
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-char *strstr(const char *haystack, const char *needle);
+#include <features.h>
 
-char *strdup(const char *s);
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define NULL nullptr
+#elif defined(__cplusplus)
+#define NULL 0L
+#else
+#define NULL ((void*)0)
+#endif
 
-char *strchr(const char *s, int c);
-char *strrchr(const char *s, int c);
+#define __NEED_size_t
+#include <bits/alltypes.h>
 
-char *strcat(char *dest, const char *src);
-char *strncat(char *dest, const char *src, size_t n);
+void *memcpy (void *__restrict, const void *__restrict, size_t);
+void *memmove (void *, const void *, size_t);
+void *memset (void *, int, size_t);
+int memcmp (const void *, const void *, size_t);
+void *memchr (const void *, int, size_t);
 
-size_t strspn(const char *s, const char *_accept);
-size_t strcspn(const char *s, const char *reject);
+char *strcpy (char *__restrict, const char *__restrict);
+char *strncpy (char *__restrict, const char *__restrict, size_t);
 
-char *strpbrk(const char *s, const char *_accept);
-char *strsep(char **stringp, const char *delim);
+char *strcat (char *__restrict, const char *__restrict);
+char *strncat (char *__restrict, const char *__restrict, size_t);
 
-void* memset(void *s, int c, size_t n);
-void* memchr(const void *s, int c, size_t n);
+int strcmp (const char *, const char *);
+int strncmp (const char *, const char *, size_t);
 
-int strcoll(const char *s1, const char *s2);
+int strcoll (const char *, const char *);
+size_t strxfrm (char *__restrict, const char *__restrict, size_t);
 
+char *strchr (const char *, int);
+char *strrchr (const char *, int);
 
-__END_DECLS
+size_t strcspn (const char *, const char *);
+size_t strspn (const char *, const char *);
+char *strpbrk (const char *, const char *);
+char *strstr (const char *, const char *);
+char *strtok (char *__restrict, const char *__restrict);
 
+size_t strlen (const char *);
+
+char *strerror (int);
+
+#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE)
+#include <strings.h>
+#endif
+
+#if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+ || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+char *strtok_r (char *__restrict, const char *__restrict, char **__restrict);
+int strerror_r (int, char *, size_t);
+char *stpcpy(char *__restrict, const char *__restrict);
+char *stpncpy(char *__restrict, const char *__restrict, size_t);
+size_t strnlen (const char *, size_t);
+char *strdup (const char *);
+char *strndup (const char *, size_t);
+char *strsignal(int);
+void *memmem(const void *, size_t, const void *, size_t);
+#endif
+
+#if defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+void *memccpy (void *__restrict, const void *__restrict, int, size_t);
+#endif
+
+#if defined(_GNU_SOURCE) || defined(_BSD_SOURCE)
+char *strsep(char **, const char *);
+size_t strlcat (char *, const char *, size_t);
+size_t strlcpy (char *, const char *, size_t);
+void explicit_bzero (void *, size_t);
+#endif
+
+#ifdef _GNU_SOURCE
+#define	strdupa(x)	strcpy(alloca(strlen(x)+1),x)
+int strverscmp (const char *, const char *);
+char *strchrnul(const char *, int);
+char *strcasestr(const char *, const char *);
+void *memrchr(const void *, int, size_t);
+void *mempcpy(void *, const void *, size_t);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
