@@ -146,6 +146,21 @@ struct Platform_x86_1 : Platform_x86
 
   void late_setup(l4_kernel_info_t *) override
   {
+    // Our aim here is to allocate an aligned chunk of memory for our copy of
+    // RSDP and create a region out of it.
+    if (rsdp_start)
+      {
+        char *rsdp_buf =
+          (char *)mem_manager->find_free_ram(sizeof(rsdp_tmp_buf));
+        if (!rsdp_buf)
+          panic("fatal: could not allocate memory for RSDP\n");
+        memcpy(rsdp_buf, rsdp_tmp_buf, sizeof(rsdp_tmp_buf));
+
+        mem_manager->regions->add(
+          Region::start_size(rsdp_buf, sizeof(rsdp_tmp_buf),
+                             ".ACPI", Region::Info, Region::Info_acpi_rsdp));
+      }
+
     pci_quirks();
   }
 };
@@ -400,24 +415,6 @@ public:
       }
 
     move_modules(mod_addr);
-
-    // Our aim here is to allocate an aligned chunk of memory for our copy of
-    // RSDP and create a region out of it.
-    //
-    // XXX: For now, we are piggybacking on this callback because there is
-    // currently no better one that is called this late.
-    if (rsdp_start)
-      {
-        char *rsdp_buf =
-          (char *)mem_manager->find_free_ram(sizeof(rsdp_tmp_buf));
-        if (!rsdp_buf)
-          panic("fatal: could not allocate memory for RSDP\n");
-        memcpy(rsdp_buf, rsdp_tmp_buf, sizeof(rsdp_tmp_buf));
-
-        mem_manager->regions->add(
-          Region::start_size(rsdp_buf, sizeof(rsdp_tmp_buf),
-                             ".ACPI", Region::Info, Region::Info_acpi_rsdp));
-      }
 
     return l4mi;
   }
