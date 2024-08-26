@@ -10,7 +10,7 @@
 #include "paging.h"
 #include "support.h"
 
-EXTERN_C void
+extern "C" void
 ptab_alloc(l4_uint32_t *out_ptab_pa)
 {
   // try to find a free region for the page table

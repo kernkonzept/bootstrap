@@ -22,4 +22,8 @@ struct cpu_info_t
 
 extern struct cpu_info_t cpu_info;
 
-EXTERN_C void init_cpu_info(void);
+__BEGIN_DECLS
+
+void init_cpu_info(void);
+
+__END_DECLS
