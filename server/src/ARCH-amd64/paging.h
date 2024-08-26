@@ -32,7 +32,7 @@ static inline l4_uint64_t round_page(l4_uint64_t x)
 static inline l4_uint64_t round_superpage(l4_uint64_t x)
 { return (x + SUPERPAGE_MASK) & ~SUPERPAGE_MASK; }
 
-EXTERN_C_BEGIN
+__BEGIN_DECLS
 
 /**
  * Allocate and zero-initialize a page table.
@@ -68,4 +68,4 @@ void ptab_alloc(l4_uint32_t *out_ptab_pa);
 void ptab_map_range(l4_uint32_t pml4_pa, l4_uint64_t la, l4_uint64_t pa,
                     l4_uint64_t size, l4_uint32_t mapping_bits);
 
-EXTERN_C_END
+__END_DECLS
