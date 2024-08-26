@@ -392,7 +392,7 @@ protected:
   }
 
   template<typename F, typename... Args>
-  inline static bool invoke_cb(F f, Args... args)
+  inline static Cb invoke_cb(F f, Args... args)
   {
     if constexpr (cxx::is_same_v<void, decltype(f(args...))>)
       {
