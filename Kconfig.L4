@@ -8,4 +8,6 @@ config BOOTSTRAP_THUMB_ENTRY
 
 source "server/src/platform/Kconfig.s32z"
 
+source "server/src/platform/Kconfig.s32n"
+
 endmenu

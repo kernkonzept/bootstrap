@@ -1,0 +1,79 @@
+# Copyright 2023-2024 NXP
+# SPDX-License-Identifier: GPL-2.0-only
+
+if PLATFORM_TYPE_s32n
+
+choice
+	prompt "RTU configuration"
+	default BOOTSTRAP_PF_S32N_RTU_0
+
+config BOOTSTRAP_PF_S32N_RTU_0
+	bool "RTU0"
+
+config BOOTSTRAP_PF_S32N_RTU_1
+	bool "RTU1"
+
+config BOOTSTRAP_PF_S32N_RTU_2
+	bool "RTU2"
+
+config BOOTSTRAP_PF_S32N_RTU_3
+	bool "RTU3"
+
+endchoice # RTU
+
+choice
+	prompt "RTU Cluster 0 configuration"
+	default BOOTSTRAP_PF_S32N_RTU_CL0_LOCKSTEP
+
+config BOOTSTRAP_PF_S32N_RTU_CL0_DISABLED
+	bool "disabled"
+
+config BOOTSTRAP_PF_S32N_RTU_CL0_LOCKSTEP
+	bool "lockstep"
+
+config BOOTSTRAP_PF_S32N_RTU_CL0_SPLIT
+	bool "split mode"
+
+endchoice # RTU Cluster 0
+
+choice
+	prompt "RTU Cluster 1 configuration"
+	default BOOTSTRAP_PF_S32N_RTU_CL1_LOCKSTEP
+
+config BOOTSTRAP_PF_S32N_RTU_CL1_DISABLED
+	bool "disabled"
+
+config BOOTSTRAP_PF_S32N_RTU_CL1_LOCKSTEP
+	bool "lockstep"
+
+config BOOTSTRAP_PF_S32N_RTU_CL1_SPLIT
+	bool "split mode"
+
+endchoice # RTU Cluster 1
+
+config BOOTSTRAP_PF_S32N_DYN_ALLOC_OVERRIDE
+	bool "Override dynamic allocation region"
+	help
+	  Specify region of dynamic allocations manually. By default the whole
+	  CRAM region of the respective cluster is used.
+
+if BOOTSTRAP_PF_S32N_DYN_ALLOC_OVERRIDE
+
+config BOOTSTRAP_PF_S32N_DYN_ALLOC_START
+	hex "Dynamic alloction base address"
+	default 0x39580000
+	help
+	  Lower address of region where dynamic allocations are done. This
+	  includes the multiboot information and possibly dynamic placement
+	  of the initial tasks.
+
+config BOOTSTRAP_PF_S32N_DYN_ALLOC_END
+	hex "Dynamic allocations end address"
+	default 0x39ffffff
+	help
+	  Upper address (inclusive) of region where dynamic allocations are
+	  done.
+
+endif
+
+endif
