@@ -131,6 +131,13 @@ do_bootstrap:
 	msr	cpacr_el1, x8
 
 #ifdef CONFIG_BID_PIE
+	/* Save x0..x3. They are passed to __main and will be clobbered by
+	 * reloc_static_pie. */
+	mov	x19, x0
+	mov	x20, x1
+	mov	x21, x2
+	mov	x22, x3
+
 	/* Calculate load address... subtract link address from real one */
 	adrp    x0, :got:_start
 	ldr     x0, [x0, #:got_lo12:_start]
@@ -139,6 +146,11 @@ do_bootstrap:
 
 	/* Do relocations */
 	bl reloc_static_pie
+
+	mov	x0, x19
+	mov	x1, x20
+	mov	x2, x21
+	mov	x3, x22
 #endif
 
 	bl	__main

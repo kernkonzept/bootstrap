@@ -151,6 +151,13 @@ no_fpu:
 	add	sp, sp, r8
 
 #ifdef CONFIG_BID_PIE
+	/* Save r0..r3. They are passed to __main and will be clobbered by
+	 * reloc_static_pie. */
+	mov v1, a1
+	mov v2, a2
+	mov v3, a3
+	mov v4, a4
+
 	ldr a1, .L_GOT          /* Get value at .L_GOT + 0  (offset to GOT)*/
 	adr a2, .L_GOT          /* Get address of .L_GOT */
 	ldr a3, .L_GOT+4        /* Get value of _start(GOT) stored in .L_GOT */
@@ -160,6 +167,11 @@ no_fpu:
 	bic a2, a2, #1          /* Clear potential thumb mode indicator */
 	sub a1, a4, a2          /* Current addr of _start - offset from beginning of file = load addr */
 	bl reloc_static_pie
+
+	mov a1, v1
+	mov a2, v2
+	mov a3, v3
+	mov a4, v4
 #endif
 
 	bl	__main
