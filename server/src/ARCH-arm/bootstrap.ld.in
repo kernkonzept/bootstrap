@@ -84,13 +84,6 @@ SECTIONS
   _end = . ;
   PROVIDE (end = .);
 
-  .data.m :
-  {
-    _module_data_start = .;
-    *(.module_data)
-    _module_data_end = .;
-  } : mods
-
   /* Moved here to ensure that these sections are located _after_ the text
    * section. In the other case we would get program sections with a virtual
    * address of 0 */
@@ -111,6 +104,15 @@ SECTIONS
       *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)
     }
   .rel.plt  : { *(.rel.plt) }
+
+  /* Needs to be last so that l4image does not mess up PHDR offsets other
+   * sections. */
+  .data.m :
+  {
+    _module_data_start = .;
+    *(.module_data)
+    _module_data_end = .;
+  } : mods
 
   /* drop the following sections since we do not need them for DROPS */
   /DISCARD/ : {

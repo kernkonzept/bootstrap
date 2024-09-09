@@ -105,6 +105,8 @@ SECTIONS
     }
   .rela.plt : { *(.rela.plt) }
 
+  /* Needs to be last so that l4image does not mess up PHDR offsets other
+   * sections. */
   .data.m :
   {
     _module_data_start = .;

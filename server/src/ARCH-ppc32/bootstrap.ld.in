@@ -75,6 +75,8 @@ SECTIONS
   .dynstr  : { *(.dynstr)  }
   .rel.dyn : { *(.rel.dyn) }
 
+  /* Needs to be last so that l4image does not mess up PHDR offsets other
+   * sections. */
   . = ALIGN(4096);
   .data.m :
   {
