@@ -744,8 +744,8 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 {
   unsigned long mod_count = mod_header->num_mods() + internal_mods.cnt;
 
-  unsigned long mbi_size = sizeof(l4util_mb_info_t);
-  mbi_size += sizeof(l4util_mb_mod_t) * mod_count;
+  unsigned long mbi_size = sizeof(l4util_l4mod_info);
+  mbi_size += sizeof(l4util_l4mod_mod) * mod_count;
 
   assert(mod_count >= 1);
 
