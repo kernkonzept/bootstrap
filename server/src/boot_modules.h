@@ -76,7 +76,8 @@ public:
   };
 
   virtual ~Boot_modules() = 0;
-  virtual void reserve() = 0;
+  virtual void init_mod_regions() = 0;
+  virtual void finalize_mod_regions() = 0;
   virtual Module module(unsigned index, bool uncompress = true) const = 0;
   virtual unsigned num_modules() const = 0;
   virtual l4util_l4mod_info *construct_mbi(unsigned long mod_addr, Internal_module_list const &mods) = 0;
@@ -102,7 +103,8 @@ inline Boot_modules::~Boot_modules() {}
 class Boot_modules_image_mode : public Boot_modules
 {
 public:
-  void reserve() override;
+  void init_mod_regions() override;
+  void finalize_mod_regions() override;
   Module module(unsigned index, bool uncompress) const override;
   unsigned num_modules() const override;
   void move_module(unsigned index, void *dest) override;

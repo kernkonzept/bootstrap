@@ -495,15 +495,26 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 #endif // CONFIG_BOOTSTRAP_COMPRESS
 }
 
-void
-Boot_modules_image_mode::reserve()
+static Region
+mod_header_region()
 {
-  mem_manager->regions->add(Region::start_size(mod_header,
-                                               modinfo_payload_size() - 3,
-                                               ".modinfo", Region::Boot));
+  return Region::start_size(mod_header, modinfo_payload_size() - 3,
+                            ".modinfo", Region::Boot);
+}
+
+void
+Boot_modules_image_mode::init_mod_regions()
+{
+  mem_manager->regions->add(mod_header_region());
 
   for (Mod_info const &m : mod_header->mods())
     mem_manager->regions->add(m.region());
+}
+
+void
+Boot_modules_image_mode::finalize_mod_regions()
+{
+  mem_manager->regions->sub(mod_header_region());
 }
 
 int

@@ -31,6 +31,8 @@ public:
                                                      ".cpu_boot", Region::Root),
                                   true);
       }
+
+    modules()->init_mod_regions();
   }
 
   static void reboot_psci()

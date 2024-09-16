@@ -72,7 +72,11 @@ public:
    */
   virtual void setup_kernel_options(L4_kernel_options::Options *) {}
 
-  virtual void init_regions() {}
+  virtual void init_regions()
+  { modules()->init_mod_regions(); }
+
+  virtual void finalize_regions()
+  { modules()->finalize_mod_regions(); }
 
   virtual void boot_kernel(unsigned long entry)
   {

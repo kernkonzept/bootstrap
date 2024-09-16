@@ -227,7 +227,7 @@ public:
   unsigned num_modules() const override
   { return l4mi ? l4mi->mods_count : mbi->mods_count; }
 
-  void reserve() override
+  void init_regions() override
   {
     Region_list *regions = mem_manager->regions;
 
@@ -280,6 +280,9 @@ public:
                                 mb_mod[i].mod_end - mb_mod[i].mod_start));
       }
   }
+
+  void init_mod_regions() override {}
+  void finalize_mod_regions() override {}
 
   void move_module(unsigned index, void *dest) override
   {

@@ -766,7 +766,6 @@ startup(char const *cmdline)
   /* basically add the bootstrap binary to the allocated regions */
   init_regions();
   plat->init_regions();
-  plat->modules()->reserve();
 
   if (const char *s = check_arg(cmdline, "-modaddr"))
     {
@@ -916,6 +915,7 @@ startup(char const *cmdline)
   if (presetmem)
     fill_mem(presetmem_value);
 
+  plat->finalize_regions();
   finalize_regions();
   regions.optimize();
   regions.dump();
