@@ -143,14 +143,15 @@ trap6_warning:
 numbers:
 	.ascii  "0123456789abcdef"
 
-        /* MultiBoot header - see multiboot.h.  */
+	/* MultiBoot header - see multiboot.h. */
 	.p2align(2)
 
 #define MULTIBOOT_MEMORY_INFO 0x00000002
+
 _mb_header:
-        .long   0x1BADB002		/* magic */
-        .long   MULTIBOOT_MEMORY_INFO	/* flags: AOUT_KLUDGE */
-        .long   0 - 0x1BADB002 - MULTIBOOT_MEMORY_INFO
+	.long	0x1BADB002		/* magic */
+	.long	MULTIBOOT_MEMORY_INFO	/* flags */
+	.long	0 - 0x1BADB002 - MULTIBOOT_MEMORY_INFO
 
 #ifndef XEN
 	.word	0
