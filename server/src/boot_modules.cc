@@ -753,37 +753,6 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
 l4util_l4mod_info *
 Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_list const &internal_mods)
 {
-  unsigned long mod_count = mod_header->num_mods() + internal_mods.cnt;
-
-  unsigned long mbi_size = sizeof(l4util_l4mod_info);
-  mbi_size += sizeof(l4util_l4mod_mod) * mod_count;
-
-  assert(mod_count >= 1);
-
-  for (Mod_info const &mod : mod_header->mods())
-    mbi_size += round_wordsize(strlen(mod.cmdline()) + 1);
-
-  for (Internal_module_base const *m = internal_mods.root; m; m = m->next())
-    mbi_size += round_wordsize(m->cmdline_size());
-
-  // Round up to ensure mbi is on its own page
-  unsigned long mbi_size_full = l4_round_page(mbi_size);
-  l4_uint64_t mbi_ram = mem_manager->find_free_ram(mbi_size_full);
-  auto *mbi = reinterpret_cast<l4util_l4mod_info *>(mbi_ram);
-  if (!mbi)
-    panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size_full);
-
-  Region_list *regions = mem_manager->regions;
-  regions->add(Region::start_size(mbi_ram, mbi_size_full, ".mbi_rt",
-                                  Region::Root, L4_FPAGE_RWX));
-  memset(mbi, 0, mbi_size);
-
-  l4util_l4mod_mod *mods = reinterpret_cast<l4util_l4mod_mod *>(mbi + 1);
-  char *mbi_strs = reinterpret_cast<char *>(mods + mod_count);
-
-  mbi->mods_count  = mod_header->num_mods();
-  mbi->mods_addr   = reinterpret_cast<l4_addr_t>(mods);
-
   unsigned long total_size = 0;
   for (Mod_info const &mod : mod_header->mods())
     {
@@ -806,6 +775,37 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
   move_modules(mod_addr);
 #endif // ! CONFIG_BOOTSTRAP_COMPRESS
   merge_mod_regions();
+
+  unsigned long mod_count = mod_header->num_mods() + internal_mods.cnt;
+
+  unsigned long mbi_size = sizeof(l4util_l4mod_info);
+  mbi_size += sizeof(l4util_l4mod_mod) * mod_count;
+
+  assert(mod_count >= 1);
+
+  for (Mod_info const &mod : mod_header->mods())
+    mbi_size += round_wordsize(strlen(mod.cmdline()) + 1);
+
+  for (Internal_module_base const *m = internal_mods.root; m; m = m->next())
+    mbi_size += round_wordsize(m->cmdline_size());
+
+  // Round up to ensure mbi is on its own page
+  unsigned long mbi_size_full = l4_round_page(mbi_size);
+  l4_uint64_t mbi_ram = mem_manager->find_free_ram(mbi_size_full, mod_addr);
+  auto *mbi = reinterpret_cast<l4util_l4mod_info *>(mbi_ram);
+  if (!mbi)
+    panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size_full);
+
+  Region_list *regions = mem_manager->regions;
+  regions->add(Region::start_size(mbi_ram, mbi_size_full, ".mbi_rt",
+                                  Region::Root, L4_FPAGE_RWX));
+  memset(mbi, 0, mbi_size);
+
+  l4util_l4mod_mod *mods = reinterpret_cast<l4util_l4mod_mod *>(mbi + 1);
+  char *mbi_strs = reinterpret_cast<char *>(mods + mod_count);
+
+  mbi->mods_count  = mod_header->num_mods();
+  mbi->mods_addr   = reinterpret_cast<l4_addr_t>(mods);
 
   unsigned cnt = 0;
   for (unsigned run = 0; run < 2; ++run)
