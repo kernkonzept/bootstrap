@@ -93,7 +93,7 @@ public:
    * @param sub the subtype of the region
    * @param eager Mark region as eagerly mapped by kernel
    */
-  static Region start_size(unsigned long long begin, unsigned long size,
+  static Region start_size(unsigned long long begin, unsigned long long size,
                            char const *name = 0, Type t = No_mem,
                            short sub = 0, bool eager = false)
   {
@@ -110,7 +110,7 @@ public:
    * @param sub the subtype of the region
    * @param eager Mark region as eagerly mapped by kernel
    */
-  static Region start_size(void const *begin, unsigned long size,
+  static Region start_size(void const *begin, unsigned long long size,
                            char const *name = 0, Type t = No_mem,
                            short sub = 0, bool eager = false)
   {
