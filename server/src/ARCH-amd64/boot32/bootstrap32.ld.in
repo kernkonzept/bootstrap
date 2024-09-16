@@ -24,7 +24,7 @@ SECTIONS
 
   .note.gnu.build-id : { *(.note.gnu.build-id) }
 
-  .data :
+  .data ALIGN(0x1000):
   {
     *.o32 (.idt .idt.*)
     *.a (.idt .idt.*)
@@ -36,13 +36,12 @@ SECTIONS
     *.a (COMMON)
   } :data
 
-  .data.elf64 :
+  .data.elf64 ALIGN(0x1000):
   {
     KEEP(bootstrap32.bin (.data))
   } :rodata
 
   _image_end = .;
-
 
   /* LINKADDR is DEFAULT_RELOC_amd64 aka the 64bit bootstrap binary */
   .sixtyfour LINKADDR :

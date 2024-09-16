@@ -53,7 +53,7 @@ SECTIONS
   /* FXIME: should make this depending on EFI */
   . = (. < (0x400 + LINKADDR)) ? (LINKADDR + 0x400) : .;
 
-  .text :
+  .text ALIGN(0x1000):
   {
     _stext = .;
     *(.init)
@@ -72,7 +72,7 @@ SECTIONS
     *(.rel.*) *(.rel.module_info)
   } : data
 
-  .data :
+  .data ALIGN(0x1000):
   {
     . = ALIGN(8);
     *(.data)
