@@ -248,7 +248,7 @@ struct Pci_iterator
 
   l4_uint32_t vd;
 
-  enum { Max_bus = 20 };
+  enum { Max_bus = 0x100 };
 
   // offsets in PCI config space
   enum { Cmd = 0x4 };
