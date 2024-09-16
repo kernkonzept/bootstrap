@@ -37,9 +37,9 @@ void Dt::check_for_dt() const
     panic("This platform needs a device tree, please provide one.");
 }
 
-Dt::Node Dt::node_by_path(char const *path) const
+Dt::Node Dt::node_by_path(char const *path, int namelen) const
 {
-  return Node(_fdt, fdt_path_offset(_fdt, path));
+  return Node(_fdt, fdt_path_offset_namelen(_fdt, path, namelen));
 }
 
 Dt::Node Dt::node_by_phandle(uint32_t phandle) const

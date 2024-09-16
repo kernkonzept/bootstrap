@@ -317,7 +317,10 @@ public:
   const void *fdt() const { return _fdt; }
   unsigned fdt_size() const { return _fdt ? fdt_totalsize(_fdt) : 0; }
 
-  Node node_by_path(char const *path) const;
+  Node node_by_path(char const *path) const
+  { return node_by_path(path, strlen(path)); }
+
+  Node node_by_path(char const *path, int namelen) const;
   Node node_by_phandle(uint32_t phandle) const;
   Node node_by_compatible(char const *compatible) const;
 
