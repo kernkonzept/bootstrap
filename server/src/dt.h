@@ -208,7 +208,27 @@ public:
         return Array_prop<N>();
     }
 
-    bool stringlist_search(char const *name, char const *value) const;
+    /**
+     * Check if a string list contains a string.
+     *
+     * \param name   Name of the string list property.
+     * \param value  String to search for,
+     *
+     * \retval true   If the string list contains the string.
+     * \retval false  Otherwise.
+     */
+    bool stringlist_contains(char const *name, char const *value) const;
+
+    /**
+     * Find a string in a string list and return its index.
+     *
+     * \param name   Name of the string list property.
+     * \param value  String to search for,
+     *
+     * \retval >= 0  On success, the index of the string in the list.
+     * \retval  < 0  On failure, FDT error code.
+     */
+    int stringlist_search(char const *name, char const *value) const;
 
     bool get_addr_size_cells(unsigned &addr_cells, unsigned &size_cells) const;
 

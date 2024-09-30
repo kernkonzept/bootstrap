@@ -65,9 +65,14 @@ char const *Dt::Node::get_prop_str(char const *name) const
   return str;
 }
 
-bool Dt::Node::stringlist_search(char const *name, char const *value) const
+bool Dt::Node::stringlist_contains(char const *name, char const *value) const
 {
-  return fdt_stringlist_search(_fdt, _off, name, value) >= 0;
+  return stringlist_search(name, value) >= 0;
+}
+
+int Dt::Node::stringlist_search(char const *name, char const *value) const
+{
+  return fdt_stringlist_search(_fdt, _off, name, value);
 }
 
 bool Dt::Node::get_addr_size_cells(unsigned &addr_cells,
@@ -232,7 +237,7 @@ l4_uint64_t Dt::cpu_release_addr() const
       if (!cpu.check_device_type("cpu"))
         return Dt::Continue; // Not a cpu node
 
-      if (!cpu.stringlist_search("enable-method", "spin-table"))
+      if (!cpu.stringlist_contains("enable-method", "spin-table"))
         // Assume all cores use the same enable method.
         return Dt::Break;
 
