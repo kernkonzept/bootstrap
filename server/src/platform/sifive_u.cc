@@ -18,6 +18,10 @@ class Platform_riscv_sifive_u : public Platform_riscv_base
     kuart.base_address = 0x10013000;
     kuart.base_baud    = 500000000;
     kuart.irqno        = 3;
+    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+    kuart_flags       |=   L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_base
+                         | L4_kernel_options::F_uart_irq;
 
     setup_kuart_from_dt("sifive,uart0");
   }

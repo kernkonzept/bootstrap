@@ -18,6 +18,10 @@ class Platform_riscv_migv : public Platform_riscv_base
     kuart.base_address = 0x404000;
     kuart.base_baud    = 14976000; // 115200 * 0x81, taken from ROM bootloader
     kuart.irqno        = 9;
+    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+    kuart_flags       |=   L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_base
+                         | L4_kernel_options::F_uart_irq;
 
     setup_kuart_from_dt("ns16550a");
   }

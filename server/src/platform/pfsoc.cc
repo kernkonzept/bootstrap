@@ -18,6 +18,8 @@ class Platform_riscv_pfsoc : public Platform_riscv_base
     kuart.base_address = 0;
     kuart.base_baud    = 9375000;
     kuart.irqno        = 0;
+    kuart_flags       |=   L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_irq;
 
     setup_kuart_from_dt("ns16550a");
   }

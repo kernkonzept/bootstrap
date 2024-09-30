@@ -19,12 +19,12 @@ public:
   void boot_kernel(unsigned long entry) override;
 
 protected:
+  static int parse_plic_irq(Dt::Node node);
+
   virtual void setup_kuart() = 0;
   void setup_kuart_from_dt(char const *compatible);
 
 private:
-  bool parse_kuart_node(Dt::Node node, char const *compatible);
-
   char const *riscv_cpu_isa(Dt::Node cpu) const;
   bool riscv_cpu_hartid(Dt::Node cpu, l4_uint32_t &hartid) const;
   bool parse_isa_ext(l4_kip_platform_info_arch &arch_info) const;

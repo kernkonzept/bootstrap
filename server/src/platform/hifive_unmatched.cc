@@ -24,6 +24,11 @@ class Platform_riscv_hifive_unmatched : public Platform_riscv_base
     // divisor, configured by U-Boot, with baud rate: 1128 * 115200 = 130000000
     kuart.base_baud    = 130000000;
     kuart.irqno        = 3;
+    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+    kuart_flags       |=   L4_kernel_options::F_uart_baud
+                         | L4_kernel_options::F_uart_base
+                         | L4_kernel_options::F_uart_irq;
+
 
     setup_kuart_from_dt("sifive,uart0");
   }

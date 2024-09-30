@@ -32,6 +32,15 @@ void Platform_riscv_base::init_dt()
   setup_kuart();
 }
 
+int Platform_riscv_base::parse_plic_irq(Dt::Node node)
+{
+  Dt::Array_prop<1> interrupts = node.get_prop_array("interrupts", { 1 });
+  if (!interrupts.is_valid() || interrupts.elements() < 1)
+    return -1;
+
+  return interrupts.get(0, 0);
+}
+
 void Platform_riscv_base::setup_kernel_config(l4_kernel_info_t*kip)
 {
   l4_kip_platform_info_arch &arch_info = kip->platform_info.arch;
@@ -59,25 +68,15 @@ void Platform_riscv_base::boot_kernel(unsigned long entry)
 
 void Platform_riscv_base::setup_kuart_from_dt(char const *compatible)
 {
-  kuart.access_type  = L4_kernel_options::Uart_type_mmio;
-  kuart_flags       |=   L4_kernel_options::F_uart_base
-                       | L4_kernel_options::F_uart_baud
-                       | L4_kernel_options::F_uart_irq;
-
   // Use UART specified via /chosen/stdout-path if present and compatible
-  auto chosen = dt.node_by_path("/chosen");
-  if (chosen.is_valid())
-    {
-      const char *uart_path = chosen.get_prop_str("stdout-path");
-      if (uart_path && parse_kuart_node(dt.node_by_path(uart_path), compatible))
-        return;
-    }
+  if (dt.get_stdout_uart(compatible, parse_plic_irq, &kuart, &kuart_flags))
+    return;
 
   // Otherwise scan all compatible UARTs
   bool found_uart = false;
   dt.nodes_by_compatible(compatible, [&](Dt::Node uart)
     {
-      if (parse_kuart_node(uart, compatible))
+      if (dt.parse_uart(uart, parse_plic_irq, &kuart, &kuart_flags))
         {
           found_uart = true;
           return Dt::Break;
@@ -87,46 +86,6 @@ void Platform_riscv_base::setup_kuart_from_dt(char const *compatible)
 
   if (!found_uart)
     Dt::warn("Failed to setup kernel uart!\n");
-}
-
-bool Platform_riscv_base::parse_kuart_node(Dt::Node uart,
-                                           char const *compatible)
-{
-  if (!uart.is_valid() || !uart.is_enabled())
-    return false;
-
-  if (!uart.check_compatible(compatible))
-    return false;
-
-  l4_uint32_t base_baud;
-  if (uart.get_prop_u32("clock-frequency", base_baud))
-    kuart.base_baud = base_baud;
-  else
-    uart.info("Failed to get uart clock frequency!\n");
-
-  l4_uint32_t baud;
-  if (uart.get_prop_u32("current-speed", baud))
-    kuart.baud = baud;
-  else
-    uart.info("Failed to get uart current speed!\n");
-
-  l4_uint64_t base_address;
-  if (uart.get_reg(0, &base_address))
-    kuart.base_address = base_address;
-  else
-    uart.info("Failed to get uart base address!\n");
-
-  l4_uint32_t irq;
-  if (uart.get_prop_u32("interrupts", irq))
-    kuart.irqno = irq;
-  else
-    uart.info("Failed to get uart irq!\n");
-
-  l4_uint32_t reg_shift;
-  if (uart.get_prop_u32("reg-shift", reg_shift))
-    kuart.reg_shift = reg_shift;
-
-  return true;
 }
 
 char const *Platform_riscv_base::riscv_cpu_isa(Dt::Node cpu) const

@@ -14,13 +14,6 @@ class Platform_riscv_virt : public Platform_riscv_base
 {
   void setup_kuart() override
   {
-    // Set defaults, can be overwritten by device tree.
-    kuart.baud         = 115200;
-    kuart.reg_shift    = 0;
-    kuart.base_address = 0x10000000;
-    kuart.base_baud    = 1843200;
-    kuart.irqno        = 10;
-
     setup_kuart_from_dt("ns16550a");
   }
 
