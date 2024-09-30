@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include <l4/cxx/minmax>
 #include <l4/cxx/type_traits>
 #include <l4/sys/l4int.h>
 
@@ -32,6 +33,47 @@ public:
   {
     Break,
     Continue,
+  };
+
+  /**
+   * Accessor for array encoded properties.
+   */
+  class Array
+  {
+  public:
+    Array()
+      : _prop(nullptr), _len(0)
+    {}
+
+    Array(fdt32_t const *data, unsigned len)
+      : _prop(data), _len(len)
+    {}
+
+    bool is_present() const
+    { return _prop != nullptr; }
+
+    template<typename T>
+    T get(unsigned off) const
+    {
+      assert(off < _len);
+      assert(off + (sizeof(T) / sizeof(fdt32_t)) <= _len);
+
+      int len = cxx::min<unsigned>(sizeof(T) / sizeof(fdt32_t), _len - off);
+      return read_value<T>(_prop + off, len);
+    }
+
+    unsigned len() const
+    { return _len; }
+
+    Array view(unsigned off, unsigned len) const
+    {
+      assert(off + len <= _len);
+      return Array(_prop + off, len);
+    }
+
+  private:
+    fdt32_t const *_prop;
+    unsigned _len;
   };
 
   /**
@@ -195,6 +237,13 @@ public:
     { return get_prop_val(name, val); }
 
     char const *get_prop_str(char const *name) const;
+
+    Array get_array(char const *name) const
+    {
+      int len;
+      const fdt32_t *cells = get_prop<fdt32_t>(name, &len);
+      return Array(cells, len);
+    }
 
     template<unsigned N>
     Array_prop<N> get_prop_array(char const *name,
