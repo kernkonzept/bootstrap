@@ -14,6 +14,8 @@
 #include <l4/cxx/type_traits>
 #include <l4/sys/l4int.h>
 
+#include "koptions-def.h"
+
 extern "C" {
 #include <libfdt.h>
 }
@@ -474,6 +476,54 @@ public:
 
   void setup_memory() const;
   l4_uint64_t cpu_release_addr() const;
+
+  /**
+   * Get the clock with the given name or index for the given node.
+   *
+   * \param node   Node to get the clock for.
+   * \param name   Name of the clock, optional.
+   * \param index  Index of the clock, if no name was specified.
+   *
+   * \return Clock node, or invalid node if the `node` does not have a clock
+   *         with the given name or index.
+   */
+  Node get_clock(Node node, char const *name, int index) const;
+
+  /// Function that translates "interrupts" property into IRQ number.
+  using Parse_irq_fn = int (*)(Node);
+
+  /**
+   * Get the UART selected for boot output via stdout-path.
+   *
+   * \param compatible  Optional compatible identifier the UART node must comply
+   *                    with.
+   *
+   * \note For documentation of the remaining parameters and return values see
+   *       `parse_uart()`.
+   */
+  bool get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
+                       L4_kernel_options::Uart *kuart,
+                       unsigned *kuart_flags) const;
+
+  /**
+   * Populate kernel UART options and flags from UART node.
+   *
+   * \param       uart         UART node to parse.
+   * \param       parse_irq    Function that translates "interrupts" property
+   *                           into IRQ number.
+   * \param[out]  kuart        Kernel UART options.
+   * \param[out]  kuart_flags  Kernel UART flags.
+   *
+   * \retval false  Not a valid/supported UART.
+   * \retval true   Supported UART, the following options and flags are populated:
+   *                - Always sets `kuart.base_address` and `F_uart_base` flag.
+   *                - If available, sets `kuart.irqno` field and `F_uart_irq` flag.
+   *                - If available, sets `kuart.baud` field and `F_uart_baud` flag.
+   *                - If available, sets `kuart.baud_base` field.
+   *                - If available, sets `kuart.reg_shift` field.
+   */
+  bool parse_uart(Node uart, Parse_irq_fn parse_irq,
+                  L4_kernel_options::Uart *kuart, unsigned *kuart_flags) const;
 
   void dump() const;
 

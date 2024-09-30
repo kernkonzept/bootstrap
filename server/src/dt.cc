@@ -163,6 +163,28 @@ bool Dt::Node::get_reg_val(Node parent, Reg_array_prop const &regs,
   return true;
 }
 
+Dt::Node Dt::get_clock(Node node, char const *name, int index) const
+{
+  Node result = Node(_fdt);
+
+  if (name)
+    index = node.stringlist_search("clock-names", name);
+
+  if (index < 0)
+    return result;
+
+  node.for_each_phandle("clocks", "#clock-cells",
+    [&index, &result](Node clock, Array) {
+      if (index-- > 0)
+        return Dt::Continue;
+
+      result = clock;
+      return Dt::Break;
+    });
+
+  return result;
+}
+
 
 void Dt::setup_memory() const
 {
@@ -257,6 +279,91 @@ l4_uint64_t Dt::cpu_release_addr() const
     });
 
   return cpu_release_addr;
+}
+
+bool Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
+                         L4_kernel_options::Uart *kuart,
+                         unsigned int *kuart_flags) const
+{
+  Node chosen = node_by_path("/chosen");
+  if (!chosen.is_valid())
+    return false;
+
+  const char *stdout_path = chosen.get_prop_str("stdout-path");
+  if (!stdout_path)
+    return false;
+
+  const char *option_delim = strchrnul(stdout_path, ':');
+
+  Node uart = node_by_path(stdout_path, option_delim - stdout_path);
+  if (!uart.is_valid())
+    return false;
+
+  if (compatible && !uart.check_compatible(compatible))
+    return false;
+
+  // The optional uart options string has the following format:
+  // <baud: number><parity: bool><bits: number><flow: bool>
+  // For example, 115200n8. We are only interested in baud.
+  if (unsigned long baud = strtoul(option_delim + 1, nullptr, 10))
+    {
+      kuart->baud = baud;
+      *kuart_flags |= L4_kernel_options::F_uart_baud;
+    }
+
+  return parse_uart(uart, parse_irq, kuart, kuart_flags);
+}
+
+bool Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
+                    L4_kernel_options::Uart *kuart,
+                    unsigned int *kuart_flags) const
+{
+  if (!uart.is_valid() || !uart.is_enabled())
+    return false;
+
+  l4_uint64_t mmio_addr;
+  if (uart.get_reg(0, &mmio_addr))
+    {
+      kuart->access_type = L4_kernel_options::Uart_type_mmio;
+      kuart->base_address = mmio_addr;
+      *kuart_flags |= L4_kernel_options::F_uart_base;
+    }
+  else
+    // Failed to get mmio address of UART.
+    return false;
+
+  int irq = parse_irq(uart);
+  if (irq >= 0)
+    {
+      kuart->irqno = irq;
+      *kuart_flags |= L4_kernel_options::F_uart_irq;
+    }
+
+  l4_uint32_t base_baud;
+  if (uart.get_prop_u32("clock-frequency", base_baud))
+    {
+      kuart->base_baud = base_baud;
+    }
+  else
+    {
+      // Otherwise, try to get frequency from first clock connected to the UART.
+      Node clock = get_clock(uart, nullptr, 0);
+      if (clock.is_valid() && clock.get_prop_u32("clock-frequency", base_baud))
+        kuart->base_baud = base_baud;
+    }
+
+  l4_uint32_t baud;
+  if (uart.get_prop_u32("current-speed", baud))
+    {
+      kuart->baud = baud;
+      *kuart_flags |= L4_kernel_options::F_uart_baud;
+    }
+
+  l4_uint32_t reg_shift;
+  if (uart.get_prop_u32("reg-shift", reg_shift))
+    kuart->reg_shift = reg_shift;
+
+  return true;
 }
 
 // grep "d0 0d fe ed " minicom.log | perl -e 'print pack("C*", map { hex($_) } split / +/, <>)' > dtb
