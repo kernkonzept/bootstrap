@@ -29,4 +29,18 @@ public:
     if (lko->core_spin_addr == -1ULL)
       Platform_dt<Platform_arm>::setup_kernel_options(lko);
   }
+
+protected:
+  static int parse_gic_irq(Dt::Node node)
+  {
+    Dt::Array_prop<3> interrupts = node.get_prop_array("interrupts", { 1, 1, 1 });
+    if (!interrupts.is_valid() || interrupts.elements() < 1)
+      return -1;
+
+    unsigned gic_type = interrupts.get(0, 0);
+    if (gic_type != 0 && gic_type != 1)
+      return -1;
+
+    return interrupts.get(0, 1) + (gic_type == 0 ? 32 : 0);
+  }
 };

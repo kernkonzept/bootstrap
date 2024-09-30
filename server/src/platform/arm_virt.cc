@@ -42,17 +42,11 @@ class Platform_arm_virt : public Platform_dt_arm
 
   void init() override
   {
-    // set defaults for reg_shift and baud_rate
-    kuart.baud      = 115200;
-    kuart.reg_shift = 0;
+    kuart.baud   = 115200;
+    kuart_flags |= L4_kernel_options::F_uart_baud;
 
-    kuart.base_address = 0x09000000;
-    kuart.base_baud    = 23990400;
-    kuart.irqno        = 33;
-    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
-    kuart_flags       |=   L4_kernel_options::F_uart_base
-                         | L4_kernel_options::F_uart_baud
-                         | L4_kernel_options::F_uart_irq;
+    dt.check_for_dt();
+    dt.get_stdout_uart("arm,pl011", &parse_gic_irq, &kuart, &kuart_flags);
 
     static L4::Io_register_block_mmio r(kuart.base_address);
     static L4::Uart_pl011 _uart(kuart.base_baud);
