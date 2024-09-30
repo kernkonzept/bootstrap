@@ -333,6 +333,43 @@ public:
           return;
     }
 
+    /**
+     * Iterate over a phandle list.
+     *
+     * \param  list_name   Property name that contains the phandle list.
+     * \param  cells_name  Property name that specifies the argument count of a
+     *                     phandle, i.e. the property is defined in each of the
+     *                     referenced nodes.
+     * \param  cb          Callback invoked for each phandle, taking the
+     *                     referenced node and the arguments as an Dt::Array.
+     */
+    template<typename CB>
+    void for_each_phandle(char const *list_name,
+                          char const *cells_name, CB &&cb) const
+    {
+      Array list = get_array(list_name);
+      if (!list.is_present())
+        return;
+
+      unsigned cur_cell = 0;
+      while (cur_cell < list.len())
+        {
+          l4_uint32_t phandle = list.get<l4_uint32_t>(cur_cell++);
+          Node node = dt().node_by_phandle(phandle);
+          l4_uint32_t arg_cells;
+          if (!node.is_valid() || !node.get_prop_u32(cells_name, arg_cells))
+            // If referenced node is invalid or if we cannot figure out the
+            // number of argument cells and therefore cannot just skip the
+            // node, so we have to abort the iteration.
+            return;
+
+          if (invoke_cb(cb, node, list.view(cur_cell, arg_cells)) == Break)
+            return;
+
+          cur_cell += arg_cells;
+        }
+    }
+
     __attribute__ ((format (printf, 2, 3)))
     void warn(char const *format, ...) const
     {
@@ -375,9 +412,14 @@ public:
     bool get_reg_val(Node parent, Reg_array_prop const &regs, unsigned index,
                      l4_uint64_t *out_addr, l4_uint64_t *out_size) const;
 
+    Dt const dt() const
+    { return Dt(_fdt); }
+
     void const *_fdt;
     int _off;
   };
+
+  Dt() = default;
 
   void init(unsigned long fdt_addr);
   void check_for_dt() const;
@@ -457,6 +499,8 @@ public:
   }
 
 protected:
+  Dt(void const *fdt) : _fdt(fdt) {}
+
   static void log(char const *format, va_list args)
   {
     printf("DT: ");
@@ -475,6 +519,6 @@ protected:
       return f(args...);
   }
 
-  void const *_fdt;
+  void const *_fdt = nullptr;
 };
 
