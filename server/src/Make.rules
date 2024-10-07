@@ -452,6 +452,7 @@ increment_build_nr = \
 
 startup.o: $(STARTUP_C_dep)
 CPPFLAGS_startup.cc += -DBUILD_DATE="\"$(shell LC_ALL=C date)\"" -DBUILD_NR=\"$(call increment_build_nr)\"
+CPPFLAGS_boot_modules.cc += -DLINKADDR=$(strip $(call default_reloc,$(ARCH)))
 
 %.ld: %.ld.in $(GENERAL_D_LOC) $(BOOTSTRAP_LD_dep)
 	@$(GEN_MESSAGE)

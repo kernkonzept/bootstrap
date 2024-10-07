@@ -839,10 +839,9 @@ Boot_modules_image_mode::move_module(unsigned index, void *dest)
       static bool show_once = true;
       if (show_once)
         {
-          extern int _stext;
           show_once = false;
           printf("  Using 'modaddr %#llx' in modules.list might prevent moving modules.\n",
-                 reinterpret_cast<l4_uint64_t>(&_stext) - RAM_BASE);
+                 l4_uint64_t{LINKADDR} - RAM_BASE);
         }
     }
 
