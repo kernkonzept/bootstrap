@@ -48,7 +48,7 @@ DEFAULT_RELOC_arm-rcar3        := 0x09000000
 SUPPORT_CC_arm-rcar4           := platform/rcar4.cc dt.cc
 SUPPORT_CC_arm-arm_virt        := platform/arm_virt.cc dt.cc \
                                   qemu_fw_cfg.cc qemu_fw_cfg_mmio.cc qemu_ramfb.cc
-SUPPORT_CC_arm-armada37xx      := platform/armada37xx.cc
+SUPPORT_CC_arm-armada37xx      := platform/armada37xx.cc dt.cc
 SUPPORT_CC_arm-s32g            := platform/s32g.cc dt.cc
 SUPPORT_CRT0_arm-s32g          := ARCH-arm/spin_addr_boot-generic.S
 SUPPORT_CC_arm-lx2160          := platform/lx2160.cc dt.cc
@@ -81,7 +81,7 @@ SUPPORT_CRT0_arm64-arm_fvp_base   := ARCH-arm64/spin_addr_boot-generic.S
 SUPPORT_CC_arm64-arm_fvp_base_r := platform/arm_fvp_base_r.cc
 SUPPORT_CRT0_arm64-arm_fvp_base_r := ARCH-arm64/spin_addr_boot-generic.S
 DEFAULT_RELOC_arm64-arm_fvp_base_r := 0
-SUPPORT_CC_arm64-armada37xx    := platform/armada37xx.cc
+SUPPORT_CC_arm64-armada37xx    := platform/armada37xx.cc dt.cc
 SUPPORT_CC_arm64-rcar3         := platform/rcar3.cc
 DEFAULT_RELOC_arm64-rcar3      := 0x09000000
 SUPPORT_CC_arm64-rcar4         := platform/rcar4.cc dt.cc
