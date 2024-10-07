@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2024 Kernkonzept GmbH.
  * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *            Marcus Haehnel marcus.haehnel@kernkonzept.com
+ *            Marcus Haehnel <marcus.haehnel@kernkonzept.com>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
