@@ -303,6 +303,51 @@ l4util_l4mod_info *Efi::construct_mbi(l4util_l4mod_info *mbi)
   return mbi;
 }
 
+/**
+ * EFI_PIXEL_BITMASK equality operator.
+ *
+ * Compare the EFI_PIXEL_BITMASK structures member-by-member.
+ *
+ * \param a  Left-hand operand.
+ * \param b  Right-hand operand.
+ *
+ * \retval true   Operands are logically equal.
+ * \retval false  Operands are not logically equal.
+ */
+static bool
+operator==(const EFI_PIXEL_BITMASK &a, const EFI_PIXEL_BITMASK &b)
+{
+  return a.RedMask == b.RedMask
+      && a.GreenMask == b.GreenMask
+      && a.BlueMask == b.BlueMask
+      && a.ReservedMask == b.ReservedMask;
+}
+
+/**
+ * EFI_GRAPHICS_OUTPUT_MODE_INFORMATION equality operator.
+ *
+ * Compare the EFI_GRAPHICS_OUTPUT_MODE_INFORMATION member-by-member. However,
+ * the PixelInformation member is considered only if the PixelFormat member
+ * equals to PixelBitMask.
+ *
+ * \param a  Left-hand operand.
+ * \param b  Right-hand operand.
+ *
+ * \retval true   Operands are logically equal.
+ * \retval false  Operands are not logically equal.
+ */
+static bool
+operator==(const EFI_GRAPHICS_OUTPUT_MODE_INFORMATION &a,
+           const EFI_GRAPHICS_OUTPUT_MODE_INFORMATION &b)
+{
+  return a.Version == b.Version
+      && a.HorizontalResolution == b.HorizontalResolution
+      && a.VerticalResolution == b.VerticalResolution
+      && a.PixelFormat == b.PixelFormat
+      && (a.PixelInformation == b.PixelInformation || a.PixelFormat != PixelBitMask)
+      && a.PixelsPerScanLine == b.PixelsPerScanLine;
+}
+
 void Efi::setup_gop()
 {
   EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
@@ -351,10 +396,8 @@ void Efi::setup_gop()
       if (verbose)
         {
           Print((CHAR16 *)L"%c%d: %dx%d ",
-                memcmp(info, gop->Mode->Info, sizeof(*info)) == 0 ? '*' : ' ',
-                i,
-                info->HorizontalResolution,
-                info->VerticalResolution);
+                (*gop->Mode->Info == *info) ? '*' : ' ', i,
+                info->HorizontalResolution, info->VerticalResolution);
           switch (info->PixelFormat)
             {
             case PixelRedGreenBlueReserved8BitPerColor:
@@ -380,7 +423,7 @@ void Efi::setup_gop()
           Print((CHAR16 *)L" pitch %d\n", info->PixelsPerScanLine);
         }
 
-      if (0 == memcmp(info, gop->Mode->Info, sizeof(*info)))
+      if (*info == *gop->Mode->Info)
         {
           _video_info         = *info;
           _video_fb_phys_base = gop->Mode->FrameBufferBase;
