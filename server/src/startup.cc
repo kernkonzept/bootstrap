@@ -314,19 +314,15 @@ check_arg_str(char const *cmdline, const char *arg)
     {
       if (s == cmdline
           || isspace(s[-1]))
-        return s;
+        return s + strlen(arg);
     }
-  return NULL;
+  return nullptr;
 }
 
 /**
  * Scan the command line for the given argument.
  *
- * The cmdline string may either be including the calling program
- * (.../bootstrap -arg1 -arg2) or without (-arg1 -arg2) in the realmode
- * case, there, we do not have a leading space
- *
- * return pointer after argument, NULL if not found
+ * return pointer after argument, nullptr if not found
  */
 char const *
 check_arg(char const *cmdline, const char *arg)
@@ -334,7 +330,7 @@ check_arg(char const *cmdline, const char *arg)
   if (cmdline)
     return check_arg_str(cmdline, arg);
 
-  return NULL;
+  return nullptr;
 }
 
 /*
@@ -346,7 +342,7 @@ get_memory_max_size(char const *cmdline)
 {
   /* maxmem= parameter? */
   if (char const *c = check_arg(cmdline, "-maxmem="))
-    return strtoul(c + 8, NULL, 10) << 20;
+    return strtoul(c, NULL, 10) << 20;
 
   return ~0ULL;
 }
@@ -418,7 +414,6 @@ setup_memory_map(char const *cmdline)
     {
       while ((s = check_arg_str(s, "-mem=")))
         {
-          s += 5;
           unsigned long sz, offset = 0;
           if (!parse_mem_layout(s, &sz, &offset))
             {
@@ -661,13 +656,10 @@ static void
 search_and_setup_utest_feature(char const *cmdline, l4_kernel_info_t *info)
 {
   char const *arg = "-utest_opts=";
-  size_t arg_len = strlen(arg);
   char const *config = check_arg(cmdline, arg);
 
   if (!config)
     return;
-
-  config += arg_len;
 
   char const *feat_prefix = "utest_opts=";
   size_t prefix_len = strlen(feat_prefix);
@@ -778,7 +770,11 @@ startup(char const *cmdline)
 
   if (const char *s = check_arg(cmdline, "-modaddr"))
     {
-      l4_addr_t addr = strtoul(s + 9, 0, 0);
+      if (*(s++) != '=')
+        printf("Separating modaddr arguments by other characters than '='\n"
+               "is deprecated and will be removed in the future. Please\n"
+               "adapt your configuration");
+      l4_addr_t addr = strtoul(s, 0, 0);
       if (addr >= ULONG_MAX - RAM_BASE)
         panic("Bogus '-modaddr 0x%lx' parameter\n", addr);
       _mod_addr = RAM_BASE + addr;
@@ -791,7 +787,7 @@ startup(char const *cmdline)
 
   if (char const *s = check_arg(cmdline, "-presetmem="))
     {
-      presetmem_value = static_cast<l4_uint8_t>(strtoul(s + 11, NULL, 0));
+      presetmem_value = static_cast<l4_uint8_t>(strtoul(s, NULL, 0));
       presetmem = true;
     }
 

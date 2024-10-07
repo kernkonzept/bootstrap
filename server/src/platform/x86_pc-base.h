@@ -1009,13 +1009,19 @@ public:
 
     if ((s = check_arg(cmdline, "-comirq")))
       {
-        s += 8;
+        if (*(s++) != '=')
+          printf("Separating comirq arguments by other characters than '='\n"
+                 "is deprecated and will be removed in the future. Please\n"
+                 "adapt your configuration");
         comirq = strtoul(s, 0, 0);
       }
 
     if ((s = check_arg(cmdline, "-comport")))
       {
-        s += 9;
+        if (*(s++) != '=')
+          printf("Separating comport arguments by other characters than '='\n"
+                 "is deprecated and will be removed in the future. Please\n"
+                 "adapt your configuration!\n");
         if ((pci = !strncmp(s, "pci:", 4)))
           s += 4;
 
