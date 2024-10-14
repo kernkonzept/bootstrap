@@ -470,16 +470,16 @@ cleanall::
 	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.*
 
 $(od)bootaa64.efi: $(od)$(BOOTSTRAP_ELF_NAME)
-	$(OBJCOPY) -S -j .text -j .data -j .dynamic -j .dynsym -j .rela.* \
-	           -j .data.m \
-	           -O binary $< $@
+	$(VERBOSE)$(OBJCOPY) -S -j .text -j .data -j .dynamic -j .dynsym \
+	                     -j .rela.* -j .data.m \
+	                     -O binary $< $@
 
 $(od)boot%.efi: $(od)$(BOOTSTRAP_ELF_NAME)
-	$(OBJCOPY) -S -j .text -j .rodata -j .reloc -j .dynsym -j .dynstr -j .rel.dyn \
-	           -j .data \
-	           -j .data.m -j .dynamic -j .rela.dyn -j .rela.plt -j .reloc \
-	           -j .bss -j .module_data \
-	           --target=$(EFI_BIN_FMT) $< $@
+	$(VERBOSE)$(OBJCOPY) -S -j .text -j .rodata -j .reloc -j .dynsym \
+	                     -j .dynstr -j .rel.dyn -j .data -j .data.m \
+	                     -j .dynamic -j .rela.dyn -j .rela.plt -j .reloc \
+	                     -j .bss -j .module_data \
+	                     --target=$(EFI_BIN_FMT) $< $@
 
 ifeq ($(ARCH),amd64)
 
