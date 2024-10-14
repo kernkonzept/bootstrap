@@ -771,9 +771,9 @@ startup(char const *cmdline)
   if (const char *s = check_arg(cmdline, "-modaddr"))
     {
       if (*(s++) != '=')
-        printf("Separating modaddr arguments by other characters than '='\n"
+        printf("Separating 'modaddr' arguments by other characters than '='\n"
                "is deprecated and will be removed in the future. Please\n"
-               "adapt your configuration");
+               "adapt your configuration.\n");
       l4_addr_t addr = strtoul(s, 0, 0);
       if (addr >= ULONG_MAX - RAM_BASE)
         panic("Bogus '-modaddr 0x%lx' parameter\n", addr);
