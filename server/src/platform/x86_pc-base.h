@@ -1012,7 +1012,7 @@ public:
         if (*(s++) != '=')
           printf("Separating comirq arguments by other characters than '='\n"
                  "is deprecated and will be removed in the future. Please\n"
-                 "adapt your configuration");
+                 "adapt your configuration\n");
         comirq = strtoul(s, 0, 0);
       }
 
