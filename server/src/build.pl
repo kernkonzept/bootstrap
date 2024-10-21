@@ -27,6 +27,7 @@ use L4::Image;
 my $cross_compile_prefix = $ENV{CROSS_COMPILE} || '';
 my $arch                 = $ENV{OPT_ARCH}     || "x86";
 my $platform_type        = $ENV{OPT_PLATFORM_TYPE};
+my $bits                 = $ENV{OPT_BITS};
 
 my $module_path    = $ENV{SEARCHPATH}     || ".";
 my $prog_objcopy   = $ENV{OBJCOPY}        || "${cross_compile_prefix}objcopy";
@@ -223,6 +224,7 @@ sub build_objects(@)
   $img{arch}        = $arch;
 
   $img{attrs}{"l4i:PT"} = $platform_type if defined $platform_type;
+  $img{attrs}{"l4i:bits"} = $bits if defined $bits;
   $img{attrs}{"l4i:QEMUcmd"} = "$ENV{QEMU_BINARY_NAME} -kernel \$L4IMAGE_FILE $ENV{QEMU_OPTIONS}"
     if $ENV{QEMU_BINARY_NAME};
 
