@@ -835,15 +835,13 @@ startup(char const *cmdline)
   assert(plat->current_node() == first_node);
 
   boot_info_t boot_info;
-  l4util_l4mod_mod *mb_mod
-    = reinterpret_cast<l4util_l4mod_mod *>(
-        static_cast<unsigned long>(mbi->mods_addr));
   regions.optimize();
 
   /* setup kernel PART ONE */
   boot_info.kernel_start = load_elf_module(mods->module(idx_kern), "[KERNEL]",
                                            fiasco_offset);
 
+  char const *kernel_cmdline = mods->module(idx_kern).cmdline;
   l4_kernel_info_t *kip = find_kip(mods->module(idx_kern), fiasco_offset,
                                    first_node);
   if (!kip)
@@ -889,11 +887,11 @@ startup(char const *cmdline)
       L4_kernel_options::Options *lko = find_kopts(mods->module(idx_kern), l4i,
                                                    fiasco_offset, n);
 
-      kcmdline_parse(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), lko);
+      kcmdline_parse(kernel_cmdline, lko);
       lko->uart   = kuart;
       lko->flags |= kuart_flags;
 
-      search_and_setup_utest_feature(L4_CONST_CHAR_PTR(mb_mod[0].cmdline), l4i);
+      search_and_setup_utest_feature(kernel_cmdline, l4i);
 
       // setup the L4 kernel info page before booting the L4 microkernel:
       init_kip(l4i, &boot_info, mbi, &ram, &regions);
@@ -923,8 +921,7 @@ startup(char const *cmdline)
   regions.dump();
 
   printf("  Starting kernel ");
-  print_module_name(L4_CONST_CHAR_PTR(mb_mod[0].cmdline),
-		    "[KERNEL]");
+  print_module_name(kernel_cmdline, "[KERNEL]");
   printf(" at " l4_addr_fmt "\n", boot_info.kernel_start);
 
 #if defined(ARCH_mips)
