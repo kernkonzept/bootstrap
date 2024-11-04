@@ -22,3 +22,7 @@
     KEEP (*(.platformdata))            \
     PROVIDE (__PLATFORMS_END = .);
 
+#define DEVS \
+    PROVIDE (__L4RE_DEVICE_BEGIN = .); \
+    KEEP (*(.data.l4redevice)) \
+    PROVIDE (__L4RE_DEVICE_END = .);

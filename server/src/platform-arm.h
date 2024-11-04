@@ -64,6 +64,11 @@ public:
     lko->core_spin_addr = (l4_uint64_t)&mp_launch_spin_addr;
   }
 
+  void set_uart_compatible(L4_kernel_options::Uart *kuart, const char *compatible)
+  {
+    strncpy(kuart->compatible_id, compatible, sizeof(kuart->compatible_id) - 1);
+    kuart->compatible_id[sizeof(kuart->compatible_id) - 1] = '\0';
+  }
 
   void setup_kernel_config_arm_common(l4_kernel_info_t *kip);
 

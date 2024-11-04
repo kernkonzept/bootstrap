@@ -43,4 +43,9 @@ public:
 
     return interrupts.get(0, 1) + (gic_type == 0 ? 32 : 0);
   }
+
+  void set_dtb_in_kip(l4_kernel_info_t *kip)
+  {
+    kip->dt_addr = reinterpret_cast<l4_umword_t>(dt.fdt());
+  }
 };

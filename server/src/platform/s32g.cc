@@ -28,10 +28,15 @@ class Platform_s32g : public Platform_dt_arm
                          | L4_kernel_options::F_uart_baud
                          | L4_kernel_options::F_uart_irq;
 
+    set_uart_compatible(&kuart, "nxp,s32g2-linflexuart");
     static L4::Io_register_block_mmio r(kuart.base_address);
     static L4::Uart_linflex _uart(kuart.base_baud);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
+  }
+  void late_setup(l4_kernel_info_t *kip) override
+  {
+    set_dtb_in_kip(kip);
   }
 
   void reboot() override

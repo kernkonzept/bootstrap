@@ -26,6 +26,8 @@ class Platform_arm_sbsa : public Platform_arm,
 {
   enum Psci_method { Psci_unsupported, Psci_smc, Psci_hvc };
 
+  unsigned _uart_variant;
+
 public:
   bool probe() override { return true; }
 
@@ -48,17 +50,11 @@ public:
 
         if (   uart.check_compatible("arm,pl011")
             || uart.check_compatible("arm,primecell"))
-          kuart.variant = Acpi::Spcr::Arm_pl011;
+          _uart_variant = Acpi::Spcr::Arm_pl011;
         else if (uart.check_compatible("arm,sbsa-uart"))
-          kuart.variant = Acpi::Spcr::Arm_sbsa;
+          _uart_variant = Acpi::Spcr::Arm_sbsa;
         else
-          kuart.variant = Acpi::Spcr::Nsc16550;
-
-        if (!(kuart_flags & L4_kernel_options::F_uart_baud))
-          {
-            kuart.baud   = 115200;
-            kuart_flags |= L4_kernel_options::F_uart_baud;
-          }
+          _uart_variant = Acpi::Spcr::Nsc16550;
 
         Dt::Node psci = dt.node_by_compatible("arm,psci-1.0");
         if (!psci.is_valid())
@@ -92,17 +88,44 @@ public:
         if (!spcr)
           panic("No ACPI SPCR found!");
 
-        kuart.variant = spcr->type;
+        // For ACPI, we derive the compatible string from the SPCR's type,
+        // as ACPI's UART choices are a subset of DT's possibilities, and
+        // let the kernel choose via compatible_id.
+        _uart_variant = spcr->type;
+        switch (spcr->type)
+          {
+          case Acpi::Spcr::Arm_pl011:
+          case Acpi::Spcr::Bcm2835:
+            strcpy(kuart.compatible_id, "arm,pl011");
+            break;
+          case Acpi::Spcr::Arm_sbsa:
+          case Acpi::Spcr::Arm_sbsa_32bit:
+            strcpy(kuart.compatible_id, "arm,sbsa-uart");
+            break;
+          case Acpi::Spcr::Arm_dcc:
+            strcpy(kuart.compatible_id, "arm,dcc");
+            break;
+          case Acpi::Spcr::Nsc16550:
+          case Acpi::Spcr::Compat16550:
+            strcpy(kuart.compatible_id, "ns16550");
+            break;
+          default:
+            strcpy(kuart.compatible_id, "l4re,uart-unknown");
+            break;
+          }
+
         kuart.base_address = spcr->base.address;
         kuart.irqno = spcr->irq_gsiv;
         kuart.base_baud = 0;
+        kuart.baud = spcr->baud_rate;
         kuart.access_type  = L4_kernel_options::Uart_type_mmio;
         kuart_flags       |=   L4_kernel_options::F_uart_base
                              | L4_kernel_options::F_uart_baud
                              | L4_kernel_options::F_uart_irq;
 
-        printf("ACPI/SPCR UART: addr=%llx type=%d irq=%d\n",
-               kuart.base_address, kuart.variant, kuart.irqno);
+        printf("ACPI/SPCR UART: %s, addr=%llx type=%d irq=%d\n",
+               kuart.compatible_id, kuart.base_address, _uart_variant,
+               kuart.irqno);
 
         auto *fadt = sdt.find<Acpi::Fadt const *>("FACP");
         if (!fadt)
@@ -145,11 +168,11 @@ public:
   void exit_boot_services() override
   {
     if (!(kuart_flags & L4_kernel_options::F_noserial)
-        && kuart.variant != Acpi::Spcr::Arm_pl011
-        && kuart.variant != Acpi::Spcr::Nsc16550
-        && kuart.variant != Acpi::Spcr::Arm_sbsa_32bit
-        && kuart.variant != Acpi::Spcr::Arm_sbsa)
-      panic("EFI: unsupported uart type: %d", kuart.variant);
+        && _uart_variant != Acpi::Spcr::Arm_pl011
+        && _uart_variant != Acpi::Spcr::Nsc16550
+        && _uart_variant != Acpi::Spcr::Arm_sbsa_32bit
+        && _uart_variant != Acpi::Spcr::Arm_sbsa)
+      panic("EFI: unsupported uart type: %d", _uart_variant);
 
     efi.exit_boot_services();
 
@@ -162,7 +185,7 @@ public:
     static L4::Uart_pl011 _uart_pl011(kuart.base_baud);
 
     L4::Uart *u = &_uart_pl011;
-    if (kuart.variant == Acpi::Spcr::Nsc16550)
+    if (_uart_variant == Acpi::Spcr::Nsc16550)
       u = &_uart_16550;
 
     u->startup(&r);

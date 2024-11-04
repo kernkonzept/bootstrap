@@ -50,6 +50,7 @@ SECTIONS
   . = ALIGN(4096);
   .data :
   {
+    DEVS
     *(.data .data.* .gnu.linkonce.d.*)
     *(.anno)
 

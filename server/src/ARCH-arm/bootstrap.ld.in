@@ -55,6 +55,7 @@ SECTIONS
 
     CTORS
     PLATFORMS
+    DEVS
   } : common
 
   /* exception frames for C++ */

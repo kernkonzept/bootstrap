@@ -507,6 +507,20 @@ public:
                        unsigned int *kuart_flags) const;
 
   /**
+   * Get the DT node that shall be used for stdout.
+   *
+   * \param baud Baud rate of stdout node.
+   */
+  Node get_stdout_uart_node(unsigned long *baud) const;
+
+  /**
+   * Get the compatible string of the DT's stdout node.
+   *
+   * \param baud Baud rate of stdout node.
+   */
+  const char *get_stdout_uart_compatible(unsigned long *baud) const;
+
+  /**
    * Populate kernel UART options and flags from UART node.
    *
    * \param       uart         UART node to parse.

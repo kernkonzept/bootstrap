@@ -282,9 +282,7 @@ l4_uint64_t Dt::cpu_release_addr() const
   return cpu_release_addr;
 }
 
-Dt::Node Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
-                             L4_kernel_options::Uart *kuart,
-                             unsigned int *kuart_flags) const
+Dt::Node Dt::get_stdout_uart_node(unsigned long *baud) const
 {
   Node chosen = node_by_path("/chosen");
   if (!chosen.is_valid())
@@ -296,23 +294,42 @@ Dt::Node Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
 
   const char *option_delim = strchrnul(stdout_path, ':');
 
-  Node uart = node_by_path(stdout_path, option_delim - stdout_path);
+  // The optional uart options string has the following format:
+  // <baud: number><parity: bool><bits: number><flow: bool>
+  // For example, 115200n8. We are only interested in baud.
+  *baud = strtoul(option_delim + 1, nullptr, 10);
+
+  return node_by_path(stdout_path, option_delim - stdout_path);
+}
+
+Dt::Node Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
+                             L4_kernel_options::Uart *kuart,
+                             unsigned int *kuart_flags) const
+{
+  unsigned long baud;
+  Node uart = get_stdout_uart_node(&baud);
   if (!uart.is_valid())
     return Node();
 
   if (compatible && !uart.check_compatible(compatible))
     return Node();
 
-  // The optional uart options string has the following format:
-  // <baud: number><parity: bool><bits: number><flow: bool>
-  // For example, 115200n8. We are only interested in baud.
-  if (unsigned long baud = strtoul(option_delim + 1, nullptr, 10))
+  if (baud)
     {
       kuart->baud = baud;
       *kuart_flags |= L4_kernel_options::F_uart_baud;
     }
 
   return parse_uart(uart, parse_irq, kuart, kuart_flags);
+}
+
+const char *Dt::get_stdout_uart_compatible(unsigned long *baud) const
+{
+  Node uart = get_stdout_uart_node(baud);
+  if (!uart.is_valid())
+    return nullptr;
+
+  return uart.get_prop_str("compatible");
 }
 
 Dt::Node Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
@@ -363,6 +380,13 @@ Dt::Node Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
   l4_uint32_t reg_shift;
   if (uart.get_prop_u32("reg-shift", reg_shift))
     kuart->reg_shift = reg_shift;
+
+  const char *compatible = uart.get_prop_str("compatible");
+  if (!compatible)
+    return Node();
+
+  strncpy(kuart->compatible_id, compatible, sizeof(kuart->compatible_id) - 1);
+  kuart->compatible_id[sizeof(kuart->compatible_id) - 1] = '\0';
 
   return uart;
 }
