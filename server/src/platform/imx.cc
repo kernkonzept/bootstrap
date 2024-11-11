@@ -125,7 +125,7 @@ class Platform_arm_imx
     };
     _wdog_phys = 0x30280000;
     static L4::Uart_imx7 _uart;
-#elif defined(PLATFORM_TYPE_imx8m) || defined(PLATFORM_TYPE_imx8mp)
+#elif defined(PLATFORM_TYPE_imx8m)
     switch (PLATFORM_UART_NR) {
       default:
       case 1: kuart.base_address = 0x30860000;

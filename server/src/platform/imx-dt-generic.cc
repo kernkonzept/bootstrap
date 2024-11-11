@@ -27,8 +27,14 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
     static L4::Io_register_block_mmio r(kuart.base_address);
 
     L4::Uart *_uart = nullptr;
+    // imx8mp
+    if (node.check_compatible("fsl,imx8mp-uart"))
+      {
+        static L4::Uart_imx8 uart;
+        _uart = &uart;
+      }
     // imx95
-    if (node.check_compatible("fsl,imx95-lpuart"))
+    else if (node.check_compatible("fsl,imx95-lpuart"))
       {
         static L4::Uart_lpuart uart(kuart.base_baud);
         _uart = &uart;

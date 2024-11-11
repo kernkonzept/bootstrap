@@ -30,7 +30,7 @@ SUPPORT_CC_arm-imx6            := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx6ul          := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx7            := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx8m           := platform/imx.cc platform_single_ram_region.cc
-SUPPORT_CC_arm-imx8mp          := platform/imx.cc platform_single_ram_region.cc
+SUPPORT_CC_arm-imx8mp          := platform/imx-dt-generic.cc dt.cc
 SUPPORT_CC_arm-imx8q           := platform/imx.cc
 SUPPORT_CC_arm-imx8x           := platform/imx.cc
 SUPPORT_CC_arm-imx95         	 := platform/imx-dt-generic.cc dt.cc
@@ -93,7 +93,7 @@ SUPPORT_CC_arm64-zynqmp        := platform/zynq.cc platform_single_ram_region.cc
 SUPPORT_CC_arm64-arm_virt      := platform/arm_virt.cc dt.cc \
                                   qemu_fw_cfg.cc qemu_fw_cfg_mmio.cc qemu_ramfb.cc
 SUPPORT_CC_arm64-imx8m         := platform/imx.cc platform_single_ram_region.cc
-SUPPORT_CC_arm64-imx8mp        := platform/imx.cc platform_single_ram_region.cc
+SUPPORT_CC_arm64-imx8mp        := platform/imx-dt-generic.cc dt.cc
 SUPPORT_CC_arm64-imx8q         := platform/imx.cc
 SUPPORT_CC_arm64-imx8x         := platform/imx.cc
 SUPPORT_CC_arm64-imx95         := platform/imx-dt-generic.cc dt.cc
