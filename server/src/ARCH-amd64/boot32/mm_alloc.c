@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-only or License-Ref-kk-custom */
 /*
  * Copyright (C) 2020 Kernkonzept GmbH.
  * Authors: Marcus Hähnel <marcus.haehnel@kernkonzept.com>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include <string.h>

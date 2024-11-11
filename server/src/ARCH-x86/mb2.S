@@ -2,8 +2,7 @@
  * Copyright (C) 2017, 2024 Kernkonzept GmbH.
  * Author: Jakub Jermar <jakub.jermar@kernkonzept.com>
  *
- * This file is distributed under the terms of the GNU General Public
- * License, version 2. Please see the COPYING-GPL-2 file for details.
+ * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #define __ASSEMBLY__

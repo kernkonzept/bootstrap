@@ -1,4 +1,3 @@
-/* SPDX-License-Identifier: GPL-2.0-only OR License-Ref-kk-custom */
 /*
  * Copyright (C) 2008-2009 Technische Universität Dresden
  * Copyright (C) 2023 Kernkonzept GmbH
@@ -6,6 +5,8 @@
  *               Adam Lackorzynski <adam@os.inf.tu-dresden.de>,
  *               Alexander Warg <warg@os.inf.tu-dresden.de>,
  *               Frank Mehnert <fm3@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
  */
 #pragma once
 

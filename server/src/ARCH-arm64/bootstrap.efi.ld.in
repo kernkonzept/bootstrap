@@ -4,6 +4,8 @@
  *            Adam Lackorzynski <adam@l4re.org>
  *
  * Taken from corresponding gnu-efi linkerscript
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include "ldscript.inc"

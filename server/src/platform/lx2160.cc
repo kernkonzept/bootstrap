@@ -9,9 +9,7 @@
 /*
  * (c) 2020 Author(s)
  *
- * This file is part of L4Re and distributed under the terms of the
- * GNU General Public License 2.
- * Please see the COPYING-GPL-2 file for details.
+ * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include <l4/drivers/uart_pl011.h>
