@@ -16,8 +16,8 @@ Created: 2018-05-18T00:00:00Z
 PackageName: bootstrap
 SPDXID: SPDXRef-bootstrap
 PackageOriginator: Organization: Kernkonzept GmbH (info@kernkonzept.com)
-PackageLicenseDeclared: GPL-2.0-only
-PackageLicenseConcluded: GPL-2.0-only
+PackageLicenseDeclared: MIT
+PackageLicenseConcluded: MIT
 FilesAnalyzed: true
 PackageCopyrightText: NOASSERTION
 PackageDownloadLocation: NOASSERTION
@@ -25,8 +25,8 @@ PackageDownloadLocation: NOASSERTION
 PackageName: bootstrap-libc32
 SPDXID: SPDXRef-bootstrap-libc32
 PackageFileName: ./server/src/ARCH-amd64/libc32
-PackageLicenseDeclared: GPL-2.0-only
-PackageLicenseConcluded: GPL-2.0-only
+PackageLicenseDeclared: MIT
+PackageLicenseConcluded: MIT
 FilesAnalyzed: false
 PackageCopyrightText: NOASSERTION
 PackageDownloadLocation: NOASSERTION
