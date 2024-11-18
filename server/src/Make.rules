@@ -437,7 +437,8 @@ $(BOOTSTRAP_ITB): $(BOOTSTRAP_RAW)
 	   -a $(call default_reloc,$(ARCH)) -A $(MKIMAGE_ARCH)  \
 	   -C $(BOOTSTRAP_UIMAGE_COMPRESSION) \
 	   -n "L4 Image #$$(cat .build_nr)" \
-	   -d $^ $@
+	   -d $^ $@ \
+	   $(if $(BOOTSTRAP_ITB_DTB),-b $(BOOTSTRAP_ITB_DTB))
 
 $(TARGET): $(LDSCRIPT) $(OBJS_$(TARGET))
 
