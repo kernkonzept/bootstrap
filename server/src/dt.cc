@@ -281,26 +281,26 @@ l4_uint64_t Dt::cpu_release_addr() const
   return cpu_release_addr;
 }
 
-bool Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
-                         L4_kernel_options::Uart *kuart,
-                         unsigned int *kuart_flags) const
+Dt::Node Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
+                             L4_kernel_options::Uart *kuart,
+                             unsigned int *kuart_flags) const
 {
   Node chosen = node_by_path("/chosen");
   if (!chosen.is_valid())
-    return false;
+    return Node();
 
   const char *stdout_path = chosen.get_prop_str("stdout-path");
   if (!stdout_path)
-    return false;
+    return Node();
 
   const char *option_delim = strchrnul(stdout_path, ':');
 
   Node uart = node_by_path(stdout_path, option_delim - stdout_path);
   if (!uart.is_valid())
-    return false;
+    return Node();
 
   if (compatible && !uart.check_compatible(compatible))
-    return false;
+    return Node();
 
   // The optional uart options string has the following format:
   // <baud: number><parity: bool><bits: number><flow: bool>
@@ -314,12 +314,12 @@ bool Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
   return parse_uart(uart, parse_irq, kuart, kuart_flags);
 }
 
-bool Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
-                    L4_kernel_options::Uart *kuart,
-                    unsigned int *kuart_flags) const
+Dt::Node Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
+                        L4_kernel_options::Uart *kuart,
+                        unsigned int *kuart_flags) const
 {
   if (!uart.is_valid() || !uart.is_enabled())
-    return false;
+    return Node();
 
   l4_uint64_t mmio_addr;
   if (uart.get_reg(0, &mmio_addr))
@@ -330,7 +330,7 @@ bool Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
     }
   else
     // Failed to get mmio address of UART.
-    return false;
+    return Node();
 
   int irq = parse_irq(uart);
   if (irq >= 0)
@@ -363,7 +363,7 @@ bool Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
   if (uart.get_prop_u32("reg-shift", reg_shift))
     kuart->reg_shift = reg_shift;
 
-  return true;
+  return uart;
 }
 
 // grep "d0 0d fe ed " minicom.log | perl -e 'print pack("C*", map { hex($_) } split / +/, <>)' > dtb

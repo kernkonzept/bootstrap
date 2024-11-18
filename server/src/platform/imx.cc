@@ -20,25 +20,11 @@
 #include <l4/drivers/uart_pl011.h>
 #include <l4/sys/compiler.h>
 #include "support.h"
-#include "platform_dt-arm.h"
+#include "platform-arm.h"
 #include "startup.h"
 
 
 namespace {
-
-static inline bool is_imx9()
-{
-  unsigned long m;
-
-#ifdef ARCH_arm64
-  asm volatile("mrs %0, midr_el1" : "=r" (m));
-#endif
-#ifdef ARCH_arm
-  asm volatile("mrc p15, 0, %0, c0, c0, 0" : "=r" (m));
-#endif
-  return (m & 0xff0ffff0) == 0x410fd050; // It's an A55 -> imx9
-}
-
 class Platform_arm_imx
 #if defined(PLATFORM_TYPE_imx8x) || defined(PLATFORM_TYPE_imx8q)
   : public Platform_arm, public Boot_modules_image_mode
@@ -46,7 +32,7 @@ class Platform_arm_imx
   : public Platform_single_region_ram<Platform_arm>
 #endif
 {
-  bool probe() override { return !is_imx9(); }
+  bool probe() override { return true; }
 
   void init() override
   {
@@ -179,9 +165,6 @@ class Platform_arm_imx
               kuart.irqno        = Uart_irq_base + 3;
               break;
     };
-    static L4::Uart_lpuart _uart;
-#elif defined(PLATFORM_TYPE_imx95)
-    /* Handled below */
     static L4::Uart_lpuart _uart;
 #else
 #error Which platform type?
@@ -334,8 +317,6 @@ class Platform_arm_imx
   }
 
   Boot_modules *modules() { return this; }
-#elif defined(PLATFORM_TYPE_imx95)
-  void setup_memory_map() {}
 #endif
 
   void reboot() override
@@ -352,30 +333,6 @@ class Platform_arm_imx
 private:
   unsigned long _wdog_phys;
 };
-
-class Platform_arm_imx9_dt : public Platform_dt_arm
-{
-  bool probe() override
-  { return is_imx9(); }
-
-  void init() override
-  {
-    dt.check_for_dt();
-    dt.get_stdout_uart(nullptr, parse_gic_irq, &kuart, &kuart_flags);
-
-    static L4::Io_register_block_mmio r(kuart.base_address);
-    static L4::Uart_lpuart _uart(kuart.base_baud);
-    _uart.startup(&r);
-    set_stdio_uart(&_uart);
-  }
-
-  void reboot() override
-  {
-    reboot_psci();
-  }
-};
-
 }
 
 REGISTER_PLATFORM(Platform_arm_imx);
-REGISTER_PLATFORM(Platform_arm_imx9_dt);

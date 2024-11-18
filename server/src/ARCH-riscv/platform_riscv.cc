@@ -70,14 +70,14 @@ void Platform_riscv_base::boot_kernel(unsigned long entry)
 void Platform_riscv_base::setup_kuart_from_dt(char const *compatible)
 {
   // Use UART specified via /chosen/stdout-path if present and compatible
-  if (dt.get_stdout_uart(compatible, parse_plic_irq, &kuart, &kuart_flags))
+  if (dt.get_stdout_uart(compatible, parse_plic_irq, &kuart, &kuart_flags).is_valid())
     return;
 
   // Otherwise scan all compatible UARTs
   bool found_uart = false;
   dt.nodes_by_compatible(compatible, [&](Dt::Node uart)
     {
-      if (dt.parse_uart(uart, parse_plic_irq, &kuart, &kuart_flags))
+      if (dt.parse_uart(uart, parse_plic_irq, &kuart, &kuart_flags).is_valid())
         {
           found_uart = true;
           return Dt::Break;

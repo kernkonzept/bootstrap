@@ -182,7 +182,7 @@ public:
   class Node
   {
   public:
-    explicit Node(void const *fdt) : _fdt(fdt), _off(-1) {}
+    explicit Node(void const *fdt = nullptr) : _fdt(fdt), _off(-1) {}
     Node(void const *fdt, int off) : _fdt(fdt), _off(off) {}
 
     bool is_valid() const
@@ -501,9 +501,9 @@ public:
    * \note For documentation of the remaining parameters and return values see
    *       `parse_uart()`.
    */
-  bool get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
+  Node get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
                        L4_kernel_options::Uart *kuart,
-                       unsigned *kuart_flags) const;
+                       unsigned int *kuart_flags) const;
 
   /**
    * Populate kernel UART options and flags from UART node.
@@ -522,7 +522,7 @@ public:
    *                - If available, sets `kuart.baud_base` field.
    *                - If available, sets `kuart.reg_shift` field.
    */
-  bool parse_uart(Node uart, Parse_irq_fn parse_irq,
+  Node parse_uart(Node uart, Parse_irq_fn parse_irq,
                   L4_kernel_options::Uart *kuart, unsigned *kuart_flags) const;
 
   void dump() const;
