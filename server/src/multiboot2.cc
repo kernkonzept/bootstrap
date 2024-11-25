@@ -130,6 +130,40 @@ public:
     _mbi.mmap_addr = reinterpret_cast<l4_addr_t>(end());
   }
 
+  void process_fb(l4util_mb2_tag_t *tag)
+  {
+    auto dst_tag = rotate_to_end(tag);
+
+    // We only support type 1 currently
+    if (dst_tag->fb.framebuffer_type != 1)
+      return;
+
+    reserve_from_end(sizeof(_vbe_mode) + sizeof(_vbe_ctrl));
+
+    memset(&_vbe_ctrl, 0, sizeof(_vbe_ctrl));
+    memset(&_vbe_mode, 0, sizeof(_vbe_mode));
+
+    _vbe_mode.phys_base = dst_tag->fb.framebuffer_addr;
+    _vbe_mode.reserved1 = dst_tag->fb.framebuffer_addr >> 32;
+
+    _vbe_mode.x_resolution       = dst_tag->fb.framebuffer_width;
+    _vbe_mode.y_resolution       = dst_tag->fb.framebuffer_height;
+    _vbe_mode.bits_per_pixel     = dst_tag->fb.framebuffer_bpp;
+    _vbe_mode.bytes_per_scanline = dst_tag->fb.framebuffer_pitch;
+
+    _vbe_mode.red_mask_size        = dst_tag->fb.color_info_rgb.framebuffer_red_mask_size;
+    _vbe_mode.red_field_position   = dst_tag->fb.color_info_rgb.framebuffer_red_field_position;
+    _vbe_mode.green_mask_size      = dst_tag->fb.color_info_rgb.framebuffer_green_mask_size;
+    _vbe_mode.green_field_position = dst_tag->fb.color_info_rgb.framebuffer_green_field_position;
+    _vbe_mode.blue_mask_size       = dst_tag->fb.color_info_rgb.framebuffer_blue_mask_size;
+    _vbe_mode.blue_field_position  = dst_tag->fb.color_info_rgb.framebuffer_blue_field_position;
+
+    size_t video_fb_size = _vbe_mode.bytes_per_scanline * _vbe_mode.y_resolution;
+    _vbe_ctrl.total_memory = (video_fb_size + 64 * 1024 - 1) / (64 * 1024); // in 64k chunks
+
+    _mbi.flags |= L4UTIL_MB_VIDEO_INFO;
+  }
+
   void process_rsdp(l4util_mb2_tag_t *tag, l4_uint32_t *rsdp_start,
                     l4_uint32_t *rsdp_end)
   {
@@ -143,11 +177,28 @@ public:
   }
 
   // Finalize conversion from multiboot2 to multiboot info buffer
-  void finalize()
+  l4_addr_t finalize()
   {
     assert(sizeof(_mbi) <= _size);
-    memcpy(_buf, &_mbi, sizeof(_mbi));
-    memset(_buf + sizeof(_mbi), 0, _size - sizeof(_mbi));
+    size_t s = 0;
+    if (_mbi.flags & L4UTIL_MB_VIDEO_INFO)
+      {
+        assert(sizeof(_mbi) + sizeof(_vbe_mode) + sizeof(_vbe_ctrl) <= _size);
+
+        memcpy(_buf + s, &_vbe_mode, sizeof(_vbe_mode));
+        _mbi.vbe_mode_info = reinterpret_cast<l4_uint32_t>(_buf + s);
+        s += sizeof(_vbe_mode);
+
+        memcpy(_buf + s, &_vbe_ctrl, sizeof(_vbe_ctrl));
+        _mbi.vbe_ctrl_info = reinterpret_cast<l4_uint32_t>(_buf + s);
+        s += sizeof(_vbe_ctrl);
+      }
+    void *mbi_addr = _buf + s;
+    memcpy(mbi_addr, &_mbi, sizeof(_mbi));
+    s += sizeof(_mbi);
+    memset(_buf + s, 0, _size - s);
+
+    return reinterpret_cast<l4_addr_t>(mbi_addr);
   }
 
 private:
@@ -187,14 +238,16 @@ private:
   const size_t _total_size;
 
   l4util_mb_info_t _mbi;
+  l4util_mb_vbe_mode_t _vbe_mode;
+  l4util_mb_vbe_ctrl_t _vbe_ctrl;
 };
 
 extern l4_uint32_t rsdp_start;
 extern l4_uint32_t rsdp_end;
 
-extern "C" void _multiboot2_to_multiboot(l4util_mb2_info_t *);
+extern "C" l4_addr_t _multiboot2_to_multiboot(l4util_mb2_info_t *);
 
-void _multiboot2_to_multiboot(l4util_mb2_info_t *mbi2)
+l4_addr_t _multiboot2_to_multiboot(l4util_mb2_info_t *mbi2)
 {
   Mbi2_convertible_buffer buf(mbi2);
 
@@ -213,6 +266,9 @@ void _multiboot2_to_multiboot(l4util_mb2_info_t *mbi2)
         case L4UTIL_MB2_MEMORY_MAP_INFO_TAG:
           buf.process_memmap(tag);
           break;
+        case L4UTIL_MB2_FRAMEBUFFER_INFO_TAG:
+          buf.process_fb(tag);
+          break;
         case L4UTIL_MB2_RSDP_OLD_INFO_TAG:
         case L4UTIL_MB2_RSDP_NEW_INFO_TAG:
           buf.process_rsdp(tag, &rsdp_start, &rsdp_end);
@@ -225,6 +281,6 @@ void _multiboot2_to_multiboot(l4util_mb2_info_t *mbi2)
         }
     }
 
-  buf.finalize();
+  return buf.finalize();
 }
 

@@ -12,7 +12,7 @@
 
 	.section .multiboot2, "ax"
 
-#define MB2_HEADER_LENGTH	mb2_header_end - mb2_header_start
+#define MB2_HEADER_LENGTH	(mb2_header_end - mb2_header_start)
 	.align  L4UTIL_MB2_TAG_ALIGN
 mb2_header_start:
 	.long   L4UTIL_MB2_MAGIC
@@ -28,6 +28,7 @@ info_req_tag_start:
 	.long   L4UTIL_MB2_BOOT_CMDLINE_INFO_TAG
 	.long   L4UTIL_MB2_MODULE_INFO_TAG
 	.long   L4UTIL_MB2_MEMORY_MAP_INFO_TAG
+        .long   L4UTIL_MB2_FRAMEBUFFER_INFO_TAG
 	.long   L4UTIL_MB2_RSDP_OLD_INFO_TAG
 	.long   L4UTIL_MB2_RSDP_NEW_INFO_TAG
 info_req_tag_end:
@@ -46,11 +47,22 @@ terminator_tag_start:
 	.word   L4UTIL_MB2_TAG_FLAG_REQUIRED
 	.long   terminator_tag_end - terminator_tag_start
 terminator_tag_end:
+
+	.align  L4UTIL_MB2_TAG_ALIGN
+framebuffer_tag_start:
+	.word   L4UTIL_MB2_FRAMEBUFFER_HEADER_TAG
+	.word   L4UTIL_MB2_TAG_FLAG_REQUIRED
+	.long   framebuffer_tag_end - framebuffer_tag_start
+	.long   0
+	.long   0
+	.long   0
+framebuffer_tag_end:
 mb2_header_end:
 
 _mb2_start:
 	leal    _stack, %esp
 	pushl   %ebx                    /* mb2i */
 	call    _multiboot2_to_multiboot
+	mov     %eax, %ebx
 	movl    $L4UTIL_MB_VALID_ASM, %eax
 	jmp     _start                  /* jump to the original entry point */
