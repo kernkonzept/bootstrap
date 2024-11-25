@@ -363,6 +363,8 @@ public:
             l4mi->vbe_ctrl_info = (l4_addr_t)d;
             _mb = (char *)(d + 1);
           }
+
+        l4mi->flags |= L4UTIL_MB_VIDEO_INFO;
       }
 
     if (mbi->cmdline)
@@ -370,6 +372,7 @@ public:
         strcpy(_mb, (char const *)(l4_addr_t)mbi->cmdline);
         l4mi->cmdline = (l4_addr_t)_mb;
         _mb += round_wordsize(strlen(_mb) + 1);
+        l4mi->flags |= L4UTIL_MB_CMDLINE;
       }
 
     for (unsigned i = 0; i < l4mi->mods_count; ++i)
