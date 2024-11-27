@@ -22,13 +22,6 @@ FilesAnalyzed: true
 PackageCopyrightText: NOASSERTION
 PackageDownloadLocation: NOASSERTION
 
-FileName: ./server/src/gunzip.cc
-SPDXID: SPDXRef-bootstrap-gunzip.cc
-LicenseConcluded: GPL-2.0-or-later
-LicenseInfoInFile: NOASSERTION
-FileCopyrightText: 1999 Free Software Foundation, Inc.
-FileComment: Only compiled in if the compression feature in bootstrap is enabled
-
 PackageName: bootstrap-libc32
 SPDXID: SPDXRef-bootstrap-libc32
 PackageFileName: ./server/src/ARCH-amd64/libc32
