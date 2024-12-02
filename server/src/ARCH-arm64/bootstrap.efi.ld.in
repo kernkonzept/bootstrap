@@ -1,16 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0-only or License-Ref-kk-custom */
 /*
- * Copyright (C) 2014-2022 Kernkonzept GmbH.
+ * Copyright (C) 2023-2024 Kernkonzept GmbH.
  * Author(s): Jan Klötzke <jan.kloetzke@kernkonzept.com>
+ *            Adam Lackorzynski <adam@l4re.org>
+ *
+ * Taken from corresponding gnu-efi linkerscript
  */
 
 #include "ldscript.inc"
 
-OUTPUT_FORMAT("elf64-littleaarch64", "elf64-bigaarch64",
-              "elf64-littleaarch64")
+OUTPUT_FORMAT("elf64-littleaarch64", "elf64-littleaarch64", "elf64-littleaarch64")
 OUTPUT_ARCH(aarch64)
 ENTRY(_start)
-
 SECTIONS
 {
   /*
@@ -19,64 +19,117 @@ SECTIONS
    * define _start here because there is no real entry point as far as the ELF
    * image is concerned.
    */
-  .text 0x0 : {
+  . = 0;
+  ImageBase = .;
+  /* .hash and/or .gnu.hash MUST come first! */
+  .hash : { *(.hash) }
+  .gnu.hash : { *(.gnu.hash) }
+  . = ALIGN(4096);
+  .eh_frame : { *(.eh_frame) }
+  .gcc_except_table : { *(.gcc_except_table*) }
+  . = ALIGN(4096);
+  .text : {
     _stext = .;
     _text = .;
     *(.text.head)
     *(.text)
     *(.text.*)
     *(.gnu.linkonce.t.*)
+    *(.plt)
     *(.srodata)
     *(.rodata*)
     . = ALIGN(16);
   }
-
   _etext = .;
-  PROVIDE (etext = .);
-  _text_size = . - _text;
-
-  .dynamic : { *(.dynamic) }
-  .data : ALIGN(4096)
+  _text_size = _etext - _text;
+  . = ALIGN(65536);
+  .reloc :
   {
-    _data = .;
-    *(.sdata)
-    *(.data)
-    *(.data1)
-    *(.data.*)
-    *(.got.plt)
-    *(.got)
+    KEEP (*(.reloc))
+  }
+  . = ALIGN(4096);
+  .dynamic  : { *(.dynamic) }
+  . = ALIGN(4096);
+  .data :
+  {
+   _data = .;
+   *(.sdata)
+   *(.data)
+   *(.data1)
+   *(.data.*)
+   *(.got.plt)
+   *(.got)
 
     CTORS
     PLATFORMS
 
-    /*
-     * The EFI loader doesn't seem to like a .bss section, so we stick it all
-     * into .data:
-     */
-    . = ALIGN(16);
-    _bss_start = .;
-    *(.sbss)
-    *(.scommon)
-    *(.dynbss)
-    *(.bss .bss.*)
-    *(COMMON)
-    . = ALIGN(16);
-    _bss_end = .;
+   /*
+    * Note that these aren't the using the GNU "CONSTRUCTOR" output section
+    * command, so they don't start with a size.  Because of p2align and the
+    * end/END definitions, and the fact that they're mergeable, they can also
+    * have NULLs which aren't guaranteed to be at the end.
+    */
+/* Leave gnu-efi supplied ctors/dtors except __init_array_start which we
+ * also have.
+   . = ALIGN(16);
+   __init_array_start = .;
+   *(SORT(.init_array.*))
+   *(.init_array)
+   __init_array_end = .;
+*/
+  . = ALIGN(16);
+   __CTOR_LIST__ = .;
+   *(SORT(.ctors.*))
+   *(.ctors)
+   __CTOR_END__ = .;
+  . = ALIGN(16);
+   __DTOR_LIST__ = .;
+   *(SORT(.dtors.*))
+   *(.dtors)
+   __DTOR_END__ = .;
+   . = ALIGN(16);
+   __fini_array_start = .;
+   *(SORT(.fini_array.*))
+   *(.fini_array)
+   __fini_array_end = .;
+
+   /* the EFI loader doesn't seem to like a .bss section, so we stick
+      it all into .data: */
+   . = ALIGN(16);
+   _bss = .;
+   *(.sbss)
+   *(.scommon)
+   *(.dynbss)
+   *(.bss*)
+   *(.bss.*)
+   *(COMMON)
+   *(.rel.local)
+   . = ALIGN(16);
+
+   _bss_end = .;
   }
-  _end = . ;
-  PROVIDE (end = .);
+  _end = .;
 
-  .rela.dyn : { *(.rela.dyn) }
+  . = ALIGN(4096);
+  .rela :
+  {
+    *(.rela.text*)
+    *(.rela.data*)
+    *(.rela.got)
+    *(.rela.dyn)
+    *(.rela.stab)
+    *(.rela.init_array*)
+    *(.rela.fini_array*)
+    *(.rela.ctors*)
+    *(.rela.dtors*)
+    *(.rela.platformdata)
+    *(.rela.l4redeviceuart)
+  }
+  . = ALIGN(4096);
   .rela.plt : { *(.rela.plt) }
-  .rela.got : { *(.rela.got) }
-  .rela.data : { *(.rela.data) *(.rela.data*) }
+  . = ALIGN(4096);
+  .rodata : { *(.rodata*) }
   . = ALIGN(512);
-
-  . = ALIGN(4096);
-  .dynsym : { *(.dynsym) }
-  . = ALIGN(4096);
-  .dynstr : { *(.dynstr) }
-  . = ALIGN(4096);
 
   .data.m :
   {
@@ -85,15 +138,18 @@ SECTIONS
     _module_data_end = .;
   }
   _edata = .;
-  _data_size = . - _data;
+  _data_size = _edata - _data;
 
+  . = ALIGN(4096);
+  .dynsym   : { *(.dynsym) }
+  . = ALIGN(4096);
+  .dynstr   : { *(.dynstr) }
+  . = ALIGN(4096);
   .note.gnu.build-id : { *(.note.gnu.build-id) }
-  .comment 0 : { *(.comment) }
-
-  /DISCARD/ :
+  .ignored.reloc :
   {
-    *(.rel.reloc)
-    *(.eh_frame)
+    *(.rela.reloc)
     *(.note.GNU-stack)
   }
+  .comment 0 : { *(.comment) }
 }

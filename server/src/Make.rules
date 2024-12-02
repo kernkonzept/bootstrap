@@ -72,7 +72,6 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
 
   BUILD_PIE           := 1
 
-  # lib gnu-efi requirements
   REQUIRES_LIBS       += gnu-efi
   EFI_IMAGE-amd64     := bootx64.efi
   EFI_IMAGE-x86       := bootia32.efi
@@ -80,6 +79,7 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
   EFI_IMAGE           := $(EFI_IMAGE-$(ARCH))
   EFI_ARCH-amd64      := x86_64
   EFI_ARCH-x86        := ia32
+  EFI_ARCH-arm64      := aarch64
   EFI_ARCH            := $(EFI_ARCH-$(ARCH))
   EFI_BIN_FMT         := efi-app-$(EFI_ARCH)
   CRTN_dyn_bin        :=
@@ -142,8 +142,9 @@ SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc \
 		   ARCH-amd64/cpu_info.cc ARCH-amd64/paging.cc \
 		   ARCH-amd64/paging_alloc.cc
 SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc ARCH-arm/platform.cc platform_common-arm.cc
-SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/head.cc ARCH-arm64/platform.cc platform_common-arm.cc
-SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/efi.cc
+SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/platform.cc platform_common-arm.cc
+SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI)  += ARCH-arm64/efi.cc
+SRC_CC_arm64-y$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/head.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc
 SRC_CC_ppc32    += ARCH-ppc32/init_kip_v2-arch.cc \
@@ -198,9 +199,7 @@ BUILD_PIE	?= 0
 ifeq ($(BUILD_PIE),1)
 CFLAGS            += -fpie
 CXXFLAGS          += -fpie
-LDFLAGS_arm64     += -shared -Bsymbolic --defsym=EFI_SUBSYSTEM=0xa
-LDFLAGS_amd64     += -pie -Bsymbolic --no-dynamic-linker
-LDFLAGS_x86       += -pie -Bsymbolic --no-dynamic-linker
+LDFLAGS           += -pie -Bsymbolic --no-dynamic-linker
 LDFLAGS           += -z text
 else
 LDFLAGS           += -static -Bstatic
@@ -471,15 +470,10 @@ clean::
 cleanall::
 	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.*
 
-$(od)bootaa64.efi: $(od)$(BOOTSTRAP_ELF_NAME)
-	$(VERBOSE)$(OBJCOPY) -S -j .text -j .data -j .dynamic -j .dynsym \
-	                     -j .rela.* -j .data.m \
-	                     -O binary $< $@
-
 $(od)boot%.efi: $(od)$(BOOTSTRAP_ELF_NAME)
-	$(VERBOSE)$(OBJCOPY) -S -j .text -j .rodata -j .reloc -j .dynsym \
+	$(VERBOSE)$(OBJCOPY) -S -j .text -j .sdata -j .rodata -j .reloc -j .dynsym \
 	                     -j .dynstr -j .rel.dyn -j .data -j .data.m \
-	                     -j .dynamic -j .rela.dyn -j .rela.plt -j .reloc \
+	                     -j .dynamic -j .rela -j .rela.dyn -j .rela.plt \
 	                     -j .bss -j .module_data \
 	                     --target=$(EFI_BIN_FMT) $< $@
 
