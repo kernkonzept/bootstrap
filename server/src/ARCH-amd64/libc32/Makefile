@@ -19,7 +19,6 @@ SRC_C = __assert_fail.c \
         src/string/memchr.c \
         src/string/memmove.c \
         src/string/memset.c \
-        src/stdio/__overflow.c \
         src/stdio/__towrite.c \
         src/stdio/fputs.c \
         src/stdio/fwrite.c \

@@ -186,10 +186,14 @@ static char *fmt_u(uintmax_t x, char *s)
 typedef char compiler_defines_long_double_incorrectly[9-(int)sizeof(long double)];
 #endif
 
-static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t)
+static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t, int ps)
 {
-	uint32_t big[(LDBL_MANT_DIG+28)/29 + 1          // mantissa expansion
-		+ (LDBL_MAX_EXP+LDBL_MANT_DIG+28+8)/9]; // exponent expansion
+	int bufsize = (ps==BIGLPRE)
+		? (LDBL_MANT_DIG+28)/29 + 1 +          // mantissa expansion
+		  (LDBL_MAX_EXP+LDBL_MANT_DIG+28+8)/9  // exponent expansion
+		: (DBL_MANT_DIG+28)/29 + 1 +
+		  (DBL_MAX_EXP+DBL_MANT_DIG+28+8)/9;
+	uint32_t big[bufsize];
 	uint32_t *a, *d, *r, *z;
 	int e2=0, e, i, j, l;
 	char buf[9+LDBL_MANT_DIG/4], *s;
@@ -570,11 +574,11 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 		case 'x': case 'X':
 			a = fmt_x(arg.i, z, t&32);
 			if (arg.i && (fl & ALT_FORM)) prefix+=(t>>4), pl=2;
-			if (0) {
+			goto ifmt_tail;
 		case 'o':
 			a = fmt_o(arg.i, z);
 			if ((fl&ALT_FORM) && p<z-a+1) p=z-a+1;
-			} if (0) {
+			goto ifmt_tail;
 		case 'd': case 'i':
 			pl=1;
 			if (arg.i>INTMAX_MAX) {
@@ -584,9 +588,10 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 			} else if (fl & PAD_POS) {
 				prefix+=2;
 			} else pl=0;
+			// fallthrough
 		case 'u':
 			a = fmt_u(arg.i, z);
-			}
+		ifmt_tail:
 			if (xp && p<0) goto overflow;
 			if (xp) fl &= ~ZERO_PAD;
 			if (!arg.i && !p) {
@@ -634,7 +639,7 @@ static int printf_core(FILE *f, const char *fmt, va_list *ap, union arg *nl_arg,
 		case 'e': case 'f': case 'g': case 'a':
 		case 'E': case 'F': case 'G': case 'A':
 			if (xp && p<0) goto overflow;
-			l = fmt_fp(f, arg.f, w, p, fl, t);
+			l = fmt_fp(f, arg.f, w, p, fl, t, ps);
 			if (l<0) goto overflow;
 			continue;
 #endif /* LIBCL4 */
@@ -682,7 +687,9 @@ int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 	int nl_type[NL_ARGMAX+1] = {0};
 	union arg nl_arg[NL_ARGMAX+1];
 	unsigned char internal_buf[80], *saved_buf = 0;
+#ifndef LIBCL4
 	int olderr;
+#endif
 	int ret;
 
 	/* the copy allows passing va_list* even if va_list is an array */
@@ -693,8 +700,10 @@ int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 	}
 
 	FLOCK(f);
+#ifndef LIBCL4
 	olderr = f->flags & F_ERR;
 	f->flags &= ~F_ERR;
+#endif
 	if (!f->buf_size) {
 		saved_buf = f->buf;
 		f->buf = internal_buf;
@@ -716,7 +725,9 @@ int vfprintf(FILE *restrict f, const char *restrict fmt, va_list ap)
 		f->wpos = f->wbase = f->wend = 0;
 	}
 	if (ferror(f)) ret = -1;
+#ifndef LIBCL4
 	f->flags |= olderr;
+#endif
 	FUNLOCK(f);
 	va_end(ap2);
 	return ret;

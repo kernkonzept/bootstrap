@@ -18,6 +18,7 @@
 #define FUNLOCK(f) do { } while (0)
 #endif /* LIBCL4 */
 
+#ifndef LIBCL4
 #define F_PERM 1
 #define F_NORD 4
 #define F_NOWR 8
@@ -25,10 +26,13 @@
 #define F_ERR 32
 #define F_SVB 64
 #define F_APP 128
+#endif
 
 /* LIBCL4: save some stack. Maybe remove even more. */
 struct _IO_FILE {
+#ifndef LIBCL4
 	unsigned flags;
+#endif
 	unsigned char *rpos;
 #ifndef LIBCL4
 	int (*close)(FILE *);
@@ -83,11 +87,6 @@ hidden int __towrite(FILE *);
 hidden void __stdio_exit(void);
 hidden void __stdio_exit_needed(void);
 
-#if defined(__PIC__) && (100*__GNUC__+__GNUC_MINOR__ >= 303)
-__attribute__((visibility("protected")))
-#endif
-int __overflow(FILE *, int);
-
 hidden int __fseeko(FILE *, off_t, int);
 hidden int __fseeko_unlocked(FILE *, off_t, int);
 hidden off_t __ftello(FILE *);
@@ -111,13 +110,12 @@ hidden void __do_orphaned_stdio_locks(void);
 
 hidden void __getopt_msg(const char *, const char *, const char *, size_t);
 
+#ifndef LIBCL4
 #define feof(f) ((f)->flags & F_EOF)
 #define ferror(f) ((f)->flags & F_ERR)
-
-#define putc_unlocked(c, f) \
-	( (((unsigned char)(c)!=(f)->lbf && (f)->wpos!=(f)->wend)) \
-	? *(f)->wpos++ = (unsigned char)(c) \
-	: __overflow((f),(unsigned char)(c)) )
+#else
+#define ferror(f) 0
+#endif
 
 /* Caller-allocated FILE * operations */
 hidden FILE *__fopen_rb_ca(const char *, FILE *, unsigned char *, size_t);
