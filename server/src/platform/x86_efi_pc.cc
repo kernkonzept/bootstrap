@@ -144,16 +144,19 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 #if defined (IMAGE_MODE)
   // Append commandline given in modules.list. This needs to be done before
   // setup_uart because the user might have given us options for the uart.
-  strlcat(efi_cmdline, " ",
-          Platform_x86_efi::Max_cmdline_length);
+
+  if (strlen(efi_cmdline) > 0)
+    strlcat(efi_cmdline, " ",
+            Platform_x86_efi::Max_cmdline_length);
+
   strlcat(efi_cmdline, mod_header->mbi_cmdline(),
           Platform_x86_efi::Max_cmdline_length);
+#endif
 
   _x86_pc_platform.setup_uart(efi_cmdline, &_x86_pc_platform._efi_uart);
   _x86_pc_platform.disable_pci_bus_master();
-#endif
 
-  startup(mod_header->mbi_cmdline());
+  startup(efi_cmdline);
 
   return EFI_SUCCESS;
 }
