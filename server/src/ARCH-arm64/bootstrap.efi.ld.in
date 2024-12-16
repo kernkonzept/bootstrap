@@ -131,12 +131,6 @@ SECTIONS
   .rodata : { *(.rodata*) }
   . = ALIGN(512);
 
-  .data.m :
-  {
-    _module_data_start = .;
-    *(.module_data)
-    _module_data_end = .;
-  }
   _edata = .;
   _data_size = _edata - _data;
 
@@ -151,5 +145,15 @@ SECTIONS
     *(.rela.reloc)
     *(.note.GNU-stack)
   }
+
+  /* Needs to be last so that l4image does not mess up PHDR offsets of other
+   * sections. */
+  .data.m :
+  {
+    _module_data_start = .;
+    *(.module_data)
+    _module_data_end = .;
+  }
+
   .comment 0 : { *(.comment) }
 }
