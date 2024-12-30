@@ -51,7 +51,7 @@ class Platform_s32z final : public Platform_arm, public Boot_modules_image_mode
         return true;
       }
 #else
-    // Each RTU runs it's own bootstrap. If unspecified, use current node.
+    // Each RTU runs its own bootstrap. If unspecified, use current node.
     if (node == ~0U)
       node = node_id();
 
@@ -84,7 +84,7 @@ class Platform_s32z final : public Platform_arm, public Boot_modules_image_mode
   bool probe() override
   { return true; }
 
-  // Each RTU must run it's own fiasco image
+  // Each RTU must run its own fiasco image
   unsigned num_nodes() const override
   { return 4; }
 
