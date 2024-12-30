@@ -66,6 +66,11 @@ public:
     efi.setup_memory();
   }
 
+  void late_setup(l4_kernel_info_t *kip) override
+  {
+    kip->acpi_rsdp_addr = reinterpret_cast<l4_umword_t>(efi.acpi_rsdp());
+  }
+
   l4util_l4mod_info *construct_mbi(unsigned long mod_addr,
                                    Internal_module_list const &mods) override
   {

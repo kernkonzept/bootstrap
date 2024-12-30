@@ -200,9 +200,10 @@ Efi::setup_memory()
     }
 
   // add region for ACPI tables
+  enum { Xsdp_size = 36 };
   if (_acpi_rsdp)
-    regions->add(Region::start_size(l4_trunc_page((l4_addr_t)_acpi_rsdp),
-                                    L4_PAGESIZE, ".ACPI",
+    regions->add(Region::start_size((l4_addr_t)_acpi_rsdp,
+                                    Xsdp_size, ".ACPI",
                                     Region::Info, Region::Info_acpi_rsdp),
                  true);
 

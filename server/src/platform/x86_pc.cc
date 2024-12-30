@@ -35,7 +35,6 @@
 #include "paging.h"
 #endif
 
-static char rsdp_tmp_buf[36];
 l4_uint32_t rsdp_start;
 l4_uint32_t rsdp_end;
 
@@ -73,15 +72,6 @@ struct Platform_x86_1 : Platform_x86
     rsdp_end = boot32_info->rsdp_end;
     mem_end = boot32_info->mem_end;
 #endif
-
-   // if we were passed the RSDP structure, save it aside
-   if ((rsdp_end - rsdp_start) <= sizeof(rsdp_tmp_buf))
-     memcpy(rsdp_tmp_buf, (void *)(l4_addr_t)rsdp_start, rsdp_end - rsdp_start);
-   else
-     {
-       rsdp_start = 0;
-       rsdp_end = 0;
-     }
 
    if (!(mbi->flags & L4UTIL_MB_MEM_MAP))
       {
@@ -144,21 +134,15 @@ struct Platform_x86_1 : Platform_x86
     regions->add(Region::start_size(0ULL, 0x1000, ".BIOS", Region::Arch, 0));
   }
 
-  void late_setup(l4_kernel_info_t *) override
+  void late_setup(l4_kernel_info_t *kip) override
   {
-    // Our aim here is to allocate an aligned chunk of memory for our copy of
-    // RSDP and create a region out of it.
     if (rsdp_start)
       {
-        char *rsdp_buf =
-          (char *)mem_manager->find_free_ram(sizeof(rsdp_tmp_buf));
-        if (!rsdp_buf)
-          panic("fatal: could not allocate memory for RSDP\n");
-        memcpy(rsdp_buf, rsdp_tmp_buf, sizeof(rsdp_tmp_buf));
-
         mem_manager->regions->add(
-          Region::start_size(rsdp_buf, sizeof(rsdp_tmp_buf),
+          Region::start_size(rsdp_start, rsdp_end - rsdp_start,
                              ".ACPI", Region::Info, Region::Info_acpi_rsdp));
+
+        kip->acpi_rsdp_addr = rsdp_start;
       }
 
     pci_quirks();
