@@ -1,7 +1,7 @@
 /*
  * \brief  Support for the Baikal-T platform
  *
- * Copyright (C) 2015-2016 Kernkonzept GmbH
+ * Copyright (C) 2015-2016, 2023 Kernkonzept GmbH
  * Author: Adam Lackorzynski <adam@l4re.org>
  *
  */
