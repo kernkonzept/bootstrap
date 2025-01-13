@@ -35,8 +35,8 @@
 #include "paging.h"
 #endif
 
-l4_uint32_t rsdp_start;
-l4_uint32_t rsdp_end;
+void *rsdp_start;
+l4_uint32_t rsdp_size;
 
 enum { Verbose_mbi = 1 };
 
@@ -68,8 +68,8 @@ struct Platform_x86_1 : Platform_x86
 #endif
 
 #ifdef ARCH_amd64
-    rsdp_start = boot32_info->rsdp_start;
-    rsdp_end = boot32_info->rsdp_end;
+    rsdp_start = reinterpret_cast<void *>(boot32_info->rsdp_start);
+    rsdp_size = boot32_info->rsdp_size;
     mem_end = boot32_info->mem_end;
 #endif
 
@@ -137,13 +137,7 @@ struct Platform_x86_1 : Platform_x86
   void late_setup(l4_kernel_info_t *kip) override
   {
     if (rsdp_start)
-      {
-        mem_manager->regions->add(
-          Region::start_size(rsdp_start, rsdp_end - rsdp_start,
-                             ".ACPI", Region::Info, Region::Info_acpi_rsdp));
-
-        kip->acpi_rsdp_addr = rsdp_start;
-      }
+      kip->acpi_rsdp_addr = reinterpret_cast<l4_addr_t>(rsdp_start);
 
     pci_quirks();
   }
@@ -393,6 +387,30 @@ public:
     assert(_mb - (char *)l4mi == (long)total_size);
 
     mbi = 0;
+
+    // create the RSDP region
+    if (rsdp_start)
+      {
+        if (Verbose_mbi)
+          printf("  need %u bytes to copy RSDP\n", rsdp_size);
+
+        // try to find a free region for the RSDP
+        void *_rsdp
+          = reinterpret_cast<void *>(mem_manager->find_free_ram(rsdp_size));
+        if (!_rsdp)
+          panic("fatal: could not allocate memory for RSDP\n");
+
+        // mark the region as reserved
+        mem_manager->regions->add(Region::start_size(_rsdp, rsdp_size, ".ACPI",
+                                                     Region::Info,
+                                                     Region::Info_acpi_rsdp));
+
+        if (Verbose_mbi)
+          printf("  reserved %u bytes at %p\n", rsdp_size, _rsdp);
+
+        memcpy(_rsdp, rsdp_start, rsdp_size);
+        rsdp_start = _rsdp;
+      }
 
     // remove the old MBI from the reserved memory
     for (Region *r = mem_manager->regions->begin();

@@ -164,16 +164,16 @@ public:
     _mbi.flags |= L4UTIL_MB_VIDEO_INFO;
   }
 
-  void process_rsdp(l4util_mb2_tag_t *tag, l4_uint32_t *rsdp_start,
-                    l4_uint32_t *rsdp_end)
+  void process_rsdp(l4util_mb2_tag_t *tag, void **rsdp_start,
+                    l4_uint32_t *rsdp_size)
   {
     auto dst_tag = rotate_to_end(tag);
     auto size = dst_tag->size - offsetof(l4util_mb2_tag_t, rsdp);
 
     reserve_from_end(size);
 
-    *rsdp_start = reinterpret_cast<l4_uint32_t>(end());
-    *rsdp_end = reinterpret_cast<l4_uint32_t>(end() + size);
+    *rsdp_start = end();
+    *rsdp_size = size;
   }
 
   // Finalize conversion from multiboot2 to multiboot info buffer
@@ -242,8 +242,8 @@ private:
   l4util_mb_vbe_ctrl_t _vbe_ctrl;
 };
 
-extern l4_uint32_t rsdp_start;
-extern l4_uint32_t rsdp_end;
+extern void *rsdp_start;
+extern l4_uint32_t rsdp_size;
 
 extern "C" l4_addr_t _multiboot2_to_multiboot(l4util_mb2_info_t *);
 
@@ -271,7 +271,7 @@ l4_addr_t _multiboot2_to_multiboot(l4util_mb2_info_t *mbi2)
           break;
         case L4UTIL_MB2_RSDP_OLD_INFO_TAG:
         case L4UTIL_MB2_RSDP_NEW_INFO_TAG:
-          buf.process_rsdp(tag, &rsdp_start, &rsdp_end);
+          buf.process_rsdp(tag, &rsdp_start, &rsdp_size);
           break;
         default:
           tag = reinterpret_cast<l4util_mb2_tag_t *>(

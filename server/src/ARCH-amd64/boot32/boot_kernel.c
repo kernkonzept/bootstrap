@@ -26,8 +26,8 @@ extern char _binary_bootstrap64_bin_end;
 extern char _image_start;
 extern char _image_end;
 
-l4_uint32_t rsdp_start = 0;
-l4_uint32_t rsdp_end = 0;
+void *rsdp_start = NULL;
+l4_uint32_t rsdp_size = 0;
 
 static l4_uint64_t find_upper_mem(l4util_mb_info_t *mbi)
 {
@@ -110,8 +110,8 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
 
   mem_upper = round_superpage(mem_upper);
 
-  boot32_info.rsdp_start = rsdp_start;
-  boot32_info.rsdp_end = rsdp_end;
+  boot32_info.rsdp_start = (l4_uint32_t)rsdp_start;
+  boot32_info.rsdp_size = rsdp_size;
   boot32_info.mem_end = mem_upper - 1;
 
   // now do base_paging_init(): sets up paging with one-to-one mapping
