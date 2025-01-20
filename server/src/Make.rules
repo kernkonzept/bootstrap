@@ -520,7 +520,7 @@ bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
 	$(VERBOSE)$(OBJCOPY) -B i386 -I binary -O elf32-i386 bootstrap64.bin $@
 
 clean cleanall::
-	$(VERBOSE)PWD=$(call absfilename,$(SRC_DIR)/ARCH-amd64/libc32) \
+	$(VERBOSE)PWD=$(abspath $(SRC_DIR)/ARCH-amd64/libc32) \
 	  $(MAKE) -C $(SRC_DIR)/ARCH-amd64/libc32 $@
 
 else
