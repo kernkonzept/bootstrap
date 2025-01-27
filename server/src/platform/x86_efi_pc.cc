@@ -76,6 +76,11 @@ public:
     efi.exit_boot_services();
   }
 
+  void late_setup(l4_kernel_info_t *kip) override
+  {
+    kip->acpi_rsdp_addr = reinterpret_cast<l4_umword_t>(efi.acpi_rsdp());
+  }
+
   Uart_efi _efi_uart;
 };
 
