@@ -24,6 +24,6 @@ void Platform_arm::setup_kernel_config(l4_kernel_info_t *kip)
 
   assert(kernel_type != EL_Support::Unknown);
   if (kernel_type == EL_Support::EL2 && current_el() < 2)
-    panic("Kernel requires EL2 (virtualization) but running in EL1.");
+    panic("L4Re is configured for EL2 mode (virtualization / hypervisor) but got started in EL1 by the boot-loader. Please change your boot-loader to start L4Re in EL2 mode.");
 }
 
