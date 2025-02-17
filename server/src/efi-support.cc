@@ -174,7 +174,7 @@ Efi::setup_memory()
       EFI_MEMORY_DESCRIPTOR *m = (EFI_MEMORY_DESCRIPTOR *)d;
 
       if (0)
-        Print(L"MD%02d: type=%02x v=%llx p=%llx numpages=%llx attr=%llx\n\r",
+        Print(L"MD%02d: type=%02x p=%llx v=%llx numpages=%llx attr=%llx\n\r",
               (d - (char *)efi_mem_desc) / desc_size,
               m->Type, m->PhysicalStart,
               m->VirtualStart, m->NumberOfPages, m->Attribute);
