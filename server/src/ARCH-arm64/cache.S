@@ -54,8 +54,8 @@ armv8_disable_mmu:
     B.GE  2b
 4:  ADD   W10, W10, #2            // increment 2 x cache level
     CMP   W3, W10
+    DSB   SY                      // ensure completion of the clean on all processors
     B.GT  1b
-    DSB  SY                         // ensure completion of the clean on all processors
 5:
 
     /*
