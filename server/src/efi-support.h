@@ -21,6 +21,7 @@ public:
   l4util_l4mod_info *construct_mbi(l4util_l4mod_info *mbi);
 
   void exit_boot_services();
+  void firmware_announce_memory(Region);
 
   EFI_SYSTEM_TABLE *system_table() const { return _sys_table; }
   void *acpi_rsdp() const { return _acpi_rsdp; }

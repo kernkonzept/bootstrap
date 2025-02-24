@@ -575,6 +575,13 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
   else
     *offset = info.offset = 0;
 
+  /* We jump to the kernel from bootstrap. The kernel will setup new page tables
+   * so it is sufficient to announce virtual memory usage of the kernel to the
+   * firmware. */
+  if (info.type == Region::Kernel)
+    Platform_base::platform
+      ->firmware_announce_memory(Region(si.start + *offset, si.end + *offset));
+
   r = exec_load_elf(l4_exec_add_region, &info, m, &error_msg);
 
   if (r)
@@ -750,10 +757,6 @@ startup(char const *cmdline)
 
   setup_memory_map(cmdline);
 
-  // No EFI services after this point. Must be done directly after we parsed
-  // the memory map to make sure the EFI memory map does not change anymore.
-  Platform_base::platform->exit_boot_services();
-
   /* basically add the bootstrap binary to the allocated regions */
   init_regions();
   plat->init_regions();
@@ -800,6 +803,10 @@ startup(char const *cmdline)
   // do not require it!
   add_elf_regions(mods->module(idx_kern), Region::Kernel, &fiasco_offset,
                   first_node, L4_SUPERPAGESIZE);
+
+  // No EFI services after this point. Do after add_elf_regions(Kernel) because
+  // there we call Platform_base::platform->firmware_announce_memory().
+  Platform_base::platform->exit_boot_services();
 
   for (unsigned i = 0; i < num_nodes; i++)
     {

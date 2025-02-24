@@ -21,6 +21,7 @@ public:
   virtual ~Platform_base() = 0;
   virtual void init() = 0;
   virtual void setup_memory_map() = 0;
+  virtual void firmware_announce_memory(Region) { }
   virtual void exit_boot_services() { }
   virtual Boot_modules *modules() = 0;
   virtual bool probe() = 0;

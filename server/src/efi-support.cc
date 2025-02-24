@@ -116,6 +116,18 @@ Efi::init(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 }
 
 void
+Efi::firmware_announce_memory(Region n)
+{
+  EFI_STATUS r;
+  EFI_PHYSICAL_ADDRESS addr = n.begin();
+  unsigned num_pages = (n.size() + 4095) >> 12;
+  r = uefi_call_wrapper(_sys_table->BootServices->AllocatePages, 4,
+                        AllocateAddress, EfiLoaderCode, num_pages, &addr);
+  if (r != EFI_SUCCESS)
+    panic("EFI: AllocatePages failed: %u\n", (unsigned)r);
+}
+
+void
 Efi::exit_boot_services()
 {
   // Must retrieve memory map again because we possibly made UEFI calls in
@@ -141,12 +153,6 @@ Efi::exit_boot_services()
   asm volatile("msr DAIFSet, #0xf");
 #elif defined(ARCH_x86) || defined(ARCH_amd64)
   l4util_cli();
-#endif
-
-#ifdef ARCH_arm64
-  // UEFI did setup the MMU with caches. Disable everything because we move
-  // code around and will jump to it at the end.
-  armv8_disable_mmu();
 #endif
 }
 
