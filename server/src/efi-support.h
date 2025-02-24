@@ -24,6 +24,7 @@ public:
 
   EFI_SYSTEM_TABLE *system_table() const { return _sys_table; }
   void *acpi_rsdp() const { return _acpi_rsdp; }
+  void *fdt() const { return _fdt; }
 
 private:
   Region new_region(EFI_MEMORY_DESCRIPTOR const *td, char const *name,
@@ -33,6 +34,7 @@ private:
   EFI_HANDLE _image;
   EFI_SYSTEM_TABLE *_sys_table;
   void *_acpi_rsdp;
+  void *_fdt;
 
   EFI_GRAPHICS_OUTPUT_MODE_INFORMATION _video_info;
   EFI_PHYSICAL_ADDRESS                 _video_fb_phys_base;
