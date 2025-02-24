@@ -22,7 +22,6 @@ extern void _exit(int rc);
 
 extern unsigned KERNEL_CS_64;
 extern char _binary_bootstrap64_bin_start;
-extern char _binary_bootstrap64_bin_end;
 extern char _image_start;
 extern char _image_end;
 
@@ -94,11 +93,11 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   // reserve memory for final locations of fiasco, sigma0 and moe
   l4util_mb_mod_t *mods = (l4util_mb_mod_t*)mbi->mods_addr;
   if (mbi->mods_count > 0)
-    reserve_elf((void *)mods[0].mod_start, (void *)mods[0].mod_end); // fiasco
+    reserve_elf((void *)mods[0].mod_start); // fiasco
   if (mbi->mods_count > 1)
-    reserve_elf((void *)mods[1].mod_start, (void *)mods[1].mod_end); // sigma0
+    reserve_elf((void *)mods[1].mod_start); // sigma0
   if (mbi->mods_count > 2)
-    reserve_elf((void *)mods[2].mod_start, (void *)mods[2].mod_end); // moe
+    reserve_elf((void *)mods[2].mod_start); // moe
 
   reserve_mbi(mbi);
 
@@ -120,8 +119,7 @@ bootstrap (l4util_mb_info_t *mbi, unsigned int flag, char *rm_pointer)
   printf("Loading 64bit part...\n");
   // switch from 32 Bit compatibility mode to 64 Bit mode
   far_ptr.cs    = KERNEL_CS_64;
-  far_ptr.start = load_elf(&_binary_bootstrap64_bin_start,
-                           &_binary_bootstrap64_bin_end);
+  far_ptr.start = load_elf(&_binary_bootstrap64_bin_start);
 
   asm volatile("ljmp *(%4)"
                 :: "D"(mbi), "S"(flag), "d"(rm_pointer),

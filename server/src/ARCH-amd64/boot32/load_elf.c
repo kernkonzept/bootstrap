@@ -57,60 +57,35 @@ static int usable_range(Elf64_Addr start, Elf64_Xword size)
 }
 
 /**
- * Check if the specified region (`reg_off`/`reg_size`) is completely inside
- * the module region.
- *
- * \param mod_start  Module start address.
- * \param mod_end    The next address after the end of the module.
- * \param reg_offs   Offset of the region relative to `mod_start`.
- * \param reg_size   Size of the region.
- *
- * \retval 1 if `mod_start`+`reg_offs`..`mod_start`+`reg_offs`+`reg_size` is
- *           completely within the module `mod_start`..`mod_end`.
- * \retval 0 otherwise.
- */
-static int in_mod_range(void const *mod_start, void const *mod_end,
-                        Elf64_Off reg_offs, Elf64_Xword reg_size)
-{
-  // The first and second would catch a wrap around in the third test.
-  return is_range_in_4g((uintptr_t)mod_start, reg_offs)
-         && (uintptr_t)mod_end >= reg_size
-         && (uintptr_t)mod_start + reg_offs <= (uintptr_t)mod_end - reg_size;
-}
-
-/**
- * Perform consistency checks on an ELF binary to ensuring that corresponding
- * section and program headers don't reference memory outside the ELF binary.
+ * Perform some light consistency checks on an ELF binary.
  */
 static void
-sanity_elf(void const *elf, void const *elf_end)
+sanity_elf(Elf64_Ehdr const *eh)
 {
-  // Assume (uintptr_t)elf <= (uintptr_t)elf_end!
+  if (   eh->e_ident[EI_MAG0] != ELFMAG0
+      || eh->e_ident[EI_MAG1] != ELFMAG1
+      || eh->e_ident[EI_MAG2] != ELFMAG2
+      || eh->e_ident[EI_MAG3] != ELFMAG3)
+    panic("Invalid ELF file: bad header magic");
 
-  Elf64_Ehdr const *eh = (Elf64_Ehdr const *)(elf);
-  if (!in_mod_range(elf, elf_end, 0, sizeof(Elf64_Ehdr)))
-    panic("Invalid ELF file: Not enough room for ELF header!");
+  if (eh->e_ident[EI_CLASS] != ELFCLASS64)
+    panic("Invalid ELF file: wrong class");
 
-  if (!in_mod_range(elf, elf_end, eh->e_shoff, eh->e_shnum * sizeof(Elf64_Shdr)))
-    panic("Invalid ELF file: SHDR table outside ELF binary!");
-
-  if (!in_mod_range(elf, elf_end, eh->e_phoff, eh->e_phnum * sizeof(Elf64_Phdr)))
-    panic("Invalid ELF file: PHDR table outside ELF binary!");
+  if (eh->e_machine != EM_X86_64)
+    panic("Invalid ELF file: wrong machine");
 }
 
 /**
  * Reserve all loadable program sections of an ELF binary.
  *
  * \param elf      Start of the ELF binary.
- * \param elf_end  End of the ELF binary.
  */
 void
-reserve_elf(void const *elf, void const *elf_end)
+reserve_elf(void const *elf)
 {
-  sanity_elf(elf, elf_end);
-
   char const *_elf = (char const *)elf;
   Elf64_Ehdr const *eh = (Elf64_Ehdr const *)(_elf);
+  sanity_elf(eh);
   Elf64_Phdr const *ph = (Elf64_Phdr const *)(_elf + eh->e_phoff);
 
   for (unsigned i = 0; i < eh->e_phnum; ++i)
@@ -122,12 +97,11 @@ reserve_elf(void const *elf, void const *elf_end)
  * Load an ELF binary into memory.
  */
 l4_uint32_t
-load_elf (void const *elf, void const *elf_end)
+load_elf(void const *elf)
 {
-  sanity_elf(elf, elf_end);
-
   char const *_elf = (char const *)elf;
   Elf64_Ehdr const *eh = (Elf64_Ehdr const *)(_elf);
+  sanity_elf(eh);
   Elf64_Shdr const *sh = (Elf64_Shdr const *)(_elf + eh->e_shoff);
   Elf64_Phdr const *ph = (Elf64_Phdr const *)(_elf + eh->e_phoff);
 
@@ -182,8 +156,6 @@ load_elf (void const *elf, void const *elf_end)
 
       if (!is_range_in_4g((uintptr_t)_elf, ph->p_offset))
         panic("Could not load PHDR. Location in ELF exceeds 32-bit limits!");
-      if (!in_mod_range(_elf, elf_end, ph->p_offset, ph->p_memsz))
-        panic("Could not load PHDR. Location in ELF exceeds ELF image!");
 
       memcpy(target, _elf + ph->p_offset, ph->p_filesz);
 
