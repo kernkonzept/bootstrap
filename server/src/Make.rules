@@ -214,7 +214,7 @@ endif
 ENTRY_FN := $(shell echo "$(ENTRY)" | tr '[ ]' '[_]' )
 SUFFIX := $(if $(BOOTSTRAP_IMAGE_SUFFIX),$(ENTRY_FN)_$(BOOTSTRAP_IMAGE_SUFFIX),$(ENTRY_FN))
 
-BOOTSTRAP_LINKADDR = $(patsubst -Ttext-segment=%,%,$(filter -Ttext-segment=%,$(LDFLAGS_$(od)bootstrap.elf)))
+BOOTSTRAP_LINKADDR = $(firstword $(call default_reloc,$(od)bootstrap.elf))
 
 BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         CROSS_COMPILE=$(CROSS_COMPILE) \
