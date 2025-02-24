@@ -48,6 +48,10 @@
 #include "init_kip.h"
 #include "koptions.h"
 
+#if defined(__aarch64__) || defined(__arm__)
+#include "arch/arm/mem.h"
+#endif
+
 #undef getchar
 
 /* management of allocated memory regions */
@@ -959,6 +963,15 @@ l4_exec_read_exec(void *opaque, ElfW(Phdr) const *ph,
     memcpy(dst, src, ph->p_filesz);
   else
     memcpy_aligned(dst, src, ph->p_filesz);
+
+#if defined(__aarch64__) || defined(__arm__)
+  if (ph->p_flags & PF_X)
+    if (Cache::Data::enabled())
+      {
+        Cache::Data::clean(mem_addr, ph->p_filesz);
+        Cache::Insn::inv();
+      }
+#endif
 
   if (ph->p_filesz < ph->p_memsz)
     memset(dst + ph->p_filesz, 0, ph->p_memsz - ph->p_filesz);
