@@ -86,6 +86,11 @@ public:
         break;
       }
   }
+
+  static unsigned linesize_bytes()
+  {
+    return 1 << ((get_ccsidr(0 /* L1 data or unified */) & 7) + 4);
+  }
 };
 }
 
@@ -116,6 +121,17 @@ void Cache::Data::clean(unsigned long addr)
   Barrier::dsb_system();
 }
 
+void Cache::Data::clean(unsigned long start, unsigned long size)
+{
+  unsigned cl_size = Arm::Internal::linesize_bytes();
+  unsigned long m = start & ~(cl_size - 1);
+  unsigned long e = (start + size + cl_size - 1) & ~(cl_size - 1);
+  asm volatile("" : : : "memory");
+  for (; m != e; m += cl_size)
+    asm volatile("dc cvac, %0" : : "r"(m));
+  Barrier::dsb_system();
+}
+
 void Cache::Data::inv(unsigned long addr)
 {
   asm volatile("dc ivac, %0" : : "r" (addr) : "memory");
@@ -135,7 +151,12 @@ void Cache::Insn::disable()
   asm ("msr SCTLR_EL2, %0" : : "r"(sctlr & ~(1UL << 12)) : "memory");
   Barrier::isb();
   Barrier::dsb_cores();
-  asm volatile("ic ialluis" : : : "memory");
+  inv();
+}
+
+void Cache::Insn::inv()
+{
+  asm volatile("ic iallu" : : : "memory");
+  Barrier::dsb_system();
   Barrier::isb();
-  Barrier::dsb_cores();
 }

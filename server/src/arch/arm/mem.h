@@ -13,6 +13,7 @@ class Data
 public:
   static inline void clean();
   static inline void clean(unsigned long);
+  static inline void clean(unsigned long start, unsigned long size);
   static inline void inv(unsigned long);
   static inline void flush(unsigned long);
 
@@ -24,6 +25,7 @@ class Insn
 {
 public:
   static inline void disable();
+  static inline void inv();
 };
 
 } // namespace Cache
