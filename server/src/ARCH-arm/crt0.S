@@ -9,8 +9,6 @@
  */
 /* -*- c -*- */
 
-#include <l4/bid_config.h>
-
 #ifdef CRT0_PLATFORM_EARLY_INIT
 #include CRT0_PLATFORM_EARLY_INIT
 #else

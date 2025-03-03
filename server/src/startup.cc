@@ -28,7 +28,6 @@
 #include <limits.h>
 
 /* L4 stuff */
-#include <l4/bid_config.h>
 #include <l4/sys/compiler.h>
 #include <l4/sys/consts.h>
 #include <l4/sys/kip.h>

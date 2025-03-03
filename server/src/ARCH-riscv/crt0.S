@@ -4,7 +4,6 @@
  * Author(s): Georg Kotheimer <georg.kotheimer@kernkonzept.com>
  */
 
-#include <l4/bid_config.h>
 #include <sys/asm.h>
 
 .section ".text.init", "ax"

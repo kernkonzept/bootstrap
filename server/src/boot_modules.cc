@@ -5,8 +5,6 @@
 #include <assert.h>
 #include "mod_info.h"
 
-#include <l4/bid_config.h>
-
 #ifdef CONFIG_BOOTSTRAP_COMPRESS
 #include "uncompress.h"
 #endif

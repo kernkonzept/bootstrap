@@ -9,8 +9,6 @@
  */
 /* -*- c -*- */
 
-#include <l4/bid_config.h>
-
 .macro set_sctlr sctlr_reg, tmp
 	mrs	\tmp, \sctlr_reg
 	bic	\tmp, \tmp, #0x0004

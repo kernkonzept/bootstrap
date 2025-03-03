@@ -4,8 +4,6 @@
  * Author(s): Adam Lackorzynski <adam@l4re.org>
  */
 
-#include <l4/bid_config.h>
-
 #include "panic.h"
 #include "platform-arm.h"
 #include <assert.h>
