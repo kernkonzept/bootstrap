@@ -23,12 +23,10 @@
 #include "exec.h"
 
 int
-exec_load_elf(exec_handler_func_t *handler,
-              Elf_handle *handle, const char **error_msg,
-              l4_addr_t *entry)
+exec_load_elf(exec_handler_func_t *handler, void *opaque,
+              Boot_modules::Module const &m,const char **error_msg)
 {
-  ElfW(Ehdr) const *x = reinterpret_cast<ElfW(Ehdr) const *>(handle->mod.start);
-
+  auto x = reinterpret_cast<ElfW(Ehdr) const *>(m.start);
   /* Read the ELF header.  */
 
   if (!l4util_elf_check_magic(x))
@@ -37,9 +35,6 @@ exec_load_elf(exec_handler_func_t *handler,
   /* Make sure the file is of the right architecture.  */
   if (!l4util_elf_check_arch(x))
     return *error_msg="wrong ELF architecture", -1;
-
-  if (entry)
-    *entry = x->e_entry;
 
   l4_addr_t phdr = reinterpret_cast<l4_addr_t>(l4util_elf_phdr(x));
 
@@ -71,7 +66,7 @@ exec_load_elf(exec_handler_func_t *handler,
       if (ph->p_flags & PF_X)
         type |= EXEC_SECTYPE_EXECUTE;
 
-      int res = (*handler)(handle, ph, type);
+      int res = (*handler)(opaque, ph, type, m);
 
       if (res != 0)
         return *error_msg="", res;

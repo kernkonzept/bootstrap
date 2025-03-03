@@ -109,18 +109,13 @@ static const char *builtin_cmdline = CMDLINE;
 
 
 /// Info passed through our ELF interpreter code
-struct Load_info : Elf_handle
-{
-  l4_addr_t offset;
-};
-
-struct Elf_info : Elf_handle
+struct Elf_info
 {
   Region::Type type;
   l4_addr_t offset;
 };
 
-struct Hdr_info : Elf_handle
+struct Hdr_info
 {
   unsigned hdr_type;
   l4_addr_t start;
@@ -128,7 +123,7 @@ struct Hdr_info : Elf_handle
   l4_addr_t file_ofs;
 };
 
-struct Section_info : Elf_handle
+struct Section_info
 {
   l4_addr_t start = ~0UL;
   l4_addr_t end = 0;
@@ -205,9 +200,8 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset,
 {
   const char *error_msg;
   Hdr_info hdr;
-  hdr.mod = mod;
   hdr.hdr_type = EXEC_SECTYPE_KIP;
-  if (exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL) != 1)
+  if (exec_load_elf(l4_exec_find_hdr, &hdr, mod, &error_msg) != 1)
     panic("could not find kernel info page, maybe your kernel is too old");
 
   auto *kip = reinterpret_cast<l4_kernel_info_t *>(hdr.start + offset);
@@ -226,12 +220,11 @@ bool kip_exists_for_node(Boot_modules::Module const &mod, unsigned node)
 {
   const char *error_msg;
   Hdr_info hdr;
-  hdr.mod = mod;
   hdr.hdr_type = EXEC_SECTYPE_KIP;
 
   // Find the KIP elf section. If we don't find one, we err on the safe side
   // and assume that a KIP exists.
-  if (exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL) != 1)
+  if (exec_load_elf(l4_exec_find_hdr, &hdr, mod, &error_msg) != 1)
     return true;
 
   auto *kip = reinterpret_cast<l4_kernel_info_t const *>(mod.start
@@ -262,9 +255,8 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
   L4_kernel_options::Options *ko = nullptr;
   const char *error_msg;
   Hdr_info hdr;
-  hdr.mod = mod;
   hdr.hdr_type = EXEC_SECTYPE_KOPT;
-  int r = exec_load_elf(l4_exec_find_hdr, &hdr, &error_msg, NULL);
+  int r = exec_load_elf(l4_exec_find_hdr, &hdr, mod, &error_msg);
 
   if (r == 1)
     {
@@ -391,11 +383,11 @@ dump_ram_map(bool show_total = false)
 {
   // print RAM summary
   unsigned long long sum = 0;
-  for (Region *i = ram.begin(); i < ram.end(); ++i)
+  for (Region &r : ram)
     {
       printf("  RAM: %016llx - %016llx: %lldkB\n",
-             i->begin(), i->end(), i->size() >> 10);
-      sum += i->size();
+             r.begin(), r.end(), r.size() >> 10);
+      sum += r.size();
     }
   if (show_total)
     printf("  Total RAM: %lldMB\n", sum >> 20);
@@ -543,14 +535,12 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
   int r;
   const char *error_msg;
 
-  si.mod = m;
   si.needs_relocation = !m.attrs.find("reloc").empty();
   info.type = type;
-  info.mod = m;
 
   printf("  Scanning %s\n", m.cmdline);
 
-  r = exec_load_elf(l4_exec_gather_info, &si, &error_msg, NULL);
+  r = exec_load_elf(l4_exec_gather_info, &si, m, &error_msg);
   if (r)
     panic("\nCould not gather load section infos (%s)", error_msg);
 
@@ -581,7 +571,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
   else
     *offset = info.offset = 0;
 
-  r = exec_load_elf(l4_exec_add_region, &info, &error_msg, NULL);
+  r = exec_load_elf(l4_exec_add_region, &info, m, &error_msg);
 
   if (r)
     {
@@ -610,16 +600,10 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
 static l4_addr_t
 load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
 {
-  l4_addr_t entry;
-  int r;
   const char *error_msg;
-  Load_info info;
 
-  info.mod = mod;
-  info.offset = offset;
-
-  r = exec_load_elf(l4_exec_read_exec, &info, &error_msg, &entry);
-
+  int r = exec_load_elf(l4_exec_read_exec, reinterpret_cast<void*>(offset), mod,
+                    &error_msg);
   if (r)
     panic("Can't load module (%s)\n", error_msg);
 
@@ -630,7 +614,7 @@ load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
       regions.sub(m);
     }
 
-  return entry + offset;
+  return reinterpret_cast<ElfW(Ehdr) const *>(mod.start)->e_entry + offset;
 }
 
 #ifdef ARCH_mips
@@ -940,17 +924,17 @@ startup(char const *cmdline)
 }
 
 static int
-l4_exec_read_exec(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type)
+l4_exec_read_exec(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+                  Boot_modules::Module const &m)
 {
-  Load_info const *info = static_cast<Load_info const *>(handle);
-  Boot_modules::Module const &m = info->mod;
+  l4_addr_t offset = reinterpret_cast<l4_addr_t>(opaque);
   if (!ph->p_memsz)
     return 0;
 
   if (! (type & EXEC_SECTYPE_LOAD))
     return 0;
 
-  auto mem_addr = ph->p_paddr + info->offset;
+  auto mem_addr = ph->p_paddr + offset;
 
   if (Verbose_load)
     printf("    [%p-%p]\n", (void *)mem_addr, (void *)(mem_addr + ph->p_memsz));
@@ -991,18 +975,19 @@ l4_exec_read_exec(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type)
 static Region *
 find_region_overlap(Region const &n)
 {
-  for (Region *r = regions.begin(); r != regions.end(); ++r)
-    if (r->overlaps(n) && r->name() != Mod_info::Mod_reg
-        && !(r->type() == Region::Boot && r->sub_type() == Region::Boot_temporary))
-      return r;
+  for (Region &r : regions)
+    if (r.overlaps(n) && r.name() != Mod_info::Mod_reg
+        && !(r.type() == Region::Boot && r.sub_type() == Region::Boot_temporary))
+      return &r;
 
   return nullptr;
 }
 
 static int
-l4_exec_add_region(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type)
+l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+                   Boot_modules::Module const &m)
 {
-  Elf_info const &info = static_cast<Elf_info const&>(*handle);
+  Elf_info const *info = static_cast<Elf_info const *>(opaque);
 
   if (!ph->p_memsz)
     return 0;
@@ -1022,10 +1007,10 @@ l4_exec_add_region(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type
 
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.
-  Region n = Region::start_size(ph->p_paddr + info.offset, ph->p_memsz,
-                                info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
-                                info.type, info.type == Region::Root ? rights : 0,
-                                info.type != Region::Kernel);
+  Region n = Region::start_size(ph->p_paddr + info->offset, ph->p_memsz,
+                                m.cmdline ? m.cmdline : ".[Unknown]",
+                                info->type, info->type == Region::Root ? rights : 0,
+                                info->type != Region::Kernel);
 
   if (Region *r = find_region_overlap(n))
     {
@@ -1042,24 +1027,25 @@ l4_exec_add_region(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type
 }
 
 static int
-l4_exec_find_hdr(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type)
+l4_exec_find_hdr(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+                 Boot_modules::Module const &)
 {
-  Hdr_info &hdr = static_cast<Hdr_info&>(*handle);
-  if (hdr.hdr_type == (type & EXEC_SECTYPE_TYPE_MASK))
+  Hdr_info *hdr = static_cast<Hdr_info *>(opaque);
+  if (hdr->hdr_type == (type & EXEC_SECTYPE_TYPE_MASK))
     {
-      hdr.start = ph->p_paddr;
-      hdr.size = ph->p_memsz;
-      hdr.file_ofs = ph->p_offset;
+      hdr->start = ph->p_paddr;
+      hdr->size = ph->p_memsz;
+      hdr->file_ofs = ph->p_offset;
       return 1;
     }
   return 0;
 }
 
 static int
-l4_exec_gather_info(Elf_handle *handle, ElfW(Phdr) const *ph,
-                    exec_sectype_t type)
+l4_exec_gather_info(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+                    Boot_modules::Module const &)
 {
-  Section_info *info = static_cast<Section_info *>(handle);
+  Section_info *info = static_cast<Section_info *>(opaque);
 
   if (!ph->p_memsz)
     return 0;

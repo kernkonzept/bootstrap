@@ -29,15 +29,11 @@ typedef int exec_sectype_t;
 #define EXEC_SECTYPE_KOPT	(exec_sectype_t{0x110000})
 #define EXEC_SECTYPE_TYPE_MASK	(exec_sectype_t{0xff0000})
 
-struct Elf_handle
-{
-  Boot_modules::Module mod;
-};
+typedef int exec_handler_func_t(void *opaque, ElfW(Phdr) const *ph,
+                                exec_sectype_t section_type,
+                                Boot_modules::Module const &m);
 
-typedef int exec_handler_func_t(Elf_handle *handle, ElfW(Phdr) const *ph,
-				  exec_sectype_t section_type);
-
-int exec_load_elf(exec_handler_func_t *handler_exec,
-		  Elf_handle *handle, const char **error_msg, l4_addr_t *entry);
+int exec_load_elf(exec_handler_func_t *handler_exec, void *opaque,
+                  Boot_modules::Module const &m, const char **error_msg);
 
 #endif
