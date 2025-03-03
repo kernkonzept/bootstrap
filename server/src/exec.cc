@@ -51,7 +51,7 @@ exec_load_elf(exec_handler_func_t *handler,
 
       exec_sectype_t type = 0;
       if (ph->p_type == PT_LOAD)
-        type |= EXEC_SECTYPE_ALLOC | EXEC_SECTYPE_LOAD;
+        type |= EXEC_SECTYPE_LOAD;
 
       if (ph->p_type == PT_DYNAMIC)
         type |= EXEC_SECTYPE_DYNAMIC;

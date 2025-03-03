@@ -951,10 +951,7 @@ l4_exec_read_exec(Elf_handle *handle,
   if (!mem_size)
     return 0;
 
-  if (! (section_type & EXEC_SECTYPE_ALLOC))
-    return 0;
-
-  if (! (section_type & (EXEC_SECTYPE_ALLOC|EXEC_SECTYPE_LOAD)))
+  if (! (section_type & EXEC_SECTYPE_LOAD))
     return 0;
 
   mem_addr += info->offset;
@@ -1017,10 +1014,7 @@ l4_exec_add_region(Elf_handle *handle,
   if (!mem_size)
     return 0;
 
-  if (! (section_type & EXEC_SECTYPE_ALLOC))
-    return 0;
-
-  if (! (section_type & (EXEC_SECTYPE_ALLOC|EXEC_SECTYPE_LOAD)))
+  if (! (section_type & EXEC_SECTYPE_LOAD))
     return 0;
 
 #if defined(CONFIG_BOOTSTRAP_ROOTTASK_NX)
@@ -1087,7 +1081,7 @@ l4_exec_gather_info(Elf_handle *handle,
   if ((section_type & EXEC_SECTYPE_TYPE_MASK) == EXEC_SECTYPE_DYNAMIC)
     info->has_dynamic = true;
 
-  if (! (section_type & EXEC_SECTYPE_ALLOC))
+  if (! (section_type & EXEC_SECTYPE_LOAD))
     return 0;
 
   if (mem_addr < info->start)
