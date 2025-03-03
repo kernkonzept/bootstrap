@@ -8,32 +8,17 @@
  * GNU General Public License 2.
  * Please see the COPYING-GPL-2 file for details.
  */
-#ifndef EXEC_H
-#define EXEC_H
+#pragma once
 
 #include "boot_modules.h"
 
-#include <l4/sys/l4int.h>
-#include <l4/util/mb_info.h>
 #include <l4/util/elf.h>
 #include <l4/sys/compiler.h>
 
-typedef int exec_sectype_t;
-
-#define EXEC_SECTYPE_READ	(exec_sectype_t{0x000001})
-#define EXEC_SECTYPE_WRITE	(exec_sectype_t{0x000002})
-#define EXEC_SECTYPE_EXECUTE	(exec_sectype_t{0x000004})
-#define EXEC_SECTYPE_LOAD	(exec_sectype_t{0x000200})
-#define EXEC_SECTYPE_DYNAMIC	(exec_sectype_t{0x010000})
-#define EXEC_SECTYPE_KIP	(exec_sectype_t{0x100000})
-#define EXEC_SECTYPE_KOPT	(exec_sectype_t{0x110000})
-#define EXEC_SECTYPE_TYPE_MASK	(exec_sectype_t{0xff0000})
+enum : unsigned { PT_CUSTOM_L4_KIP = 0x10, PT_CUSTOM_L4_KOPT = 0x11 };
 
 typedef int exec_handler_func_t(void *opaque, ElfW(Phdr) const *ph,
-                                exec_sectype_t section_type,
                                 Boot_modules::Module const &m);
 
 int exec_load_elf(exec_handler_func_t *handler_exec, void *opaque,
                   Boot_modules::Module const &m, const char **error_msg);
-
-#endif

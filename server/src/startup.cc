@@ -200,7 +200,7 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset,
 {
   const char *error_msg;
   Hdr_info hdr;
-  hdr.hdr_type = EXEC_SECTYPE_KIP;
+  hdr.hdr_type = PT_CUSTOM_L4_KIP;
   if (exec_load_elf(l4_exec_find_hdr, &hdr, mod, &error_msg) != 1)
     panic("could not find kernel info page, maybe your kernel is too old");
 
@@ -220,7 +220,7 @@ bool kip_exists_for_node(Boot_modules::Module const &mod, unsigned node)
 {
   const char *error_msg;
   Hdr_info hdr;
-  hdr.hdr_type = EXEC_SECTYPE_KIP;
+  hdr.hdr_type = PT_CUSTOM_L4_KIP;
 
   // Find the KIP elf section. If we don't find one, we err on the safe side
   // and assume that a KIP exists.
@@ -255,7 +255,7 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
   L4_kernel_options::Options *ko = nullptr;
   const char *error_msg;
   Hdr_info hdr;
-  hdr.hdr_type = EXEC_SECTYPE_KOPT;
+  hdr.hdr_type = PT_CUSTOM_L4_KOPT;
   int r = exec_load_elf(l4_exec_find_hdr, &hdr, mod, &error_msg);
 
   if (r == 1)
@@ -924,14 +924,14 @@ startup(char const *cmdline)
 }
 
 static int
-l4_exec_read_exec(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+l4_exec_read_exec(void *opaque, ElfW(Phdr) const *ph,
                   Boot_modules::Module const &m)
 {
   l4_addr_t offset = reinterpret_cast<l4_addr_t>(opaque);
   if (!ph->p_memsz)
     return 0;
 
-  if (! (type & EXEC_SECTYPE_LOAD))
+  if (ph->p_type != PT_LOAD)
     return 0;
 
   auto mem_addr = ph->p_paddr + offset;
@@ -984,7 +984,7 @@ find_region_overlap(Region const &n)
 }
 
 static int
-l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph,
                    Boot_modules::Module const &m)
 {
   Elf_info const *info = static_cast<Elf_info const *>(opaque);
@@ -992,14 +992,14 @@ l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
   if (!ph->p_memsz)
     return 0;
 
-  if (! (type & EXEC_SECTYPE_LOAD))
+  if (ph->p_type != PT_LOAD)
     return 0;
 
 #if defined(CONFIG_BOOTSTRAP_ROOTTASK_NX)
   unsigned short rights = L4_FPAGE_RO;
-  if (type & EXEC_SECTYPE_WRITE)
+  if (ph->p_flags & PF_W)
     rights |= L4_FPAGE_W;
-  if (type & EXEC_SECTYPE_EXECUTE)
+  if (ph->p_flags & PF_X)
     rights |= L4_FPAGE_X;
 #else
   unsigned short rights = L4_FPAGE_RWX;
@@ -1027,11 +1027,11 @@ l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
 }
 
 static int
-l4_exec_find_hdr(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+l4_exec_find_hdr(void *opaque, ElfW(Phdr) const *ph,
                  Boot_modules::Module const &)
 {
   Hdr_info *hdr = static_cast<Hdr_info *>(opaque);
-  if (hdr->hdr_type == (type & EXEC_SECTYPE_TYPE_MASK))
+  if (hdr->hdr_type == ph->p_type)
     {
       hdr->start = ph->p_paddr;
       hdr->size = ph->p_memsz;
@@ -1042,7 +1042,7 @@ l4_exec_find_hdr(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
 }
 
 static int
-l4_exec_gather_info(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
+l4_exec_gather_info(void *opaque, ElfW(Phdr) const *ph,
                     Boot_modules::Module const &)
 {
   Section_info *info = static_cast<Section_info *>(opaque);
@@ -1050,10 +1050,10 @@ l4_exec_gather_info(void *opaque, ElfW(Phdr) const *ph, exec_sectype_t type,
   if (!ph->p_memsz)
     return 0;
 
-  if ((type & EXEC_SECTYPE_TYPE_MASK) == EXEC_SECTYPE_DYNAMIC)
+  if (ph->p_type == PT_DYNAMIC)
     info->has_dynamic = true;
 
-  if (! (type & EXEC_SECTYPE_LOAD))
+  if (ph->p_type != PT_LOAD)
     return 0;
 
   info->start = cxx::min(info->start, l4_addr_t{ph->p_paddr});

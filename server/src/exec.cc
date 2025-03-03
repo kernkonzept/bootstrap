@@ -44,29 +44,7 @@ exec_load_elf(exec_handler_func_t *handler, void *opaque,
       if (ph->p_type == 0)
         continue;
 
-      exec_sectype_t type = 0;
-      if (ph->p_type == PT_LOAD)
-        type |= EXEC_SECTYPE_LOAD;
-
-      if (ph->p_type == PT_DYNAMIC)
-        type |= EXEC_SECTYPE_DYNAMIC;
-
-      if (ph->p_type == 0x10) // KIP PHDR
-        type |= EXEC_SECTYPE_KIP;
-
-      if (ph->p_type == 0x11) // KIP PHDR
-        type |= EXEC_SECTYPE_KOPT;
-
-      if (ph->p_flags & PF_R)
-        type |= EXEC_SECTYPE_READ;
-
-      if (ph->p_flags & PF_W)
-        type |= EXEC_SECTYPE_WRITE;
-
-      if (ph->p_flags & PF_X)
-        type |= EXEC_SECTYPE_EXECUTE;
-
-      int res = (*handler)(opaque, ph, type, m);
+      int res = (*handler)(opaque, ph, m);
 
       if (res != 0)
         return *error_msg="", res;
