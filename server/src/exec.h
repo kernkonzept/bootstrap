@@ -15,6 +15,7 @@
 
 #include <l4/sys/l4int.h>
 #include <l4/util/mb_info.h>
+#include <l4/util/elf.h>
 #include <l4/sys/compiler.h>
 
 typedef int exec_sectype_t;
@@ -33,10 +34,7 @@ struct Elf_handle
   Boot_modules::Module mod;
 };
 
-typedef int exec_handler_func_t(Elf_handle *handle,
-				  l4_addr_t file_ofs, l4_size_t file_size,
-				  l4_addr_t mem_addr, l4_addr_t v_addr,
-				  l4_size_t mem_size, l4_size_t align,
+typedef int exec_handler_func_t(Elf_handle *handle, ElfW(Phdr) const *ph,
 				  exec_sectype_t section_type);
 
 int exec_load_elf(exec_handler_func_t *handler_exec,

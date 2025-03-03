@@ -28,6 +28,7 @@
 #include <limits.h>
 
 /* L4 stuff */
+#include <l4/cxx/minmax>
 #include <l4/sys/compiler.h>
 #include <l4/sys/consts.h>
 #include <l4/sys/kip.h>
@@ -557,8 +558,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
   // setups by provoking collisions with other (unrelocatable) binaries.
   if (si.needs_relocation && si.has_dynamic && si.start < si.end)
     {
-      if (si.align < min_align)
-        si.align = min_align;
+      si.align = cxx::max(si.align, min_align);
 
       /*
        * Normally the load sections are all properly aligned already. But if a
@@ -940,48 +940,45 @@ startup(char const *cmdline)
 }
 
 static int
-l4_exec_read_exec(Elf_handle *handle,
-		  l4_addr_t file_ofs, l4_size_t file_size,
-		  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
-		  l4_size_t mem_size, l4_size_t /*align*/,
-		  exec_sectype_t section_type)
+l4_exec_read_exec(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type)
 {
   Load_info const *info = static_cast<Load_info const *>(handle);
   Boot_modules::Module const &m = info->mod;
-  if (!mem_size)
+  if (!ph->p_memsz)
     return 0;
 
-  if (! (section_type & EXEC_SECTYPE_LOAD))
+  if (! (type & EXEC_SECTYPE_LOAD))
     return 0;
 
-  mem_addr += info->offset;
+  auto mem_addr = ph->p_paddr + info->offset;
 
   if (Verbose_load)
-    printf("    [%p-%p]\n", (void *) mem_addr, (void *) (mem_addr + mem_size));
+    printf("    [%p-%p]\n", (void *)mem_addr, (void *)(mem_addr + ph->p_memsz));
 
-  if (!ram.contains(Region::start_size(mem_addr, mem_size)))
+  if (!ram.contains(Region::start_size(mem_addr, ph->p_memsz)))
     {
       printf("To be loaded binary region is out of memory region.\n");
-      printf(" Binary region: %lx - %lx\n", mem_addr, mem_addr + mem_size);
+      printf(" Binary region: %lx - %lx\n", l4_addr_t{mem_addr},
+             l4_addr_t{mem_addr + ph->p_memsz});
       dump_ram_map();
       panic("Binary outside memory");
     }
 
-  auto *src = m.start + file_ofs;
+  auto *src = m.start + ph->p_offset;
   auto *dst = reinterpret_cast<char *>(mem_addr);
   if (reinterpret_cast<unsigned long>(src) % 8
       || reinterpret_cast<unsigned long>(dst) % 8)
-    memcpy(dst, src, file_size);
+    memcpy(dst, src, ph->p_filesz);
   else
-    memcpy_aligned(dst, src, file_size);
+    memcpy_aligned(dst, src, ph->p_filesz);
 
-  if (file_size < mem_size)
-    memset(dst + file_size, 0, mem_size - file_size);
+  if (ph->p_filesz < ph->p_memsz)
+    memset(dst + ph->p_filesz, 0, ph->p_memsz - ph->p_filesz);
 
   Region *f = regions.find(mem_addr);
   if (!f)
     {
-      printf("could not find %lx\n", mem_addr);
+      printf("could not find %lx\n", l4_addr_t{mem_addr});
       regions.dump();
       panic("Oops: region for module not found\n");
     }
@@ -1003,25 +1000,21 @@ find_region_overlap(Region const &n)
 }
 
 static int
-l4_exec_add_region(Elf_handle *handle,
-		  l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
-		  l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
-		  l4_size_t mem_size, l4_size_t /*align*/,
-		  exec_sectype_t section_type)
+l4_exec_add_region(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type)
 {
   Elf_info const &info = static_cast<Elf_info const&>(*handle);
 
-  if (!mem_size)
+  if (!ph->p_memsz)
     return 0;
 
-  if (! (section_type & EXEC_SECTYPE_LOAD))
+  if (! (type & EXEC_SECTYPE_LOAD))
     return 0;
 
 #if defined(CONFIG_BOOTSTRAP_ROOTTASK_NX)
   unsigned short rights = L4_FPAGE_RO;
-  if (section_type & EXEC_SECTYPE_WRITE)
+  if (type & EXEC_SECTYPE_WRITE)
     rights |= L4_FPAGE_W;
-  if (section_type & EXEC_SECTYPE_EXECUTE)
+  if (type & EXEC_SECTYPE_EXECUTE)
     rights |= L4_FPAGE_X;
 #else
   unsigned short rights = L4_FPAGE_RWX;
@@ -1029,7 +1022,7 @@ l4_exec_add_region(Elf_handle *handle,
 
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.
-  Region n = Region::start_size(mem_addr + info.offset, mem_size,
+  Region n = Region::start_size(ph->p_paddr + info.offset, ph->p_memsz,
                                 info.mod.cmdline ? info.mod.cmdline : ".[Unknown]",
                                 info.type, info.type == Region::Root ? rights : 0,
                                 info.type != Region::Kernel);
@@ -1049,51 +1042,39 @@ l4_exec_add_region(Elf_handle *handle,
 }
 
 static int
-l4_exec_find_hdr(Elf_handle *handle,
-                 l4_addr_t file_ofs, l4_size_t /*file_size*/,
-                 l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
-                 l4_size_t mem_size, l4_size_t /*align*/,
-                 exec_sectype_t section_type)
+l4_exec_find_hdr(Elf_handle *handle, ElfW(Phdr) const *ph, exec_sectype_t type)
 {
   Hdr_info &hdr = static_cast<Hdr_info&>(*handle);
-  if (hdr.hdr_type == (section_type & EXEC_SECTYPE_TYPE_MASK))
+  if (hdr.hdr_type == (type & EXEC_SECTYPE_TYPE_MASK))
     {
-      hdr.start = mem_addr;
-      hdr.size = mem_size;
-      hdr.file_ofs = file_ofs;
+      hdr.start = ph->p_paddr;
+      hdr.size = ph->p_memsz;
+      hdr.file_ofs = ph->p_offset;
       return 1;
     }
   return 0;
 }
 
 static int
-l4_exec_gather_info(Elf_handle *handle,
-                    l4_addr_t /*file_ofs*/, l4_size_t /*file_size*/,
-                    l4_addr_t mem_addr, l4_addr_t /*v_addr*/,
-                    l4_size_t mem_size, l4_size_t align,
-                    exec_sectype_t section_type)
+l4_exec_gather_info(Elf_handle *handle, ElfW(Phdr) const *ph,
+                    exec_sectype_t type)
 {
   Section_info *info = static_cast<Section_info *>(handle);
 
-  if (!mem_size)
+  if (!ph->p_memsz)
     return 0;
 
-  if ((section_type & EXEC_SECTYPE_TYPE_MASK) == EXEC_SECTYPE_DYNAMIC)
+  if ((type & EXEC_SECTYPE_TYPE_MASK) == EXEC_SECTYPE_DYNAMIC)
     info->has_dynamic = true;
 
-  if (! (section_type & EXEC_SECTYPE_LOAD))
+  if (! (type & EXEC_SECTYPE_LOAD))
     return 0;
 
-  if (mem_addr < info->start)
-    info->start = mem_addr;
+  info->start = cxx::min(info->start, l4_addr_t{ph->p_paddr});
+  info->end = cxx::max(info->end, l4_addr_t{ph->p_paddr + ph->p_memsz - 1U});
+  info->align = cxx::max(info->align, l4_addr_t{ph->p_align});
 
-  if ((mem_addr + mem_size - 1U) > info->end)
-    info->end = mem_addr + mem_size - 1U;
-
-  if (align > info->align)
-    info->align = align;
-
-  auto r = Region::start_size(mem_addr, mem_size);
+  auto r = Region::start_size(ph->p_paddr, ph->p_memsz);
   if (!ram.contains(r) || find_region_overlap(r))
     info->needs_relocation = true;
 
