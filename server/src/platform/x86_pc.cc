@@ -143,25 +143,23 @@ struct Platform_x86_1 : Platform_x86
   }
 };
 
-#ifdef IMAGE_MODE
-
-class Platform_x86_loader_mbi :
-  public Platform_x86_1,
-  public Boot_modules_image_mode
-{
-public:
-  Boot_modules *modules() { return this; }
-
-};
-
-Platform_x86_loader_mbi _x86_pc_platform;
-
-#else // IMAGE_MODE
-
 class Platform_x86_multiboot : public Platform_x86_1, public Boot_modules
 {
 public:
-  Boot_modules *modules() override { return this; }
+  Boot_modules_image_mode image_boot_modules;
+
+  inline
+  bool image_mode()
+  { return image_boot_modules.num_modules() > 0; }
+
+  Boot_modules *modules() override
+  {
+    if (image_mode())
+      return &image_boot_modules;
+
+    return this;
+  }
+
   int base_mod_idx(Mod_info_flags mod_info_mod_type, unsigned) override
   {
     switch (mod_info_mod_type)
@@ -202,11 +200,15 @@ public:
     return m;
   }
 
+  /* Unused in image mode */
   unsigned num_modules() const override
   { return l4mi ? l4mi->mods_count : mbi->mods_count; }
 
   void init_regions() override
   {
+    if (image_mode())
+      return;
+
     Region_list *regions = mem_manager->regions;
 
     regions->add(Region::start_size(mbi, sizeof(*mbi), ".mbi",
@@ -262,6 +264,7 @@ public:
   void init_mod_regions() override {}
   void finalize_mod_regions() override {}
 
+  /* Not used in image mode */
   void move_module(unsigned index, void *dest) override
   {
     l4util_l4mod_mod *mod = (l4util_l4mod_mod *)(unsigned long)l4mi->mods_addr + index;
@@ -274,6 +277,7 @@ public:
     mod->mod_end   = (l4_addr_t)dest + size;
   }
 
+  /* Not used in image mode */
   l4util_l4mod_info *construct_mbi(unsigned long mod_addr,
                                    Internal_module_list const &) override
   {
@@ -430,7 +434,6 @@ public:
 
 Platform_x86_multiboot _x86_pc_platform;
 
-#endif // !IMAGE_MODE
 }
 
 namespace /* usb_xhci_handoff */ {
