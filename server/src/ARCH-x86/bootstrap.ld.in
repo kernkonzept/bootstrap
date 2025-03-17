@@ -38,6 +38,8 @@ SECTIONS
 #endif
 
 #ifdef ARCH_amd64
+  /* Required by elf_machine_load_address() and assumed to be at address 0. */
+  PROVIDE_HIDDEN(__ehdr_start = 0);
   . = LINKADDR + SIZEOF_HEADERS;
 #else
   . = LINKADDR;
