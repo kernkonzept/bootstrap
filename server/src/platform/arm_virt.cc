@@ -30,14 +30,21 @@ class Platform_arm_virt : public Platform_dt_arm
      * does not provide the address in case the payload is started as ELF.
      * Fiasco wants to have this part of the RAM, so copy the FDT. */
     void const *fdt = reinterpret_cast<void const *>(0x4000'0000);
-    if (fdt_check_header(fdt) == 0)
+
+    // Fall back to the platform methods (used for example for uimage)
+    if (fdt_check_header(fdt) != 0)
       {
-        unsigned sz = fdt_totalsize(fdt);
-        l4_addr_t dst = l4_trunc_page(reinterpret_cast<unsigned long>(&_start) - sz);
-        memmove((void *)dst, fdt, sz);
-        return dst;
+        fdt = reinterpret_cast<void const *>(Platform_dt_arm::get_fdt_addr());
+
+        // Fail if this one was also not valid
+        if (fdt_check_header(fdt) != 0)
+          return 0;
       }
-    return 0;
+
+    unsigned sz = fdt_totalsize(fdt);
+    l4_addr_t dst = l4_trunc_page(reinterpret_cast<unsigned long>(&_start) - sz);
+    memmove((void *)dst, fdt, sz);
+    return dst;
   }
 
   void init() override
