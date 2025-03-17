@@ -33,14 +33,18 @@ _start:
   la sp, crt0_stack_high
 
 #ifdef CONFIG_BID_PIE
-  /* Calculate load address... subtract link address from real one */
-  adrp    x0, :got:_start
-  ldr     x0, [x0, #:got_lo12:_start]
-  adr     x1, _start
-  sub     x0, x1, x0
+  // save arguments
+  mv s0, a0
+  mv s1, a1
+
+  /* "Calculate" load address... */
+  la a0, __ehdr_start
 
   /* Do relocations */
-  bl reloc_static_pie
+  call reloc_static_pie
+
+  mv a0, s0
+  mv a1, s1
 #endif
 
   tail __main

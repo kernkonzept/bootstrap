@@ -165,14 +165,9 @@ no_fpu:
 	mov v3, a3
 	mov v4, a4
 
-	ldr a1, .L_GOT          /* Get value at .L_GOT + 0  (offset to GOT)*/
-	adr a2, .L_GOT          /* Get address of .L_GOT */
-	ldr a3, .L_GOT+4        /* Get value of _start(GOT) stored in .L_GOT */
-	adr a4, _start          /* Get address of _start after relocation (changes to pc - ~30 or so) */
-	add a1, a1, a2          /* Calculate where the GOT is */
-	ldr a2, [a1, a3]        /* GOT + _start(GOT) = offset of _start from begin of file */
-	bic a2, a2, #1          /* Clear potential thumb mode indicator */
-	sub a1, a4, a2          /* Current addr of _start - offset from beginning of file = load addr */
+	adr a1, .L__ehdr_start_off
+	ldr a2, .L__ehdr_start_off
+	add a1, a1, a2
 	bl reloc_static_pie
 
 	mov a1, v1
@@ -186,9 +181,8 @@ no_fpu:
 
 .LCstack: .word (crt0_stack_high - do_bootstrap)
 #ifdef CONFIG_BID_PIE
-.L_GOT:
-	.word _GLOBAL_OFFSET_TABLE_ - .L_GOT
-	.word _start(GOT)
+.L__ehdr_start_off:
+	.word __ehdr_start - .L__ehdr_start_off
 #endif
 
 .section ".bss"

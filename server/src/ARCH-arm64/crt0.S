@@ -136,11 +136,8 @@ do_bootstrap:
 	mov	x21, x2
 	mov	x22, x3
 
-	/* Calculate load address... subtract link address from real one */
-	adrp    x0, :got:_start
-	ldr     x0, [x0, #:got_lo12:_start]
-	adr     x1, _start
-	sub     x0, x1, x0
+	/* "Calculate" load address... */
+	adrp	x0, __ehdr_start
 
 	/* Do relocations */
 	bl reloc_static_pie
