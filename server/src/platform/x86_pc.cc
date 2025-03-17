@@ -209,6 +209,11 @@ public:
     if (image_mode())
       return;
 
+    if (mbi->mods_count == 0)
+      {
+        panic("fatal: Multiboot data does not contain any modules.\n");
+      }
+
     Region_list *regions = mem_manager->regions;
 
     regions->add(Region::start_size(mbi, sizeof(*mbi), ".mbi",
