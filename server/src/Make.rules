@@ -107,8 +107,12 @@ od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(BOOTSTRAP_OUTPUT_DIR)/)
 
 PRIVATE_INCDIR	 = $(SRC_DIR) $(SRC_DIR)/ARCH-$(ARCH)
 
-TARGET		:= $(od)$(BOOTSTRAP_ELF_NAME)
-TARGET_BIN	 = $(od)$(BOOTSTRAP_ELF_NAME)
+ifeq ($(ARCH),amd64)
+  TARGET        := $(od)bootstrap64.elf
+else
+  TARGET        := $(od)$(BOOTSTRAP_ELF_NAME)
+endif
+
 MODE		 = sigma0
 
 BOOTSTRAP_RAW     ?= $(od)bootstrap.raw
@@ -251,12 +255,7 @@ endif
 ifneq ($(ENTRY),)
 
 INSTALL_FILES  = $(BOOTSTRAP_ELF_NAME) bootstrap_$(SUFFIX) bootstrap_$(SUFFIX).elf
-ifeq ($(ARCH)$(BOOTSTRAP_DO_UEFI),amd64)
-INSTALL_FILES += bootstrap.elf32 bootstrap_$(ENTRY_FN).elf32
-BOOTSTRAP_LINK_SOURCE = bootstrap.elf32
-else
 BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
-endif
 
 INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(SUFFIX).efi $(EFI_IMAGE)
 
@@ -370,7 +369,7 @@ mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) $(entry_files)
   -include mod.make.inc
   BOOTSTRAP_LD_dep             += mod.make.inc
   STARTUP_C_dep                := mod.make.inc
-  OBJS_$(od)$(BOOTSTRAP_ELF_NAME)   += $(MODULE_OBJECT_FILES)
+  OBJS                         += $(MODULE_OBJECT_FILES)
  endif
 
  CPPFLAGS                     += -DIMAGE_MODE
@@ -382,7 +381,7 @@ mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) \
   -include mod.make.inc
   BOOTSTRAP_LD_dep             += mod.make.inc
   STARTUP_C_dep                := mod.make.inc
-  OBJS_$(od)$(BOOTSTRAP_ELF_NAME)   += $(MODULE_OBJECT_FILES)
+  OBJS                         += $(MODULE_OBJECT_FILES)
 
   # We need the default images to be ready for image mode on these architectures
   # as they are populated using the l4image tool.
@@ -396,7 +395,7 @@ CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
 all:: $(BOOTSTRAP_RAW)
 
 # raw version without ELF, primarily useful for ARM
-$(BOOTSTRAP_RAW): $(TARGET_BIN)
+$(BOOTSTRAP_RAW): $(BOOTSTRAP_ELF_NAME)
 	@$(GEN_MESSAGE)
 	$(VERBOSE)$(OBJCOPY) -O binary $< $@
 	$(VERBOSE)chmod -x $@
@@ -471,7 +470,7 @@ clean::
 cleanall::
 	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.*
 
-$(od)boot%.efi: $(od)$(BOOTSTRAP_ELF_NAME)
+$(od)boot%.efi: $(TARGET)
 	$(VERBOSE)$(OBJCOPY) -S -j .text -j .sdata -j .rodata -j .reloc -j .dynsym \
 	                     -j .dynstr -j .rel.dyn -j .data -j .data.m \
 	                     -j .dynamic -j .rela -j .rela.dyn -j .rela.plt \
@@ -503,17 +502,14 @@ CXX32FLAGS = $(filter-out -m64, $(CXXFLAGS) $(CXXFLAGS_$(ARCH))) -m32 $(GCCNOSTA
 $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a: FORCE
 	$(VERBOSE)$(MAKE) O=$(OBJ_BASE) -C $(SRC_DIR)/ARCH-amd64/libc32
 
-bootstrap.elf32: $(OBJ32) bootstrap32.bin ARCH-amd64/boot32/bootstrap32.ld $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a
+$(BOOTSTRAP_ELF_NAME): $(OBJ32) bootstrap32.bin ARCH-amd64/boot32/bootstrap32.ld $(OBJ_DIR)/ARCH-amd64/libc32/OBJ-$(SYSTEM)/libc32.a
 	@$(LINK_MESSAGE)
 	$(VERBOSE)$(CC32) -o $@ -nostdlib -static \
 	  -Wl,-T,ARCH-amd64/boot32/bootstrap32.ld,--gc-sections \
           $(filter-out %/bootstrap32.ld,$^) -z noexecstack
 	$(VERBOSE)chmod 755 $@
 
-bootstrap: bootstrap.elf32
-	$(VERBOSE)$(LN) -f $^ $@
-
-bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
+bootstrap32.bin: $(TARGET)
 	@$(GEN_MESSAGE)
 	$(VERBOSE)$(OBJCOPY) -S $< bootstrap64.bin
 	$(VERBOSE)chmod -x bootstrap64.bin
@@ -522,11 +518,10 @@ bootstrap32.bin: $(BOOTSTRAP_ELF_NAME)
 clean cleanall::
 	$(VERBOSE)PWD=$(abspath $(SRC_DIR)/ARCH-amd64/libc32) \
 	  $(MAKE) -C $(SRC_DIR)/ARCH-amd64/libc32 $@
+endif
 
-else
 bootstrap: $(BOOTSTRAP_ELF_NAME)
 	$(VERBOSE)$(LN) -f $^ $@
-endif
 
 INSTALL_TARGET := $(if $(od),,$(INSTALL_FILES))
 
