@@ -50,6 +50,11 @@ CAN_PIE_arm64   := y
 CAN_PIE_riscv   := y
 BID_CAN_PIE      = $(CAN_PIE_$(ARCH))
 
+# convenience
+ifneq ($(E),)
+ENTRY       := $(E)
+endif
+
 ifneq ($(BOOTSTRAP_CHECK_MD5),)
   REQUIRES_LIBS       += libbsd-lite
   DEFINES             += -DDO_CHECK_MD5
@@ -102,8 +107,12 @@ MKIMAGE                      ?= mkimage
 MKIMAGE_PRESENT              := $(if $(shell command -v $(MKIMAGE)),y)
 BOOTSTRAP_UIMAGE_COMPRESSION ?= none
 
+ifneq ($(ENTRY),)
 od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(if $(wildcard $(BOOTSTRAP_OUTPUT_DIR)),,$(shell mkdir -p $(BOOTSTRAP_OUTPUT_DIR))))
 od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(BOOTSTRAP_OUTPUT_DIR)/)
+else
+override BOOTSTRAP_OUTPUT_DIR :=
+endif
 
 PRIVATE_INCDIR	 = $(SRC_DIR) $(SRC_DIR)/ARCH-$(ARCH)
 
@@ -210,11 +219,6 @@ else
 LDFLAGS           += -static -Bstatic
 endif
 
-# convenience
-ifneq ($(E),)
-ENTRY		:= $(E)
-endif
-
 ENTRY_FN := $(shell echo "$(ENTRY)" | tr '[ ]' '[_]' )
 SUFFIX := $(if $(BOOTSTRAP_IMAGE_SUFFIX),$(ENTRY_FN)_$(BOOTSTRAP_IMAGE_SUFFIX),$(ENTRY_FN))
 
@@ -224,7 +228,7 @@ BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         CROSS_COMPILE=$(CROSS_COMPILE) \
                         MAKE_INC_FILE=$(PWD)/mod.make.inc \
                         FLAGS_CC="$(CARCHFLAGS) $(CCXX_FLAGS) -I$(SRC_DIR)" \
-                        OUTPUT_DIR="$(BOOTSTRAP_OUTPUT_DIR)" \
+                        OUTPUT_DIR="$(od)" \
                         OPT_ARCH=$(ARCH) \
                         CAN_DECOMPRESS=$(CONFIG_BOOTSTRAP_COMPRESS) \
                         L4DIR=$(L4DIR) \
