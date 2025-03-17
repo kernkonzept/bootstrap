@@ -252,9 +252,12 @@ endif
 	$(if $(BUILD_MOD_CMD),$(VERBOSE)$(call BUILD_MOD_CMD,dump) >> $@.tmp)
 	$(VERBOSE)$(call move_if_changed,$@,$@.tmp)
 
+
+INSTALL_FILES += $(INSTALL_FILES-y)
+
 ifneq ($(ENTRY),)
 
-INSTALL_FILES  = $(BOOTSTRAP_ELF_NAME) bootstrap_$(SUFFIX) bootstrap_$(SUFFIX).elf
+INSTALL_FILES  += $(BOOTSTRAP_ELF_NAME) bootstrap_$(SUFFIX) bootstrap_$(SUFFIX).elf
 BOOTSTRAP_LINK_SOURCE = $(BOOTSTRAP_ELF_NAME)
 
 INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap_$(SUFFIX).efi $(EFI_IMAGE)
@@ -303,8 +306,6 @@ $(od)bootstrap_$(SUFFIX).%: $(od)bootstrap.%
    endif
  endif
 
-INSTALL_FILES += $(INSTALL_FILES-y)
-
 all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 	$(VERBOSE)echo "  Image size(s) in bytes:"
 	$(VERBOSE)for f in $(filter bootstrap_$(SUFFIX).elf bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
@@ -319,13 +320,13 @@ $(IMAGES_DIR)/%: $(od)%
 	$(VERBOSE)(cd $(dir $@) && $(LN) -sf $(if $(od),,$(PWD)/)$<)
 
 else
-  INSTALL_FILES = bootstrap $(BOOTSTRAP_ELF_NAME) $(BOOTSTRAP_RAW)
+  INSTALL_FILES += bootstrap $(BOOTSTRAP_ELF_NAME) $(BOOTSTRAP_RAW)
 
   ifneq ($(EFI_IMAGE),)
 $(od)bootstrap.efi: $(od)$(EFI_IMAGE)
 	$(VERBOSE)$(LN) -f $< $@
 
-	INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap.efi
+    INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap.efi
   endif
 
   ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips riscv))
