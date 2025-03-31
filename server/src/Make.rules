@@ -431,7 +431,7 @@ $(BOOTSTRAP_UIMAGE): $(BOOTSTRAP_RAW).$(BOOTSTRAP_UIMAGE_COMPRESSION)
 	$(VERBOSE)$(MKIMAGE) -e $(call default_reloc,$(ARCH)) \
 	   -a $(call default_reloc,$(ARCH)) -A $(MKIMAGE_ARCH)  \
 	   -C $(BOOTSTRAP_UIMAGE_COMPRESSION) \
-	   -n "L4 Image #$$(cat .build_nr)" \
+	   -n "L4Re Image #$$(cat .build_nr)" \
 	   -d $^ $@
 
 $(BOOTSTRAP_ITB): $(BOOTSTRAP_RAW)
@@ -441,7 +441,7 @@ $(BOOTSTRAP_ITB): $(BOOTSTRAP_RAW)
 	$(VERBOSE)$(MKIMAGE) -f auto -e $(call default_reloc,$(ARCH)) \
 	   -a $(call default_reloc,$(ARCH)) -A $(MKIMAGE_ARCH)  \
 	   -C $(BOOTSTRAP_UIMAGE_COMPRESSION) \
-	   -n "L4 Image #$$(cat .build_nr)" \
+	   -n "L4Re Image #$$(cat .build_nr)" \
 	   -d $^ $@ \
 	   $(if $(BOOTSTRAP_ITB_DTB),-b $(BOOTSTRAP_ITB_DTB))
 
