@@ -1,18 +1,14 @@
-/**
- * \file   support_om.cc
- * \brief  Support for the OpenMoko platform
- *
- * \date   2008
- * \author Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *
- */
 /*
- * (c) 2008-2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
+ * Copyright (C) 2008-2009 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
+/**
+ * \file   support_om.cc
+ * \brief  Support for the OpenMoko platform
+ */
 
 #include "support.h"
 #include "startup.h"

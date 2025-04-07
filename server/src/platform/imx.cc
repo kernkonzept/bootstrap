@@ -1,16 +1,13 @@
+/*
+ * Copyright (C) 2008-2009 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /*!
  * \file   support_imx.cc
  * \brief  Support for the i.MX platform
- *
- * \date   2008-02-04
- * \author Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *
- */
-/*
- * (c) 2008-2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include <l4/drivers/uart_imx.h>

@@ -4,6 +4,7 @@
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
+
 #include "ldscript.inc"
 
 ENTRY(_start)

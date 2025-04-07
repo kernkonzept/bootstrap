@@ -1,16 +1,13 @@
+/*
+ * Copyright (C) 2010 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /*!
  * \file
  * \brief  Support for Tegra 2 platforms
- *
- * \date   2010-05
- * \author Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *
- */
-/*
- * (c) 2010 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 /* Init-code from http://android.git.kernel.org/?p=kernel/tegra.git */

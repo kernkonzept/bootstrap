@@ -1,10 +1,11 @@
 /*
- * (c) 2009 Adam Lackorzynski <adam@os.inf.tu-dresden.de>,
- *          Frank Mehnert <fm3@os.inf.tu-dresden.de>
- *     economic rights: Technische Universität Dresden (Germany)
+ * Copyright (C) 2009 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *            Frank Mehnert <fm3@os.inf.tu-dresden.de>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

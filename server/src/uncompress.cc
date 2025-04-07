@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2004-2009 Technische Universität Dresden.
  * Copyright (C) 2024 Kernkonzept GmbH.
  * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
  *            Marcus Haehnel <marcus.haehnel@kernkonzept.com>
@@ -9,15 +10,6 @@
 /**
  * \file	bootstrap/server/src/uncompress.cc
  * \brief	Support for on-the-fly uncompressing of boot modules
- * 
- * \date	2004
- * \author	Adam Lackorzynski <adam@os.inf.tu-dresden.de> */
-
-/*
- * (c) 2005-2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include <stdio.h>

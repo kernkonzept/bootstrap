@@ -1,16 +1,13 @@
+/*
+ * Copyright (C) 2010 Technische Universität Dresden.
+ * Author(s): Björn Döbel <doebel@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /**
  * \file   support_sparc_leon3.cc
  * \brief  Support for the Sparc LEON3 platform
- *
- * \date   2010
- * \author Björn Döbel <doebel@os.inf.tu-dresden.de>
- *
- */
-/*
- * (c) 2010 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include <l4/drivers/uart_leon3.h>

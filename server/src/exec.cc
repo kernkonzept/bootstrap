@@ -1,16 +1,14 @@
+/*
+ * Copyright (C) 2004-2009 Technische Universität Dresden.
+ * Author(s): Frank Mehnert <fm3@os.inf.tu-dresden.de>
+ *            Torsten Frenzel <frenzel@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /**
  * \file	bootstrap/server/src/exec.cc
  * \brief	ELF loader
- *
- * \date	2004
- * \author	Frank Mehnert <fm3@os.inf.tu-dresden.de>,
- *		Torsten Frenzel <frenzel@os.inf.tu-dresden.de> */
-
-/*
- * (c) 2005-2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include <stdio.h>

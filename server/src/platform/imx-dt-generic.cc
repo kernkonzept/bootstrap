@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2024 Kernkonzept GmbH.
- * Author(s): Adam Lackorznynski <adam@os.inf.tu-dresden.de>
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
  *            Christian Pötzsch <christian.poetzsch@kernkonzept.com>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)

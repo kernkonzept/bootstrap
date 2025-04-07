@@ -1,17 +1,15 @@
-/*!
- * \file   support.h
- * \brief  Support header file
- *
- * \date   2008-01-02
- * \author Adam Lackorznynski <adam@os.inf.tu-dresden.de>
- *
- */
 /*
- * (c) 2008-2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
+ * Copyright (C) 2008-2009 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
+
+/*!
+ * \file   support.h
+ * \brief  Support header file
+ */
+
 #ifndef __BOOTSTRAP__SUPPORT_H__
 #define __BOOTSTRAP__SUPPORT_H__
 

@@ -1,16 +1,13 @@
+/*
+ * Copyright (C) 2008-2011 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /*!
  * \file
  * \brief  Support for the rv platform
- *
- * \date   2011
- * \author Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *
- */
-/*
- * (c) 2008-2011 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include "support.h"

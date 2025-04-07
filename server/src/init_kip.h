@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2008-2009 Technische Universität Dresden
- * Copyright (C) 2023 Kernkonzept GmbH
- * Authors:
- *               Adam Lackorzynski <adam@os.inf.tu-dresden.de>,
- *               Alexander Warg <warg@os.inf.tu-dresden.de>,
- *               Frank Mehnert <fm3@os.inf.tu-dresden.de>
+ * Copyright (C) 2008-2009 Technische Universität Dresden.
+ * Copyright (C) 2023 Kernkonzept GmbH.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *            Alexander Warg <warg@os.inf.tu-dresden.de>
+ *            Frank Mehnert <fm3@os.inf.tu-dresden.de>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
+
 #pragma once
 
 #include <l4/sys/kip.h>

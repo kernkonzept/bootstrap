@@ -1,16 +1,13 @@
+/*
+ * Copyright (C) 2009 Technische Universität Dresden.
+ * Author(s): Sebastian Sumpf <sumpf@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /**
  * \file
  * \brief  Support for the MPC52000
- *
- * \date   2009-02-16
- * \author Sebastian Sumpf <sumpf@os.inf.tu-dresden.de>
- *
- */
-/*
- * (c) 2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include "support.h"

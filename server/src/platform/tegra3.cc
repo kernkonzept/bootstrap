@@ -1,16 +1,13 @@
+/*
+ * Copyright (C) 2013 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /*!
  * \file
  * \brief  Support for Tegra 3 platforms
- *
- * \date   2013
- * \author Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *
- */
-/*
- * (c) 2013 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include "support.h"

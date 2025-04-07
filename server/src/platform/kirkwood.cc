@@ -1,16 +1,13 @@
+/*
+ * Copyright (C) 2010 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /*!
  * \file   support_kirkwood.cc
  * \brief  Support for the kirkwood platform
- *
- * \date   2010-11
- * \author Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *
- */
-/*
- * (c) 2010 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 #include "support.h"

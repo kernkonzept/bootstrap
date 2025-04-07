@@ -1,13 +1,8 @@
 /*
+ * Copyright (C) 2008-2009 Technische Universität Dresden.
  * Copyright (C) 2014 Imagination Technologies Ltd.
- * Author: Yann Le Du <ledu@kymasys.com>
- *
- * This file incorporates work covered by the following copyright notice:
- */
-
-/*
- * (c) 2008-2009 Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *     economic rights: Technische Universität Dresden (Germany)
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *            Yann Le Du <ledu@kymasys.com>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */

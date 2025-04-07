@@ -1,20 +1,17 @@
+/*
+ * Copyright (C) 2004-2009 Technische Universität Dresden.
+ * Author(s): Torsten Frenzel <frenzel@os.inf.tu-dresden.de>
+ *            Frank Mehnert <fm3@os.inf.tu-dresden.de>
+ *            Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *            Alexander Warg <aw11@os.inf.tu-dresden.de>
+ *            Sebastian Sumpf <sumpf@os.inf.tu-dresden.de>
+ *
+ * License: see LICENSE.spdx (in this directory or the directories above)
+ */
+
 /**
  * \file	bootstrap/server/src/startup.cc
  * \brief	Main functions
- *
- * \date	09/2004
- * \author	Torsten Frenzel <frenzel@os.inf.tu-dresden.de>,
- *		Frank Mehnert <fm3@os.inf.tu-dresden.de>,
- *		Adam Lackorzynski <adam@os.inf.tu-dresden.de>
- *		Alexander Warg <aw11@os.inf.tu-dresden.de>
- *		Sebastian Sumpf <sumpf@os.inf.tu-dresden.de>
- */
-
-/*
- * (c) 2005-2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
- *
- * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
 /* LibC stuff */

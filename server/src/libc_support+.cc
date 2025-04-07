@@ -1,17 +1,18 @@
-/**
- * \file	bootstrap/server/src/libc_support.c
- * \brief	Support for C library
- *
- * \date	2004-2008
- * \author	Adam Lackorzynski <adam@os.inf.tu-dresden.de>,
- *		Frank Mehnert <fm3@os.inf.tu-dresden.de> */
-
 /*
- * (c) 2005-2009 Author(s)
- *     economic rights: Technische Universität Dresden (Germany)
+ * Copyright (C) 2004-2009 Technische Universität Dresden.
+ * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
+ *            Frank Mehnert <fm3@os.inf.tu-dresden.de>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
+
+/**
+ * \file	bootstrap/server/src/libc_support.c
+ * \brief	Support for C library
+*/
+
+#define NOT_IN_libc
+#include <libc-symbols.h>
 
 #include <unistd.h>
 #include <string.h>
