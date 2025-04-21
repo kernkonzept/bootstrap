@@ -82,7 +82,6 @@ SECTIONS
   {
     _module_data_start = .;
     *(.module_data)
-    _module_data_end = .;
   } : mods
 
   /* drop the following sections since we do not need them for DROPS */

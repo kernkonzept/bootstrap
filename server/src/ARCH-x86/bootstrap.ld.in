@@ -137,7 +137,6 @@ SECTIONS
   {
     _module_data_start = .;
     *(.module_data)
-    _module_data_end = .;
   } : MODS_PHDR
 
   /DISCARD/ : {

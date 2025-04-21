@@ -462,6 +462,31 @@ sub postprocess
   error("Could not patch binary")
     if not defined $r or $r != L4::Image::dsi('IMAGE_INFO_SIZE');
 
+  if ($arch eq 'arm')
+    {
+      my ($nop0, $nop1, $nop2, $nop3, $nop4, $nop5, $nop6, $nop7,
+          $b_insn, $magic1, $start, $end, $magic2, $magic3)
+        = unpack("L14<", substr($buf, 0, 14 * 4));
+
+      if (   $nop0 == $nop1
+          && $nop0 == $nop2
+          && $nop0 == $nop3
+          && $nop0 == $nop4
+          && $nop0 == $nop5
+          && $nop0 == $nop6
+          && $nop0 == $nop7
+          && $magic1 == 0x016f2818
+          && $magic2 == 0x04030201
+          && $magic3 == 0x45454545)
+        {
+          # Found vmlinuz signature, patch end of binary
+          sysseek($fd, 11 * 4, 0);
+          $r = syswrite($fd, pack("L<", $bin_addr_end_bin), 4);
+          error("Could not patch binary") if not defined $r or $r != 4;
+        }
+    }
+
+
   # TODO: update crc32
 
   close $fd;

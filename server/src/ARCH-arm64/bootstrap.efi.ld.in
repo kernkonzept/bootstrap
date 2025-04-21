@@ -152,7 +152,6 @@ SECTIONS
   {
     _module_data_start = .;
     *(.module_data)
-    _module_data_end = .;
   }
 
   .comment 0 : { *(.comment) }

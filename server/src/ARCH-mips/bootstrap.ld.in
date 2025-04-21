@@ -97,7 +97,6 @@ SECTIONS
     _module_data_start = .;
     *(EXCLUDE_FILE (*mod00.bin *mod01.bin *mod02.bin) .module_data)
     *(.module_data)
-    _module_data_end = .;
   } : mods
 
   /* drop the following sections since we do not need them for DROPS */

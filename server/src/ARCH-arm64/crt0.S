@@ -106,7 +106,7 @@ move_behind:
 	.align 3
 .LCrun:       .8byte run
 .LCstart_bin: .8byte _start
-crt_end_bin:  .8byte _module_data_end
+crt_end_bin:  .8byte _end_of_initial_bootstrap // patched by l4image
 
 run:
 #endif

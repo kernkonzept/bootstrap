@@ -114,8 +114,9 @@ SECTIONS
   {
     _module_data_start = .;
     *(.module_data)
-    _module_data_end = .;
   } : mods
+
+  _end_of_initial_bootstrap = .;
 
   /* drop the following sections since we do not need them for DROPS */
   /DISCARD/ : {

@@ -48,7 +48,7 @@ _start:
 	b .L32bitstart
 	.word 0x016f2818
 	.word _start
-	.word _module_data_end
+	.word _end_of_initial_bootstrap  // patched by l4image
 	.word 0x04030201
 	.word 0x45454545
 	.word 0
@@ -125,7 +125,7 @@ move_behind:
 .LCrun:       .word run
 .LCstart_bin: .word _start
 crt_end_bin:     .word 0
-crt_end_bin_lsb: .word _module_data_end;
+crt_end_bin_lsb: .word _end_of_initial_bootstrap; // patched by l4image
 
 run:
 #endif
