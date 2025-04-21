@@ -45,12 +45,16 @@ _start:
 	nop
 	nop
 	nop
-	b 10f
+	b .L32bitstart
 	.word 0x016f2818
 	.word _start
 	.word _module_data_end
-10:
+	.word 0x04030201
+	.word 0x45454545
+	.word 0
+	.word 0  // Potential PE/COFF offset
 #endif
+.L32bitstart:
 
 	// IRQs, FIQs off
 	mrs r4, cpsr
