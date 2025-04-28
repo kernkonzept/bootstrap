@@ -55,7 +55,7 @@ ifneq ($(E),)
 ENTRY       := $(E)
 endif
 
-ifneq ($(BOOTSTRAP_CHECK_MD5),)
+ifneq ($(BOOTSTRAP_CHECK_MD5)$(CONFIG_BOOTSTRAP_CHECK_MD5),)
   REQUIRES_LIBS       += libbsd-lite
   DEFINES             += -DDO_CHECK_MD5
 endif

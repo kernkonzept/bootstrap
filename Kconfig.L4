@@ -39,6 +39,13 @@ config BOOTSTRAP_COMPRESS
 
 	  Modules will not be automatically compressed when building.
 
+config BOOTSTRAP_CHECK_MD5
+	bool "Enable module integrity check (MD5)"
+	depends on HAVE_BIDPC_LIBBSD_LITE
+	help
+	  Enable module integrity check during boot using MD5. Only supported
+	  for modules packed into an l4image.
+
 comment "GZIP/ZLIB decompression not available due to missing zlib package"
 	depends on !HAVE_BIDPC_ZLIB
 
