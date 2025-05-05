@@ -11,6 +11,7 @@ PHDRS {
 SECTIONS
 {
   . = LINKADDR;
+  _img_base = .;
   /* Merge .text, .rodata, and .data in one segment to save space */
   .text :
   {

@@ -57,6 +57,7 @@ SECTIONS
 
   .text ALIGN(0x1000):
   {
+    _img_base = .;
     _stext = .;
     *(.init)
     KEEP(*(.multiboot2))

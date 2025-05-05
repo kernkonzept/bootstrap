@@ -341,7 +341,7 @@ sub postprocess
   error("Multiple or no image info headers found -- must not be") if $count != 1;
 
   my $fn_nm = $fn;
-  my ($_stext, $_end, $_module_data_start, $bin_addr_end_bin);
+  my ($_img_base, $_end, $_module_data_start, $bin_addr_end_bin);
   my $restart_nm;
   do
     {
@@ -357,7 +357,7 @@ sub postprocess
               $restart_nm = 1;
               last;
             }
-          $_stext             = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+T\s+_stext$/i;
+          $_img_base          = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[ABDTNR]\s+_img_base$/i;
           $_end               = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BD]\s+_end$/i;
           $_module_data_start = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTNR]\s+_module_data_start$/i;
           $bin_addr_end_bin   = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+t\s+crt_end_bin$/i;
@@ -370,7 +370,7 @@ sub postprocess
   $bin_addr_end_bin = Math::BigInt->new() unless defined $bin_addr_end_bin;
 
   error("Did not find _end symbol in binary") unless defined $_end;
-  error("Did not find _stext symbol in binary") unless defined $_stext;
+  error("Did not find _img_base symbol in binary") unless defined $_img_base;
   error("Did not find _module_data_start symbol in binary")
     unless defined $_module_data_start;
 
@@ -384,7 +384,7 @@ sub postprocess
     return $adr;
   };
 
-  $_stext             = $compensate_nm_bug->($_stext);
+  $_img_base          = $compensate_nm_bug->($_img_base);
   $_end               = $compensate_nm_bug->($_end);
   $_module_data_start = $compensate_nm_bug->($_module_data_start);
   $bin_addr_end_bin   = $compensate_nm_bug->($bin_addr_end_bin);
@@ -402,7 +402,7 @@ sub postprocess
   if ($v)
     {
       printf "ELF: Filling image_info data at ELF-file pos 0x%x\n", $pos;
-      print "ELF: _stext=", $_stext->as_hex(), "\n";
+      print "ELF: _img_base=", $_img_base->as_hex(), "\n";
       print "ELF: _end=", $_end->as_hex(), "\n";
       print "ELF: _module_data_start=", $_module_data_start->as_hex(), "\n";
       print "ELF: bin_addr_end_bin=", $bin_addr_end_bin->as_hex(), "\n";
@@ -439,14 +439,14 @@ sub postprocess
   my $_mod_header = 0;
   if (defined $offsets->{mod_header})
     {
-      $_mod_header = $offsets->{mod_header} + $_module_data_start - $_stext;
+      $_mod_header = $offsets->{mod_header} + $_module_data_start - $_img_base;
       printf "_mod_header=%x\n", $_mod_header if $v;
     }
 
   my $_attrs = 0;
   if (defined $offsets->{attrs})
     {
-      $_attrs = $offsets->{attrs} + $_module_data_start - $_stext;
+      $_attrs = $offsets->{attrs} + $_module_data_start - $_img_base;
       printf "_attrs=%x\n", $_attrs if $v;
     }
 
@@ -455,7 +455,7 @@ sub postprocess
                           0, # crc32
                           $_version,
                           $_flags,
-                          $_stext, $_end, $_module_data_start,
+                          $_img_base, $_end, $_module_data_start,
                           $bin_addr_end_bin,
                           $_mod_header, $_attrs),
                 L4::Image::dsi('IMAGE_INFO_SIZE'));
