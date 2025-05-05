@@ -207,7 +207,10 @@ public:
   void init_regions() override
   {
     if (image_mode())
-      return;
+      {
+        modules()->init_mod_regions();
+        return;
+      }
 
     if (mbi->mods_count == 0)
       {
@@ -267,7 +270,12 @@ public:
   }
 
   void init_mod_regions() override {}
-  void finalize_mod_regions() override {}
+
+  void finalize_mod_regions() override
+  {
+    if (image_mode())
+      modules()->finalize_mod_regions();
+  }
 
   /* Not used in image mode */
   void move_module(unsigned index, void *dest) override
