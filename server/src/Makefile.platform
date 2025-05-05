@@ -110,6 +110,8 @@ SUPPORT_CC_arm64-sm8150        := platform/qcom.cc dt.cc
 SUPPORT_CC_arm64-ti_am         := platform/ti-am.cc dt.cc
 SUPPORT_CC_arm64-arm_sbsa      := acpi.cc platform/sbsa.cc
 IS_EFI_arm64-arm_sbsa          := y
+SUPPORT_CC_arm64-orin          := dt.cc platform/orin.cc
+IS_EFI_arm64-orin              := y
 
 # PPC
 SUPPORT_CC_ppc32-mpc5200       := platform/mpc5200.cc
