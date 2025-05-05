@@ -15,9 +15,9 @@ scan_ram_size(unsigned long base_addr, unsigned long max_scan_size_mb)
   // probing for memory wraparounds beyond the end of our image
   extern char _end[];
 #ifdef IMAGE_MODE
-  extern char _module_data_end[];
+  extern char _end_of_initial_bootstrap[];
   l4_addr_t lower_bound
-    = l4_round_size(cxx::max((l4_addr_t)_end, (l4_addr_t)_module_data_end), 20);
+    = l4_round_size(cxx::max((l4_addr_t)_end, (l4_addr_t)_end_of_initial_bootstrap), 20);
 #else
   l4_addr_t lower_bound = l4_round_size((l4_addr_t)_end, 20);
 #endif
