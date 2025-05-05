@@ -320,6 +320,7 @@ Boot_modules::move_modules(unsigned long modaddr)
 
 
 Mod_header *mod_header;
+const char *image_attrs_addr;
 
 static l4_addr_t modinfo_max_payload_addr;
 
@@ -390,6 +391,11 @@ void init_modules_infos()
                                        + image_info.module_header);
   mod_header = reinterpret_cast<Mod_header *>(mod_header_addr);
   assert((reinterpret_cast<unsigned long>(mod_header) & 7ul) == 0);
+
+  l4_uint64_t global_attrs_addr
+     = Platform_base::platform->to_phys(image_info.start_of_binary
+                                        + image_info.attrs);
+  Mod_attr_list::_global_attrs = reinterpret_cast<char*>(global_attrs_addr);
 
   modinfo_gen_payload_size();
 

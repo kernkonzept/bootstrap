@@ -64,7 +64,10 @@ struct Mod_attr
 
 class Mod_attr_list
 {
+  friend void init_modules_infos();
+
   char const *_head;
+  static char *_global_attrs;
 
   class Descriptor
   {
@@ -176,6 +179,8 @@ public:
 
   Iterator begin() const { return Iterator(_head); }
   Iterator end() const { return Iterator(); }
+
+  static Mod_attr_list global() { return Mod_attr_list(_global_attrs); }
 
   cxx::String find(cxx::String const &key) const
   {

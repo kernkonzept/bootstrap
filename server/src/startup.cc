@@ -715,17 +715,24 @@ startup(char const *cmdline)
     }
 
   puts("\nL4 Bootstrapper");
-  puts("  Build: #" BUILD_NR " " BUILD_DATE
-#ifdef ARCH_x86
-      ", x86-32"
+  puts("  Compiled with: "
+#if defined(__clang__)
+      "Clang"
+#elif defined(__GNUC__)
+      "GCC"
+#else
+      "Unknown"
 #endif
-#ifdef ARCH_amd64
-      ", x86-64"
-#endif
-#ifdef __VERSION__
-       ", " __VERSION__
-#endif
-      );
+       " (" __VERSION__ ")");
+
+  auto cdate = Mod_attr_list::global().find("l4i:creation-date");
+  auto mdate = Mod_attr_list::global().find("l4i:modification-date");
+  auto mseq = Mod_attr_list::global().find("l4i:sequence");
+  printf("  Bootstrap build info:  %.*s\n", cdate.len(), cdate.start());
+  printf("  L4Image creation info: %.*s\n", mdate.len(), mdate.start());
+  if (!mseq.empty())
+    printf("  L4Image sequence info: #%.*s\n", mseq.len(), mseq.start());
+
 
   if (print_cpu_info)
     print_cpu_info();

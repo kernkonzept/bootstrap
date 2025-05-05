@@ -59,3 +59,5 @@ bool Mod_info::is_for_node(unsigned node) const
 
 short Mod_info::index() const
 { return this - mod_header->mods().begin(); }
+
+char *Mod_attr_list::_global_attrs;
