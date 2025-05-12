@@ -1,6 +1,6 @@
 requires: drivers_uart libc_minimal l4util cxx_io
 requires[arch(arm) || arch(arm64) || arch(riscv)]: libfdt
 requires[arch(ppc32)]: drivers_of
-optional: gnu-efi zlib
+optional: gnu-efi zlib libbsd-lite
 variants: nofpu
 Maintainer: adam@os.inf.tu-dresden.de warg@os.inf.tu-dresden.de
