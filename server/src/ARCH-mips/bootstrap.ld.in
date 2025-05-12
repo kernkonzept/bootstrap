@@ -99,6 +99,8 @@ SECTIONS
     *(.module_data)
   } : mods
 
+  _end_of_initial_bootstrap = .;
+
   /* drop the following sections since we do not need them for DROPS */
   /DISCARD/ : {
     *(.interp)
