@@ -73,6 +73,11 @@ struct Platform_x86_1 : Platform_x86
     mem_end = boot32_info->mem_end;
 #endif
 
+    if (rsdp_start)
+      regions->add(Region::start_size(rsdp_start, rsdp_size,
+                                      ".ACPI", Region::Info,
+                                      Region::Info_acpi_rsdp));
+
    if (!(mbi->flags & L4UTIL_MB_MEM_MAP))
       {
         assert(mbi->flags & L4UTIL_MB_MEMORY);
@@ -404,30 +409,6 @@ public:
     assert(_mb - (char *)l4mi == (long)total_size);
 
     mbi = 0;
-
-    // create the RSDP region
-    if (rsdp_start)
-      {
-        if (Verbose_mbi)
-          printf("  need %u bytes to copy RSDP\n", rsdp_size);
-
-        // try to find a free region for the RSDP
-        void *_rsdp
-          = reinterpret_cast<void *>(mem_manager->find_free_ram(rsdp_size));
-        if (!_rsdp)
-          panic("fatal: could not allocate memory for RSDP\n");
-
-        // mark the region as reserved
-        mem_manager->regions->add(Region::start_size(_rsdp, rsdp_size, ".ACPI",
-                                                     Region::Info,
-                                                     Region::Info_acpi_rsdp));
-
-        if (Verbose_mbi)
-          printf("  reserved %u bytes at %p\n", rsdp_size, _rsdp);
-
-        memcpy(_rsdp, rsdp_start, rsdp_size);
-        rsdp_start = _rsdp;
-      }
 
     // remove the old MBI from the reserved memory
     for (Region *r = mem_manager->regions->begin();
