@@ -1,16 +1,11 @@
 #pragma once
 
 #include <features.h>
-#include <cdefs.h>
-
-__BEGIN_DECLS
 
 _Noreturn
 void __assert(const char *__assertion, const char *__file,
               unsigned int __line, const char *func)
      __attribute__ ((__noreturn__));
-
-__END_DECLS
 
 #define ASSERT_EXPECT_FALSE(exp)  __builtin_expect((exp), 0)
 

@@ -1,10 +1,8 @@
 /* This file defines the backend interface */
 /* of the kernel c-library. */
 #pragma once
-#include <stddef.h>
-#include <cdefs.h>
 
-__BEGIN_DECLS
+#include <stddef.h>
 
 /**
  * The text output backend.
@@ -18,5 +16,3 @@ __BEGIN_DECLS
  * @return 1 on success, 0 else.
  */
 int __libc_backend_outs(const char *s, size_t len);
-
-__END_DECLS
