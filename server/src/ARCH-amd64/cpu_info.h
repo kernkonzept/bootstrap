@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <l4/sys/compiler.h>
 #include <l4/sys/consts.h>
 
 enum
@@ -22,8 +23,8 @@ struct cpu_info_t
 
 extern struct cpu_info_t cpu_info;
 
-__BEGIN_DECLS
+L4_BEGIN_DECLS
 
 void init_cpu_info(void);
 
-__END_DECLS
+L4_END_DECLS
