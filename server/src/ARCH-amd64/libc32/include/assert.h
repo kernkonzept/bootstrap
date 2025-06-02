@@ -2,6 +2,9 @@
 
 #include <features.h>
 
+#ifdef __cplusplus
+extern "C"
+#endif
 _Noreturn
 void __assert(const char *__assertion, const char *__file,
               unsigned int __line, const char *func)

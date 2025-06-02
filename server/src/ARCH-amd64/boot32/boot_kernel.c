@@ -18,8 +18,6 @@
 #include "mm_alloc.h"
 #include "support.h"
 
-extern void _exit(int rc);
-
 extern unsigned KERNEL_CS_64;
 extern char _binary_bootstrap64_bin_start;
 extern char _image_start;

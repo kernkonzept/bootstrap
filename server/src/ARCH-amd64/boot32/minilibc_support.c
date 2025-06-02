@@ -8,7 +8,7 @@
  * Please see the COPYING-GPL-2 file for details.
  */
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <l4/util/port_io.h>
@@ -77,7 +77,7 @@ __getchar(void)
 }
 
 void
-_exit(int fd)
+_Exit(int fd)
 {
   (void)fd;
   printf("\n\033[1mReturn reboots...\033[m\n");

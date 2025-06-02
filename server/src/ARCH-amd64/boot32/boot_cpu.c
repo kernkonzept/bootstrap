@@ -10,7 +10,6 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include <unistd.h>
 
 #include "types.h"
 #include "boot_cpu.h"
