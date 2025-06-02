@@ -15,9 +15,6 @@
  * Please see the COPYING-GPL-2 file for details.
  */
 
-#define NOT_IN_libc
-#include <libc-symbols.h>
-
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
@@ -179,10 +176,12 @@ off_t lseek(int /*fd*/, off_t /*offset*/, int /*whence*/) __THROW
   return 0;
 }
 
+#ifndef _FILE_OFFSET_BITS
 off64_t lseek64(int /*fd*/, off64_t /*offset*/, int /*whence*/) __THROW
 {
   return 0;
 }
+#endif
 
 void *__dso_handle = &__dso_handle;
 
