@@ -876,11 +876,8 @@ startup(char const *cmdline)
       init_kip(l4i, &boot_info, mbi, &ram, &regions);
       plat->setup_kernel_options(lko);
 #if defined(ARCH_ppc32)
-      init_kip_v2_arch((l4_kernel_info_t*)l4i);
-
-      printf("CPU at %lu Khz/Bus at %lu Hz\n",
-             ((l4_kernel_info_t*)l4i)->frequency_cpu,
-             ((l4_kernel_info_t*)l4i)->frequency_bus);
+      init_kip_v2_arch(l4i);
+      printf("CPU at %lu Khz\n", l4i->frequency_cpu);
 #endif
     }
 
