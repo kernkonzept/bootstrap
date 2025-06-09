@@ -49,6 +49,7 @@ syncICache: ;
 	li	$v1, 2        # size is 2 << min(DL, IL)
 	sllv	$v0, $v1, $v0
 
+	addu	$a1, $a0, $a1 # a1 is end = start + size
 	# run the loop
 10:
 	synci   0($a0)
