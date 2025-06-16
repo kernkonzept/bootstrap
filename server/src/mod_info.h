@@ -85,28 +85,32 @@ class Mod_attr_list
 
     unsigned long key_size() const
     {
-      switch (key_len_exp())
-        {
-        case 0: return *reinterpret_cast<l4_uint8_t  const *>(_d + 1);
-        case 1: return *reinterpret_cast<l4_uint16_t const *>(_d + 1);
-        case 2: return *reinterpret_cast<l4_uint32_t const *>(_d + 1);
-        case 3: return *reinterpret_cast<l4_uint64_t const *>(_d + 1);
-        default: __builtin_unreachable();
-        }
+      /* Field might be unaligned. Needs to be read byte by byte. Assumes little
+         endian */
+      unsigned char const *d =
+        reinterpret_cast<unsigned char const*>(_d) + 1;
+      unsigned len = key_len_size();
+      unsigned long size = 0;
 
+      for(unsigned i = 0; i < len; i++)
+        size |= d[i] << (8*i);
+
+      return size;
     }
 
     unsigned long val_size() const
     {
-      char const *d = _d + 1 + key_len_size();
-      switch (val_len_exp())
-        {
-        case 0: return *reinterpret_cast<l4_uint8_t  const *>(d);
-        case 1: return *reinterpret_cast<l4_uint16_t const *>(d);
-        case 2: return *reinterpret_cast<l4_uint32_t const *>(d);
-        case 3: return *reinterpret_cast<l4_uint64_t const *>(d);
-        default: __builtin_unreachable();
-        }
+      /* Field might be unaligned. Needs to be read byte by byte. Assumes little
+         endian */
+      unsigned char const *d =
+        reinterpret_cast<unsigned char const*>(_d) + 1 + key_len_size();
+      unsigned len = val_len_size();
+      unsigned long size = 0;
+
+      for(unsigned i = 0; i < len; i++)
+        size |= d[i] << (8*i);
+
+      return size;
     }
 
     unsigned long header_size() const
