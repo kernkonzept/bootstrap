@@ -226,7 +226,7 @@ BOOTSTRAP_LINKADDR = $(firstword $(call default_reloc,$(od)bootstrap.elf))
 
 BUILD_MOD_CMD_ENVVARS = CC="$(CC)" LD="$(LD)" \
                         CROSS_COMPILE=$(CROSS_COMPILE) \
-                        MAKE_INC_FILE=$(PWD)/mod.make.inc \
+                        MAKE_INC_FILE=$(CURDIR)/mod.make.inc \
                         FLAGS_CC="$(CARCHFLAGS) $(CCXX_FLAGS) -I$(SRC_DIR)" \
                         OUTPUT_DIR="$(od)" \
                         OPT_ARCH=$(ARCH) \
@@ -321,7 +321,7 @@ all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 # install images into easy to reach directory in build dir
 $(IMAGES_DIR)/%: $(od)%
 	$(VERBOSE)echo "  ==> Installing $< in image directory"
-	$(VERBOSE)(cd $(dir $@) && $(LN) -sf $(if $(od),,$(PWD)/)$<)
+	$(VERBOSE)(cd $(dir $@) && $(LN) -sf $(if $(od),,$(CURDIR)/)$<)
 
 else
   INSTALL_FILES += bootstrap $(BOOTSTRAP_ELF_NAME) $(BOOTSTRAP_RAW)
@@ -521,8 +521,7 @@ bootstrap32.bin: $(TARGET)
 	$(VERBOSE)$(OBJCOPY) -B i386 -I binary -O elf32-i386 bootstrap64.bin $@
 
 clean cleanall::
-	$(VERBOSE)PWD=$(abspath $(SRC_DIR)/ARCH-amd64/libc32) \
-	  $(MAKE) -C $(SRC_DIR)/ARCH-amd64/libc32 $@
+	$(VERBOSE)$(MAKE) -C $(SRC_DIR)/ARCH-amd64/libc32 $@
 endif
 
 bootstrap: $(BOOTSTRAP_ELF_NAME)
