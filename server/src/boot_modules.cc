@@ -502,7 +502,7 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 static Region
 mod_header_region()
 {
-  return Region::start_size(mod_header, modinfo_payload_size() - 3,
+  return Region::start_size(mod_header, modinfo_payload_size(),
                             ".modinfo", Region::Boot);
 }
 
