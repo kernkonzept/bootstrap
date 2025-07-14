@@ -96,8 +96,7 @@ Efi::init(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
   // Use EFI console until we've exited the boot services
   set_stdio_uart(&efi_console);
 
-  // Get ACPI RSDP. Will be need in any case for Fiasco and possibly in
-  // bootstrap.
+  // ACPI RSDP required in any case for Fiasco and possibly in bootstrap.
   EFI_GUID Acpi20TableGuid = ACPI_20_TABLE_GUID;
   EFI_STATUS r = LibGetSystemConfigurationTable(&Acpi20TableGuid, &_acpi_rsdp);
   if (r != EFI_SUCCESS)
