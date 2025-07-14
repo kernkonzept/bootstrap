@@ -112,21 +112,18 @@ void Cache::Data::clean()
 
 void Cache::Data::clean(unsigned long addr)
 {
-  Barrier::dsb_system();
   asm volatile("dc cvac, %0" : : "r" (addr) : "memory");
   Barrier::dsb_system();
 }
 
 void Cache::Data::inv(unsigned long addr)
 {
-  Barrier::dsb_system();
   asm volatile("dc ivac, %0" : : "r" (addr) : "memory");
   Barrier::dsb_system();
 }
 
 void Cache::Data::flush(unsigned long addr)
 {
-  Barrier::dsb_system();
   asm volatile("dc civac, %0" : : "r" (addr) : "memory");
   Barrier::dsb_system();
 }
