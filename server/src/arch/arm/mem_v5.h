@@ -4,7 +4,7 @@ void Cache::Data::clean()
 {
   asm volatile("1:  mrc p15, 0, r15, c7, c14, 3 \n" // write back data cache
                "    bne 1b\n"
-               "    mcr p15, 0, %0, c7, c10, 4  \n" // drain write buffer
+               "    mcr p15, 0, %0, c7, c10, 4  \n" // CP15DSB / drain WB
                : : "r" (0) : "memory");
   Barrier::dsb_system();
 }
@@ -52,7 +52,7 @@ void Cache::Insn::disable()
 
 void Barrier::dsb_system()
 {
-  asm volatile("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory");
+  asm volatile("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory"); // CP15DSB
 }
 
 void Barrier::dsb_cores()
