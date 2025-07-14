@@ -53,21 +53,21 @@ void Cache::Data::clean()
 void Cache::Data::clean(unsigned long addr)
 {
   Barrier::dsb_system();
-  asm volatile("mcr p15, 0, %0, c7, c10, 1" : : "r" (addr) : "memory");
+  asm volatile("mcr p15, 0, %0, c7, c10, 1" : : "r" (addr) : "memory"); // DCCMVAC
   Barrier::dsb_system();
 }
 
 void Cache::Data::inv(unsigned long addr)
 {
   Barrier::dsb_system();
-  asm volatile("mcr p15, 0, %0, c7, c6, 1" : : "r" (addr) : "memory");
+  asm volatile("mcr p15, 0, %0, c7, c6, 1" : : "r" (addr) : "memory"); // DCIMVAC
   Barrier::dsb_system();
 }
 
 void Cache::Data::flush(unsigned long addr)
 {
   Barrier::dsb_system();
-  asm volatile("mcr p15, 0, %0, c7, c14, 1" : : "r" (addr) : "memory");
+  asm volatile("mcr p15, 0, %0, c7, c14, 1" : : "r" (addr) : "memory"); // DCCIMVAC
   Barrier::dsb_system();
 }
 
