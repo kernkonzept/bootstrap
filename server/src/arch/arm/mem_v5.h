@@ -6,11 +6,13 @@ void Cache::Data::clean()
                "    bne 1b\n"
                "    mcr p15, 0, %0, c7, c10, 4  \n" // drain write buffer
                : : "r" (0) : "memory");
+  Barrier::dsb_system();
 }
 
 void Cache::Data::clean(unsigned long addr)
 {
   asm volatile("mcr p15, 0, %0, c7, c10, 1" : : "r" (addr) : "memory");
+  Barrier::dsb_system();
 }
 
 void Cache::Data::flush(unsigned long addr)
@@ -22,6 +24,7 @@ void Cache::Data::flush(unsigned long addr)
 void Cache::Data::inv(unsigned long addr)
 {
   asm volatile("mcr p15, 0, %0, c7, c6, 1" : : "r" (addr) : "memory");
+  Barrier::dsb_system();
 }
 
 bool Cache::Data::enabled()
