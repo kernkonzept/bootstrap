@@ -515,8 +515,8 @@ xhci_probe_bar(Pci_iterator const &dev, l4_uint64_t *addr, l4_uint64_t *size)
     return false;
 
   *addr = bar & ~PCI_BAR_MEM_ATTR_MASK;
-  *size = dev.read_bar_size(0x10, bar);
-  if (*size == 0xffffffffU)
+  l4_uint32_t sz32 = dev.read_bar_size(0x10, bar);
+  if (sz32 == 0xffffffffU)
     // Invalid size, device not working correctly, at least one bit in BAR
     // attributes is always zero.
     return false;
@@ -527,13 +527,12 @@ xhci_probe_bar(Pci_iterator const &dev, l4_uint64_t *addr, l4_uint64_t *size)
       // read BAR[1] and set it as the upper 32-bits of the 64-bit address
       bar = dev.pci_read(0x14, 32);
       *addr |= ((l4_uint64_t)bar) << 32;
-      *size |= ((l4_uint64_t)dev.read_bar_size(0x14, bar)) << 32;
+      l4_uint32_t sz_upper = dev.read_bar_size(0x14, bar);
+      *size = ~(((l4_uint64_t)sz_upper << 32) | (sz32 & ~PCI_BAR_MEM_ATTR_MASK)) + 1;
     }
+  else
+    *size = ~(sz32 & ~PCI_BAR_MEM_ATTR_MASK) + 1;
 
-  // Clear attribute part
-  *size &= ~((l4_uint64_t)PCI_BAR_MEM_ATTR_MASK);
-  // Decode BAR size
-  *size = ~(*size) + 1;
   return true;
 }
 
