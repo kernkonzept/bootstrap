@@ -10,18 +10,18 @@ void Cache::Data::clean()
 
 void Cache::Data::clean(unsigned long addr)
 {
-  asm volatile("mcr p15, 0, %0, c7, c10, 1" : : "r" (addr));
+  asm volatile("mcr p15, 0, %0, c7, c10, 1" : : "r" (addr) : "memory");
 }
 
 void Cache::Data::flush(unsigned long addr)
 {
-  asm volatile("mcr p15, 0, %0, c7, c14, 1" : : "r" (addr));
+  asm volatile("mcr p15, 0, %0, c7, c14, 1" : : "r" (addr) : "memory");
   Barrier::dsb_system();
 }
 
 void Cache::Data::inv(unsigned long addr)
 {
-  asm volatile("mcr  p15, 0, %0, c7, c6, 1" : : "r" (addr));
+  asm volatile("mcr p15, 0, %0, c7, c6, 1" : : "r" (addr) : "memory");
 }
 
 bool Cache::Data::enabled()

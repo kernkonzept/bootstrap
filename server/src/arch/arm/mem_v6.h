@@ -53,11 +53,6 @@ void Barrier::dsb_cores()
   dsb_system();
 }
 
-void Barrier::isb()
-{
-  asm volatile("mcr p15, 0, %0, c7, c5, 4" : : "r" (0) : "memory");
-}
-
 void Barrier::dmb_system()
 {
   asm volatile("mcr p15, 0, %0, c7, c10, 5" : : "r" (0) : "memory");
@@ -66,4 +61,9 @@ void Barrier::dmb_system()
 void Barrier::dmb_cores()
 {
   dmb_system();
+}
+
+void Barrier::isb()
+{
+  asm volatile("mcr p15, 0, %0, c7, c5, 4" : : "r" (0) : "memory");
 }
