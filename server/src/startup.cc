@@ -906,8 +906,7 @@ startup(char const *cmdline)
 
       search_and_setup_utest_feature(kernel_cmdline, l4i);
 
-      // setup the L4 kernel info page before booting the L4 microkernel:
-      init_kip(l4i, &boot_info, mbi, &ram, &regions);
+      init_kip_infos(l4i, &boot_info, mbi);
       plat->setup_kernel_options(lko);
 #if defined(ARCH_ppc32)
       init_kip_v2_arch(l4i);
@@ -930,6 +929,19 @@ startup(char const *cmdline)
   finalize_regions();
   regions.optimize();
   regions.dump();
+
+  /* setup kernel PART THREE: memory descriptors to all KIPs after
+   * finalizing regions */
+  for (unsigned i = 0; i < num_nodes; i++)
+    {
+      unsigned n = first_node + i;
+      l4_kernel_info_t *l4i = i == 0 ? kip : find_kip(mods->module(idx_kern),
+                                                      fiasco_offset, n);
+      if (!l4i)
+        continue;
+
+      init_kip_md(l4i, &ram, &regions);
+    }
 
   printf("  Starting kernel ");
   print_module_name(kernel_cmdline, "[KERNEL]");

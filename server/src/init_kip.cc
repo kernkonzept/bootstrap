@@ -20,16 +20,33 @@
 
 using L4::Kip::Mem_desc;
 
-/**
- * setup Kernel Info Page
- */
 void
-init_kip(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
-         Region_list *ram, Region_list *regions)
+init_kip_infos(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi)
 {
   if (L4_KIP_VERSION_FIASCO != l4_kip_version(l4i))
     panic("cannot load kernels other than Fiasco");
 
+  l4i->user_ptr = reinterpret_cast<unsigned long>(mbi);
+
+  /* set up sigma0 info */
+  l4i->sigma0_ip = bi->sigma0_start;
+  printf("  Sigma0 config    node: %d   ip:%016llx\n",
+         l4i->node, l4i->sigma0_ip);
+
+  /* set up roottask info */
+  l4i->root_ip = bi->roottask_start;
+  printf("  Roottask config  node: %d   ip:%016llx\n",
+         l4i->node, l4i->root_ip);
+
+  /* Platform info */
+  strncpy(l4i->platform_info.name, PLATFORM_TYPE,
+          sizeof(l4i->platform_info.name));
+  l4i->platform_info.name[sizeof(l4i->platform_info.name) - 1] = 0;
+}
+
+void
+init_kip_md(l4_kernel_info_t *l4i, Region_list *ram, Region_list *regions)
+{
   Mem_desc *md = Mem_desc::first(l4i);
   assert((unsigned long)md - (unsigned long)l4i >= sizeof(*l4i));
 
@@ -72,21 +89,4 @@ init_kip(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi,
         }
       (md++)->set(c->begin(), c->end(), type, sub_type, false, c->eager());
     }
-
-  l4i->user_ptr = reinterpret_cast<unsigned long>(mbi);
-
-  /* set up sigma0 info */
-  l4i->sigma0_ip = bi->sigma0_start;
-  printf("  Sigma0 config    node: %d   ip:%016llx\n",
-         l4i->node, l4i->sigma0_ip);
-
-  /* set up roottask info */
-  l4i->root_ip = bi->roottask_start;
-  printf("  Roottask config  node: %d   ip:%016llx\n",
-         l4i->node, l4i->root_ip);
-
-  /* Platform info */
-  strncpy(l4i->platform_info.name, PLATFORM_TYPE,
-          sizeof(l4i->platform_info.name));
-  l4i->platform_info.name[sizeof(l4i->platform_info.name) - 1] = 0;
 }
