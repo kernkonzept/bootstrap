@@ -29,6 +29,7 @@
 #include <l4/sys/kip.h>
 #include <l4/util/mb_info.h>
 #include <l4/util/l4_macros.h>
+#include <l4/util/printf_helpers.h>
 #include "panic.h"
 
 /* local stuff */
@@ -377,19 +378,25 @@ parse_mem_layout(const char *s, unsigned long *sz, unsigned long *offset)
   return 0;
 }
 
+/**
+ * Print RAM summary.
+ */
 static void
 dump_ram_map(bool show_total = false)
 {
-  // print RAM summary
   unsigned long long sum = 0;
+  char s[64];
   for (Region &r : ram)
     {
-      printf("  RAM: %016llx - %016llx: %lldkB\n",
-             r.begin(), r.end(), r.size() >> 10);
+      l4util_human_readable_size(s, sizeof(s), r.size());
+      printf("  RAM: %016llx - %016llx: %s\n", r.begin(), r.end(), s);
       sum += r.size();
     }
   if (show_total)
-    printf("  Total RAM: %lldMB\n", sum >> 20);
+    {
+      l4util_human_readable_size(s, sizeof(s), sum);
+      printf("  Total RAM: %s\n", s);
+    }
 }
 
 static void
