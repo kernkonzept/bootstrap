@@ -122,7 +122,7 @@ Region_list::add(Region const &region, bool may_overlap)
     {
       printf("  Dropping '%s' region ", _name);
       mem.print();
-      printf(" due to %llu MB address limit\n", _address_limit >> 20);
+      printf(" due to %llu MiB address limit\n", _address_limit >> 20);
       return;
     }
 
@@ -133,7 +133,7 @@ Region_list::add(Region const &region, bool may_overlap)
       mem.end(_address_limit - 1);
       printf(" to ");
       mem.print();
-      printf(" due to %llu MB address limit\n", _address_limit >> 20);
+      printf(" due to %llu MiB address limit\n", _address_limit >> 20);
 
     }
 
@@ -141,7 +141,7 @@ Region_list::add(Region const &region, bool may_overlap)
     {
       printf("  Dropping '%s' region ", _name);
       mem.print();
-      printf(" due to %llu MB size limit\n", _max_combined_size >> 20);
+      printf(" due to %llu MiB size limit\n", _max_combined_size >> 20);
       return;
     }
 
@@ -152,7 +152,7 @@ Region_list::add(Region const &region, bool may_overlap)
       mem.end(mem.begin() + _max_combined_size - _combined_size - 1);
       printf(" to ");
       mem.print();
-      printf(" due to %llu MB size limit\n", _max_combined_size >> 20);
+      printf(" due to %llu MiB size limit\n", _max_combined_size >> 20);
     }
 
   add_nolimitcheck(mem, may_overlap);

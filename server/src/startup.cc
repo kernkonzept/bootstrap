@@ -65,10 +65,10 @@ L4_kernel_options::Uart kuart;
 unsigned int kuart_flags;
 
 /**
- * Calculate the maximum memory limit in MB.
+ * Calculate the maximum memory limit in MiB.
  *
  * The limit is the highest physical address where conventional RAM is allowed.
- * The memory is limited to 3 GB IA32 and unlimited on other systems.
+ * The memory is limited to 3 GiB on IA32 and unlimited on other systems.
  */
 static constexpr
 unsigned long long
