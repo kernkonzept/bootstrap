@@ -75,8 +75,7 @@ public:
       panic("ERROR: RAM_BASE must be 0x0 on MIPS\n");
 
     unsigned long b = ram > 128 ? 128 : ram;
-    printf("  Memory 0: 00000000 - %08lx (%ldMB)\n",
-           (b << 20) - 1, b);
+    printf("  Memory 0: 00000000 - %08lx (%luMB)\n", (b << 20) - 1, b);
     mem_manager->ram->add(Region::start_size(0ULL, b << 20, ".ram",
                                              Region::Ram));
     if (b >= ram)
@@ -88,13 +87,13 @@ public:
 
     ram -= 128;
 
-    printf("  Memory 1: 20000000 - %08lx (%ldMB)\n",
+    printf("  Memory 1: 20000000 - %08lx (%luMB)\n",
            0x20000000 + (ram << 20) - 1, ram);
 
     mem_manager->ram->add(Region::start_size(0x20000000, ram << 20, ".ram",
                                              Region::Ram));
 
-    printf("  Memory total size is %ldMB\n", ram + b);
+    printf("  Memory total size is %luMB\n", ram + b);
   }
 };
 

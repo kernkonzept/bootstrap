@@ -140,7 +140,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
       c[2] = get_printable(vsrc[2]);
       c[3] = get_printable(vsrc[3]);
       c[4] = 0;
-      printf("  moving module %02d { %lx, %lx } (%s) -> { %lx - %lx } [%ld]\n",
+      printf("  moving module %02d { %lx, %lx } (%s) -> { %lx - %lx } [%lu]\n",
              i, (unsigned long)src, (unsigned long)src + size - 1, c,
              (unsigned long)dest, (unsigned long)dest + size - 1, size);
 
@@ -149,7 +149,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
       printf("\n");
     }
   else
-    printf("  moving module %02d { %lx-%lx } -> { %lx-%lx } [%ld]\n",
+    printf("  moving module %02d { %lx-%lx } -> { %lx-%lx } [%lu]\n",
            i, (unsigned long)src, (unsigned long)src + size - 1,
            (unsigned long)dest, (unsigned long)dest + size - 1, size);
 
@@ -400,7 +400,7 @@ void init_modules_infos()
   modinfo_gen_payload_size();
 
   if (Verbose_load)
-    printf("module-infos are at %p (size: %ld, num-modules: %d)\n",
+    printf("module-infos are at %p (size: %lu, num-modules: %d)\n",
            mod_header, modinfo_payload_size(), mod_header->num_mods());
 }
 

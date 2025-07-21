@@ -65,7 +65,7 @@ public:
     l4_uint32_t ddrcfg = plat.read<l4_uint32_t>(0x38);
     l4_uint32_t ramsize_gb = ddrcfg & 0xf;
 
-    printf("Boston board with %dGB of RAM.\n", ramsize_gb);
+    printf("Boston board with %uGB of RAM.\n", ramsize_gb);
 
     mem_manager->ram->add(Region::start_size(0ULL, 0x10000000, ".ram",
                                              Region::Ram));

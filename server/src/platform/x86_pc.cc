@@ -321,7 +321,7 @@ public:
         total_size += round_wordsize(strlen((char const *)(l4_addr_t)m->cmdline) + 1);
 
     if (Verbose_mbi)
-      printf("  need %ld bytes to copy MBI\n", total_size);
+      printf("  need %lu bytes to copy MBI\n", total_size);
 
     // try to find a free region for the MBI
     char *_mb = (char *)mem_manager->find_free_ram(total_size);
@@ -332,7 +332,7 @@ public:
     mem_manager->regions->add(Region::start_size(_mb, total_size, ".mbi_rt",
                                                  Region::Root, L4_FPAGE_RWX));
     if (Verbose_mbi)
-      printf("  reserved %ld bytes at %p\n", total_size, _mb);
+      printf("  reserved %lu bytes at %p\n", total_size, _mb);
 
     // copy over from MBI to l4mods
     l4mi = (l4util_l4mod_info *)_mb;
