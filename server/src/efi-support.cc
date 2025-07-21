@@ -91,7 +91,7 @@ Efi::init(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 
   InitializeLib(image, systab);
 
-  Print(L"EFI L4::Bootstrap\n\r");
+  Print(L"\n\rEFI: L4::Bootstrap\n\r");
 
   // Use EFI console until we've exited the boot services
   set_stdio_uart(&efi_console);
@@ -106,13 +106,13 @@ Efi::init(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
     return;
 
   _acpi_rsdp = nullptr;
-  Print(L"No RSDP found in EFI system table\n\r");
+  Print(L"EFI: No RSDP found in EFI system table\n\r");
 
   r = LibGetSystemConfigurationTable(&EfiDtbTableGuid, &_fdt);
   if (r != EFI_SUCCESS)
     _fdt = nullptr;
 
-  Print(L"DTB: %p\n\r", _fdt);
+  Print(L"EFI: DTB: %p\n\r", _fdt);
 }
 
 void
