@@ -141,8 +141,8 @@ class Platform_leon3 :
     sdram_base = RAM_BASE;
 #endif
 
-    printf("RAM:   %4d kB\n", (8192 << ram_size) / 1024);
-    printf("SDRAM: %4d MB\n", sdram_size);
+    printf("RAM:   %4u KB\n", (8192 << ram_size) / 1024);
+    printf("SDRAM: %4u MB\n", sdram_size);
 
     mem_manager->ram->add(Region::start_size(sdram_base, sdram_size << 20,
                                              ".sdram", Region::Ram));

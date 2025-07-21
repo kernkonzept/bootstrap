@@ -73,14 +73,14 @@ sub default_mod_merge_text(%)
   my %d = @_;
   my $size_str = '';
 
-  $size_str .= sprintf " =s> %dkB", round_kb($d{size_stripped})
+  $size_str .= sprintf " =s> %d KB", round_kb($d{size_stripped})
     if $d{size_stripped};
-  $size_str .= sprintf " =c> %dkB", round_kb($d{size_compressed})
+  $size_str .= sprintf " =c> %d KB", round_kb($d{size_compressed})
     if $d{size_compressed};
   my $nostrip_str = $d{nostrip} ? " (not stripped)" : "";
 
   print "$d{modname}: $d{path} ",
-        "[".int(round_kb($d{size_orig}))."kB$size_str]$nostrip_str\n";
+        "[".int(round_kb($d{size_orig}))."KB$size_str]$nostrip_str\n";
 }
 
 sub default_output_begin

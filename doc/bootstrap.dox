@@ -168,9 +168,9 @@
  *
  *     Prevent system from stopping to enter JDB. This only has an effect on x86.
  *
- *   * `-kmemsize=<kbytes>`
+ *   * `-kmemsize=<KB>`
  *
- *     Reserve `<kbytes>` KiB of memory for the kernel.
+ *     Reserve `<KB>` KiB of memory for the kernel.
  *
  *   * `-tbuf_entries=<number>`
  *

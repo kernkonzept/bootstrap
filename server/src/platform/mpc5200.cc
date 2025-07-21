@@ -58,7 +58,7 @@ class Platform_ppc_mpc52000 :
 
     printf("  Detecting ram size ...\n");
     unsigned long ram_size = of_if.detect_ramsize();
-    printf("    Total memory size is %luMB\n", ram_size / (1024 * 1024));
+    printf("    Total memory size is %lu MB\n", ram_size / (1024 * 1024));
     mem_manager->ram->add(Region::start_size(0x0ULL, ram_size, ".ram",
                                              Region::Ram));
 

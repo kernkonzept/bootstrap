@@ -212,7 +212,7 @@ void Dt::setup_memory() const
 
           if (!duplicate)
             {
-              info("Add memory to RAM: %lluMiB (%10llx - %10llx)\n",
+              info("Add memory to RAM: %llu MiB (%10llx - %10llx)\n",
                      sz >> 20, start, start + sz - 1);
 
               mem_manager->ram->add(n);

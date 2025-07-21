@@ -378,7 +378,7 @@ class Platform_arm_rpi_mbox : public Platform_arm,
     // The following is just informational
     if (br.new_flag())
       {
-        printf("  Raspberry Pi Model %s, Rev 1.%d, %uMB, SoC %s [%x]\n",
+        printf("  Raspberry Pi Model %s, Rev 1.%d, %u MB, SoC %s [%x]\n",
                br.type_str(), br.revision(), br.memory_size_mb(), br.processor_str(),
                br.rev_raw());
 
@@ -390,7 +390,7 @@ class Platform_arm_rpi_mbox : public Platform_arm,
       }
     else
       {
-        printf("  Raspberry Model 1 %s, Rev %d.%d, %uMB\n",
+        printf("  Raspberry Model 1 %s, Rev %d.%d, %u MB\n",
                br.type_str(), br.old_rev_encoded() >> 4, br.old_rev_encoded() & 0xf,
                br.memory_size_mb());
       }

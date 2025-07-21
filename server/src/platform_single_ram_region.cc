@@ -35,7 +35,7 @@ scan_ram_size(unsigned long base_addr, unsigned long max_scan_size_mb)
        increment *= 2)
     {}
 
-  printf("  Scanning up to %luMB RAM, starting at offset %luMB\n",
+  printf("  Scanning up to %lu MB RAM, starting at offset %lu MB\n",
          max_scan_size_mb, increment >> 20);
 
   // initialize memory probe points
@@ -63,7 +63,7 @@ void
 setup_single_region_ram_memory_map()
 {
   unsigned long ram_size_mb = scan_ram_size(RAM_BASE, RAM_SIZE_MB);
-  printf("  Memory size is %luMB%s (%08lx - %08lx)\n",
+  printf("  Memory size is %lu MB%s (%08lx - %08lx)\n",
          ram_size_mb, ram_size_mb != RAM_SIZE_MB ? " (Limited by Scan)" : "",
          (unsigned long)RAM_BASE, RAM_BASE + (ram_size_mb << 20) - 1);
   mem_manager->ram->add(

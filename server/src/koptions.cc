@@ -64,7 +64,7 @@ static void kcmdline_show(L4_kernel_options::Options *lko)
     }
 
   if (lko->flags & L4_kernel_options::F_kmemsize)
-    printf("Kmemsize: %uKiB\n", lko->kmemsize);
+    printf("Kmemsize: %u KiB\n", lko->kmemsize);
   if (lko->flags & L4_kernel_options::F_tbuf_entries)
     printf("Tbuf entries: %d\n", lko->tbuf_entries);
   if (lko->flags & L4_kernel_options::F_out_buf)
