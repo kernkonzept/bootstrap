@@ -78,6 +78,11 @@ public:
     return efi.construct_mbi(mbi);
   }
 
+  void firmware_announce_memory(Region n) override
+  {
+    efi.firmware_announce_memory(n);
+  }
+
   void exit_boot_services() override
   {
     if (!(kuart_flags & L4_kernel_options::F_noserial)
