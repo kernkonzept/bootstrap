@@ -129,29 +129,36 @@ Boot_modules::_move_module(unsigned i, void *dest,
     }
 
   auto p = Platform_base::platform;
-  char const *vsrc = (char const *)p->to_virt((l4_addr_t)src);
-  char *vdest = (char *)p->to_virt((l4_addr_t)dest);
+  l4_addr_t src_addr = reinterpret_cast<l4_addr_t>(src);
+  l4_addr_t dest_addr = reinterpret_cast<l4_addr_t>(dest);
+
+  char const *vsrc = reinterpret_cast<char const *>(p->to_virt(src_addr));
+  char *vdest = reinterpret_cast<char *>(p->to_virt(dest_addr));
 
   if (Verbose_load)
     {
-      unsigned char c[5];
-      c[0] = get_printable(vsrc[0]);
-      c[1] = get_printable(vsrc[1]);
-      c[2] = get_printable(vsrc[2]);
-      c[3] = get_printable(vsrc[3]);
-      c[4] = 0;
+      char magic_str[5] =
+      {
+        get_printable(vsrc[0]), get_printable(vsrc[1]), get_printable(vsrc[2]),
+        get_printable(vsrc[3]), '\0'
+      };
       printf("  moving module %02d { %lx, %lx } (%s) -> { %lx - %lx } [%lu]\n",
-             i, (unsigned long)src, (unsigned long)src + size - 1, c,
-             (unsigned long)dest, (unsigned long)dest + size - 1, size);
+             i, src_addr, src_addr + size - 1, magic_str,
+             dest_addr, dest_addr + size - 1, size);
 
-      for (int a = 0; a < 0x100; a += 4)
-        printf("%08x%s", *(unsigned *)(vsrc + a), (a % 32 == 28) ? "\n" : " ");
+      for (unsigned a = 0; a < 0x100;)
+        {
+          printf("    ");
+          for (unsigned i = 0; i < 8; ++i, a += 4)
+            printf("%08x ", *(reinterpret_cast<unsigned const *>(vsrc + a)));
+          printf("\n");
+        }
       printf("\n");
     }
   else
     printf("  moving module %02d { %lx-%lx } -> { %lx-%lx } [%lu]\n",
-           i, (unsigned long)src, (unsigned long)src + size - 1,
-           (unsigned long)dest, (unsigned long)dest + size - 1, size);
+           i, src_addr, src_addr + size - 1,
+           dest_addr, dest_addr + size - 1, size);
 
   if (!mem_manager->ram->contains(dest))
     panic("Panic: Would move outside of RAM");
@@ -162,7 +169,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
       if (overlap)
         {
           printf("ERROR: module target [%p-%p) overlaps\n",
-                 dest, (char *)dest + size - 1);
+                 dest, static_cast<char *>(dest) + size - 1);
           overlap->vprint();
           mem_manager->regions->dump();
           panic("cannot move module");
