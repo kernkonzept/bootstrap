@@ -11,6 +11,7 @@
 
 #include <l4/sys/types.h>
 #include <l4/util/mb_info.h>
+#include <l4/util/printf_helpers.h>
 
 static char const Mod_reg[] = ".Module";
 char const *const Mod_info::Mod_reg = ::Mod_reg;
@@ -135,6 +136,9 @@ Boot_modules::_move_module(unsigned i, void *dest,
   char const *vsrc = reinterpret_cast<char const *>(p->to_virt(src_addr));
   char *vdest = reinterpret_cast<char *>(p->to_virt(dest_addr));
 
+  char size_str[64];
+  l4util_human_readable_size(size_str, sizeof(size_str), size);
+
   if (Verbose_load)
     {
       char magic_str[5] =
@@ -142,9 +146,9 @@ Boot_modules::_move_module(unsigned i, void *dest,
         get_printable(vsrc[0]), get_printable(vsrc[1]), get_printable(vsrc[2]),
         get_printable(vsrc[3]), '\0'
       };
-      printf("  moving module %02d { %lx, %lx } (%s) -> { %lx - %lx } [%lu]\n",
+      printf("  moving module %02d { %lx, %lx } (%s) -> { %lx - %lx } [%s]\n",
              i, src_addr, src_addr + size - 1, magic_str,
-             dest_addr, dest_addr + size - 1, size);
+             dest_addr, dest_addr + size - 1, size_str);
 
       for (unsigned a = 0; a < 0x100;)
         {
@@ -156,9 +160,9 @@ Boot_modules::_move_module(unsigned i, void *dest,
       printf("\n");
     }
   else
-    printf("  moving module %02d { %lx-%lx } -> { %lx-%lx } [%lu]\n",
+    printf("  moving module %02d { %lx-%lx } -> { %lx-%lx } [%s]\n",
            i, src_addr, src_addr + size - 1,
-           dest_addr, dest_addr + size - 1, size);
+           dest_addr, dest_addr + size - 1, size_str);
 
   if (!mem_manager->ram->contains(dest))
     panic("Panic: Would move outside of RAM");
