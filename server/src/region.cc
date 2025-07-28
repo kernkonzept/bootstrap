@@ -12,6 +12,7 @@
 
 #include "panic.h"
 #include <l4/util/l4_macros.h>
+#include <l4/util/printf_helpers.h>
 
 #include "region.h"
 #include "module.h"
@@ -181,7 +182,9 @@ Region_list::contains(Region const &o)
 void
 Region::print() const
 {
-  printf("  [%9llx, %9llx] {%9llx}", begin(), end(), size());
+  char s[64];
+  l4util_human_readable_size(s, sizeof(s), size());
+  printf("  [%9llx, %9llx] {%9s}", begin(), end(), s);
 }
 
 void
