@@ -184,7 +184,7 @@ Region::print() const
 {
   char s[64];
   l4util_human_readable_size(s, sizeof(s), size());
-  printf("  [%9llx, %9llx] {%9s}", begin(), end(), s);
+  printf("  [%9llx, %9llx] {%10s}", begin(), end(), s);
 }
 
 void
