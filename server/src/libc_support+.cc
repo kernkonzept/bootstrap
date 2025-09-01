@@ -11,9 +11,7 @@
  * \brief	Support for C library
 */
 
-#define NOT_IN_libc
-#include <libc-symbols.h>
-
+#include <assert.h>
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
@@ -22,6 +20,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include "panic.h"
 
 #include <l4/cxx/basic_ostream>
@@ -117,8 +116,13 @@ void (*__exit_cleanup) (int) = 0;
 
 #ifndef NDEBUG
 extern "C" void __attribute__((noreturn))
-__assert(const char *assertion, const char * filename,
-         unsigned int linenumber, const char * function) noexcept
+#ifdef __UCLIBC__
+__assert(const char *assertion, const char *filename,
+         unsigned int linenumber, const char *function) noexcept
+#else
+__assert_fail(const char *assertion, const char *filename, int linenumber,
+              const char *function) noexcept
+#endif
 {
   printf("%s:%d: %s: Assertion `%s' failed.\n",
 				filename,
@@ -170,17 +174,11 @@ getchar(void)
   return c;
 }
 
-off_t lseek(int /*fd*/, off_t /*offset*/, int /*whence*/) __THROW
+off_t lseek(int fd, off_t offset, int whence)
+noexcept(noexcept(lseek(fd, offset, whence)))
 {
   return 0;
 }
-
-#ifndef _FILE_OFFSET_BITS
-off64_t lseek64(int /*fd*/, off64_t /*offset*/, int /*whence*/) __THROW
-{
-  return 0;
-}
-#endif
 
 void *__dso_handle = &__dso_handle;
 
@@ -210,3 +208,15 @@ panic(const char *fmt, ...)
   putchar('\n');
   exit(1);
 }
+
+L4_BEGIN_DECLS
+
+void _Exit(int) __attribute__ ((weak, alias("_exit"), noreturn));
+
+int __stdio_close(FILE *f);
+int __stdio_close(FILE *)
+{
+   return 0;
+}
+
+L4_END_DECLS
