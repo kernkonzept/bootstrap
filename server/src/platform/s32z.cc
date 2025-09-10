@@ -104,9 +104,6 @@ class Platform_s32z final : public Platform_arm, public Boot_modules_image_mode
     imp_periphpregionr |= 3; // enable port @ EL2 and EL1/0
     asm volatile ("mcr p15, 0, %0, c15, c0, 0" : : "r"(imp_periphpregionr));
 
-    // Split cache ways between AXIF and AXIM
-    asm volatile ("mcr p15, 1, %0, c9, c1, 0" : : "r"(0x202));
-
     kuart.access_type = L4_kernel_options::Uart_type_msr;
     static L4::Uart_dcc_v6 _uart;
     set_stdio_uart(&_uart);
