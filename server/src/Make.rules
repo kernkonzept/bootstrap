@@ -180,6 +180,11 @@ DEFINES         += -DPLATFORM_UART_NR=$(PLATFORM_UART_NR)
 DEFINES         += -DCPU_ABI=$(CPU_ABI)
 DEFINES_$(ARCH) += $(DEFINES_$(ARCH)-$(PLATFORM_TYPE))
 
+DEFINES_dt.cc               += -D_GNU_SOURCE
+DEFINES_qemu_fw_cfg.cc      += -D_DEFAULT_SOURCE
+DEFINES_qemu_fw_cfg_mmio.cc += -D_DEFAULT_SOURCE
+DEFINES_qemu_ramfb.cc       += -D_DEFAULT_SOURCE
+
 MOD_ADDR         = 0x02000000
 
 CPPFLAGS        += $(CPPFLAGS_$(ARCH)-$(PLATFORM_TYPE))
