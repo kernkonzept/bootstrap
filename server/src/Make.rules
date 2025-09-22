@@ -524,7 +524,7 @@ ifneq ($(PLATFORM_CHECK),y)
 all::
 	$(VERBOSE)BUILD_FAIL=""; \
 	echo "Performing bootstrap build check ..."; \
-	for p in $$(sed -En 's/^\[$(OSYSTEM)\] *([^ ]*) --.*/\1/p' $(OBJ_BASE)/Kconfig.generated.platforms.list); do \
+	for p in $$($(SED) -En 's/^\[$(OSYSTEM)\] *([^ ]*) --.*/\1/p' $(OBJ_BASE)/Kconfig.generated.platforms.list); do \
 		$(MAKE) PT=$$p PLATFORM_CHECK=y BID_MESSAGE_TAG='$(BID_MESSAGE_TAG):'$$p || BUILD_FAIL+="\t$$p\n"; \
 	done; \
 	[ -z "$${BUILD_FAIL}" ] || ( \
