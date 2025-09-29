@@ -11,6 +11,8 @@
 #include "startup.h"
 #include "support.h"
 
+#include <strings.h>
+
 #include <l4/drivers/uart_sbi.h>
 
 void Platform_riscv_base::init()
