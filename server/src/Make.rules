@@ -184,6 +184,7 @@ DEFINES_dt.cc               += -D_GNU_SOURCE
 DEFINES_qemu_fw_cfg.cc      += -D_DEFAULT_SOURCE
 DEFINES_qemu_fw_cfg_mmio.cc += -D_DEFAULT_SOURCE
 DEFINES_qemu_ramfb.cc       += -D_DEFAULT_SOURCE
+DEFINES_efi-support.cc      += -D_DEFAULT_SOURCE
 
 MOD_ADDR         = 0x02000000
 
