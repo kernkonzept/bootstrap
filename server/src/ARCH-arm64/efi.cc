@@ -9,6 +9,8 @@
 #include "startup.h"
 #include "support.h"
 
+struct boot_args boot_args;
+
 extern "C" EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab);
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 {
