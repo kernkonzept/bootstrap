@@ -17,7 +17,7 @@ class Platform_arm_fvp_base_r : public Platform_arm_fvp_base_common<true>
   {
     // Write timer frequency to CNTFRQ. The kernel expects a valid value.
 #ifdef ARCH_arm64
-    asm volatile ("MSR CNTFRQ_EL0, %0" : : "r"(100000000));
+    asm volatile ("MSR CNTFRQ_EL0, %x0" : : "r"(100000000));
 #else
     asm volatile ("MCR p15, 0, %0, c14, c0, 0" : : "r"(100000000));
 #endif
