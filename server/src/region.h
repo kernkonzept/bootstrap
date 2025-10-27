@@ -185,7 +185,7 @@ public:
   void sub_type(short s) { _s = s; }
 
   /** Print the region [begin; end] */
-  void print() const;
+  void print(bool aligned = false) const;
 
   /** Print the region verbose (with name and type). */
   void vprint() const;

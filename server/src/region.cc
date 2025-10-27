@@ -180,11 +180,14 @@ Region_list::contains(Region const &o)
 }
 
 void
-Region::print() const
+Region::print(bool aligned) const
 {
   char s[64];
   l4util_human_readable_size(s, sizeof(s), size());
-  printf("  [%9llx, %9llx] {%10s}", begin(), end(), s);
+  if (aligned)
+    printf("  [%9llx, %9llx] {%10s}", begin(), end(), s);
+  else
+    printf("[%llx, %llx] {%s}", begin(), end(), s);
 }
 
 void
@@ -194,7 +197,7 @@ Region::vprint() const
                                 "Boot  ", "Root  ", "Arch  ", "Ram   ",
                                 "Info  " };
   printf("  ");
-  print();
+  print(true);
   printf(" %s ", types[type()]);
   if (name())
     {
