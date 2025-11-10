@@ -107,7 +107,8 @@ ctor_init()
 }
 
 
-void exit(int c) noexcept
+void exit(int c)
+noexcept(noexcept(exit(c)))
 {
   _exit(c);
 }
@@ -121,7 +122,8 @@ __assert(const char *assertion, const char *filename,
          unsigned int linenumber, const char *function) noexcept
 #else
 __assert_fail(const char *assertion, const char *filename, int linenumber,
-              const char *function) noexcept
+              const char *function)
+noexcept(noexcept(__assert_fail(assertion, filename, linenumber, function)))
 #endif
 {
   printf("%s:%d: %s: Assertion `%s' failed.\n",
