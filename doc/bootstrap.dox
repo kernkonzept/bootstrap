@@ -114,7 +114,15 @@
  *
  *   * `-serial_esc`
  *
- *     Enable entering the debugger over serial line by pressing `Esc`.
+ *     Enable entering the debugger over serial line by pressing `Esc`. This
+ *     option also activates `-serial_input`.
+ *
+ *   * `-serial_input`
+ *
+ *     Allow the kernel to read from the serial line either triggered by the
+ *     UART receive interrupt or (if that is not possible) by polling the UART
+ *     receive register from the kernel timer interrupt handler. This is
+ *     required for Vlog clients to receive input.
  *
  *   * `-noserial`
  *

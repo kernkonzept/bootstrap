@@ -13,6 +13,7 @@ static struct {
 } boolean_opts[] = {
   { " -wait",              L4_kernel_options::F_wait              },
   { " -serial_esc",        L4_kernel_options::F_serial_esc        },
+  { " -serial_input",      L4_kernel_options::F_serial_input      },
   { " -noserial",          L4_kernel_options::F_noserial          },
   { " -noscreen",          L4_kernel_options::F_noscreen          },
   { " -esc",               L4_kernel_options::F_esc               },
