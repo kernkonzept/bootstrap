@@ -104,16 +104,18 @@ Efi::init(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
     r = LibGetSystemConfigurationTable(&AcpiTableGuid, &_acpi_rsdp);
 
   if (r == EFI_SUCCESS)
-    return;
-
-  _acpi_rsdp = nullptr;
-  Print(L"EFI: No RSDP found in EFI system table\n\r");
+    Print(L"EFI: Found ACPI RSDP in EFI system table\n\r");
+  else
+    _acpi_rsdp = nullptr;
 
   r = LibGetSystemConfigurationTable(&EfiDtbTableGuid, &_fdt);
-  if (r != EFI_SUCCESS)
+  if (r == EFI_SUCCESS)
+    Print(L"EFI: Got DTB at %p\n\r", _fdt);
+  else
     _fdt = nullptr;
 
-  Print(L"EFI: DTB: %p\n\r", _fdt);
+  if (_acpi_rsdp == nullptr && _fdt == nullptr)
+    panic("EFI: Neither ACPI nor DTB found");
 }
 
 void

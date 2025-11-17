@@ -44,6 +44,8 @@ public:
     // The Orins can select between doing ACPI or DT. But ACPI does not seem
     // to be fully implemented.
 
+    efi.disable_acpi();
+
     if (!efi.fdt())
       panic("L4Re needs to be booted with device tree!\n");
   }
