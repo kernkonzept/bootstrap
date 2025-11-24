@@ -462,14 +462,16 @@ CPPFLAGS_boot_modules.cc += -DLINKADDR=$(strip $(call default_reloc,$(ARCH)))
 	$(VERBOSE)$(MKDIR) $(@D)
 	$(VERBOSE)$(CPP) -P $(CPPFLAGS) -DLINKADDR=$(strip $(call default_reloc,$(ARCH))) $< -o $@
 
-clean::
-	$(VERBOSE)$(RM) mod.make.inc mod*.bin mbi_modules.bin $(LDSCRIPT)
+clean cleanall::
+	$(VERBOSE)$(RM) mod.make.inc mods.offsets mod*.bin mbi_modules.bin $(LDSCRIPT)
 	$(VERBOSE)$(RM) mod*.bin
 	$(VERBOSE)$(RM) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32) $(SRC32_S:.S=.o32)
 	$(VERBOSE)$(RM) .redo-change-tracker
+	$(VERBOSE)$(RM) ARCH-*/* platform/*
 
 cleanall::
-	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.*
+	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.* bootstrap boot*.efi
+	$(VERBOSE)$(RM) -r ARCH-* platform
 
 $(od)boot%.efi: $(TARGET)
 	$(VERBOSE)$(OBJCOPY) -S -j .text -j .sdata -j .rodata -j .reloc -j .dynsym \
