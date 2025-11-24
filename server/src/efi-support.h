@@ -26,6 +26,7 @@ public:
 
   EFI_SYSTEM_TABLE *system_table() const { return _sys_table; }
   void *acpi_rsdp() const { return _acpi_rsdp; }
+  void disable_acpi() { _acpi_rsdp = nullptr; }
   void *fdt() const { return _fdt; }
 
 private:
