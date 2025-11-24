@@ -476,7 +476,7 @@ $(od)boot%.efi: $(TARGET)
 	                     -j .dynstr -j .rel.dyn -j .data -j .data.m \
 	                     -j .dynamic -j .rela -j .rela.dyn -j .rela.plt \
 	                     -j .bss -j .module_data \
-	                     --target=$(EFI_BIN_FMT) $< $@
+	                     --output-target=$(EFI_BIN_FMT) $< $@
 
 ifeq ($(ARCH),amd64)
 
