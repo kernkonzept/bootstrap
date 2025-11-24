@@ -13,6 +13,7 @@
 #include "efi-support.h"
 #include "panic.h"
 #include "platform-arm.h"
+#include "platform_dt-arm.h"
 #include "startup.h"
 #include "support.h"
 
@@ -30,32 +31,89 @@ public:
 
   void init() override
   {
-    Acpi::Sdt sdt;
-    if (!sdt.init(efi.acpi_rsdp()))
-      panic("No RSDP found!\n");
+    // Prefer device tree over ACPI
+    if (efi.fdt())
+      {
+        printf("SBSA with device tree\n");
 
-    auto *spcr = sdt.find<Acpi::Spcr const *>("SPCR");
-    if (!spcr)
-      panic("No SPCR found!");
+        Dt dt;
+        dt.init((unsigned long)efi.fdt());
 
-    kuart.variant = spcr->type;
-    kuart.base_address = spcr->base.address;
-    kuart.irqno = spcr->irq_gsiv;
-    kuart.base_baud = 0;
-    kuart.access_type  = L4_kernel_options::Uart_type_mmio;
-    kuart_flags       |=   L4_kernel_options::F_uart_base
-                         | L4_kernel_options::F_uart_baud
-                         | L4_kernel_options::F_uart_irq;
+        kuart.base_baud = 0;
+        auto uart = dt.get_stdout_uart(nullptr, &Platform_dt_arm::parse_gic_irq,
+                                       &kuart, &kuart_flags);
 
-    auto *fadt = sdt.find<Acpi::Fadt const *>("FACP");
-    if (!fadt)
-      panic("No FADT found!");
+        if (!uart.is_valid())
+          panic("EFI: no stdout UART found in device tree");
 
-    if (fadt->arm_boot_flags & Acpi::Fadt::Psci_compliant)
-      _psci_method = (fadt->arm_boot_flags & Acpi::Fadt::Psci_use_hvc)
-                      ? Psci_hvc
-                      : Psci_smc;
-    printf("PSCI: %s\n", psci_methods[_psci_method]);
+        if (   uart.check_compatible("arm,pl011")
+            || uart.check_compatible("arm,primecell"))
+          kuart.variant = Acpi::Spcr::Arm_pl011;
+        else if (uart.check_compatible("arm,sbsa-uart"))
+          kuart.variant = Acpi::Spcr::Arm_sbsa;
+        else
+          kuart.variant = Acpi::Spcr::Nsc16550;
+
+        if (!(kuart_flags & L4_kernel_options::F_uart_baud))
+          {
+            kuart.baud   = 115200;
+            kuart_flags |= L4_kernel_options::F_uart_baud;
+          }
+
+        Dt::Node psci = dt.node_by_compatible("arm,psci-1.0");
+        if (!psci.is_valid())
+          psci = dt.node_by_compatible("arm,psci-0.2");
+        if (!psci.is_valid())
+          psci = dt.node_by_compatible("arm,psci");
+
+        _psci_method = Psci_unsupported;
+
+        if (psci.is_valid())
+          {
+            const char *method = psci.get_prop_str("method");
+            if (method && strcmp(method, "smc"))
+              _psci_method = Psci_smc;
+            else if (method && strcmp(method, "hvc"))
+              _psci_method = Psci_hvc;
+          }
+
+        // Disable ACPI visibility for L4Re components, such as fiasco and io
+        efi.disable_acpi();
+      }
+    else
+      {
+        Acpi::Sdt sdt;
+        if (!sdt.init(efi.acpi_rsdp()))
+          panic("No ACPI RSDP found!\n");
+        else
+          printf("SBSA with ACPI\n");
+
+        auto *spcr = sdt.find<Acpi::Spcr const *>("SPCR");
+        if (!spcr)
+          panic("No ACPI SPCR found!");
+
+        kuart.variant = spcr->type;
+        kuart.base_address = spcr->base.address;
+        kuart.irqno = spcr->irq_gsiv;
+        kuart.base_baud = 0;
+        kuart.access_type  = L4_kernel_options::Uart_type_mmio;
+        kuart_flags       |=   L4_kernel_options::F_uart_base
+                             | L4_kernel_options::F_uart_baud
+                             | L4_kernel_options::F_uart_irq;
+
+        printf("ACPI/SPCR UART: addr=%llx type=%d irq=%d\n",
+               kuart.base_address, kuart.variant, kuart.irqno);
+
+        auto *fadt = sdt.find<Acpi::Fadt const *>("FACP");
+        if (!fadt)
+          panic("No ACPI FADT found!");
+
+        if (fadt->arm_boot_flags & Acpi::Fadt::Psci_compliant)
+          _psci_method = (fadt->arm_boot_flags & Acpi::Fadt::Psci_use_hvc)
+                          ? Psci_hvc
+                          : Psci_smc;
+        printf("PSCI: %s\n", psci_methods[_psci_method]);
+      }
 
     efi.setup_gop();
   }
