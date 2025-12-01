@@ -31,7 +31,6 @@ public:
       Platform_dt<Platform_arm>::setup_kernel_options(lko);
   }
 
-protected:
   static int parse_gic_irq(Dt::Node node)
   {
     Dt::Array_prop<3> interrupts = node.get_prop_array("interrupts", { 1, 1, 1 });
