@@ -26,6 +26,8 @@ class Platform_arm_sbsa : public Platform_arm,
 {
   enum Psci_method { Psci_unsupported, Psci_smc, Psci_hvc };
 
+  Dt dt;
+
   unsigned _uart_variant;
 
 public:
@@ -38,7 +40,6 @@ public:
       {
         printf("SBSA with device tree\n");
 
-        Dt dt;
         dt.init((unsigned long)efi.fdt());
 
         kuart.base_baud = 0;
@@ -145,12 +146,17 @@ public:
 
   void setup_memory_map() override
   {
+    if (efi.fdt())
+      mem_manager->regions->add(
+            Region::start_size(efi.fdt(), fdt_totalsize(efi.fdt()),
+                               ".dtb", Region::Root));
     efi.setup_memory();
   }
 
   void late_setup(l4_kernel_info_t *kip) override
   {
     kip->acpi_rsdp_addr = reinterpret_cast<l4_umword_t>(efi.acpi_rsdp());
+    kip->dt_addr = reinterpret_cast<l4_umword_t>(dt.fdt());
   }
 
   l4util_l4mod_info *construct_mbi(unsigned long mod_addr,
