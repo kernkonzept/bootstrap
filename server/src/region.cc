@@ -24,17 +24,18 @@ Region_list::find_free(Region const &search, unsigned long long _size,
 {
   unsigned long long start = search.begin();
   unsigned long long end   = search.end();
+  unsigned long long size  = l4_round_size(_size, align);
   while (1)
     {
       start = l4_round_size(start, align);
 
-      if (start + _size - 1 > end)
+      if (start + size - 1 > end)
         return 0;
 
       if (0)
         printf("try start %p\n", reinterpret_cast<void *>(start));
 
-      Region *z = find(Region::start_size(start, _size));
+      Region *z = find(Region::start_size(start, size));
       if (!z)
         return start;
 
@@ -48,9 +49,10 @@ Region_list::find_free_rev(Region const &search, unsigned long long _size,
 {
   unsigned long long start = search.begin();
   unsigned long long end   = search.end();
+  unsigned long long size  = l4_round_size(_size, align);
   while (1)
     {
-      end = l4_trunc_size(end - _size - 1, align);
+      end = l4_trunc_size(end - size - 1, align);
 
       if (end < start)
         return 0;
@@ -58,7 +60,7 @@ Region_list::find_free_rev(Region const &search, unsigned long long _size,
       if (0)
         printf("try start %p\n", reinterpret_cast<void *>(end));
 
-      Region *z = find(Region::start_size(end, _size));
+      Region *z = find(Region::start_size(end, size));
       if (!z)
         return end;
 
