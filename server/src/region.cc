@@ -13,6 +13,7 @@
 #include "panic.h"
 #include <l4/util/l4_macros.h>
 #include <l4/util/printf_helpers.h>
+#include <l4/sys/consts.h>
 
 #include "region.h"
 #include "module.h"
@@ -25,7 +26,7 @@ Region_list::find_free(Region const &search, unsigned long long _size,
   unsigned long long end   = search.end();
   while (1)
     {
-      start = (start + (1ULL << align) -1) & ~((1ULL << align)-1);
+      start = l4_round_size(start, align);
 
       if (start + _size - 1 > end)
         return 0;
@@ -49,8 +50,7 @@ Region_list::find_free_rev(Region const &search, unsigned long long _size,
   unsigned long long end   = search.end();
   while (1)
     {
-      end -= _size - 1;
-      end &= ~((1ULL << align)-1);
+      end = l4_trunc_size(end - _size - 1, align);
 
       if (end < start)
         return 0;
