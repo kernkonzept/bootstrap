@@ -56,7 +56,7 @@ Region_list::find_free_rev(Region const &search, unsigned long long _size,
         return 0;
 
       if (0)
-        printf("try start %p\n", (void *)end);
+        printf("try start %p\n", reinterpret_cast<void *>(end));
 
       Region *z = find(Region::start_size(end, _size));
       if (!z)
