@@ -53,4 +53,6 @@ comment "GZIP/ZLIB decompression not available due to missing zlib package"
 
 source "server/src/platform/Kconfig.s32z"
 
+source "server/src/platform/Kconfig.s32n"
+
 endmenu
