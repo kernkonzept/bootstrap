@@ -55,4 +55,6 @@ source "server/src/platform/Kconfig.s32z"
 
 source "server/src/platform/Kconfig.s32n"
 
+source "server/src/platform/Kconfig.s32k5"
+
 endmenu
