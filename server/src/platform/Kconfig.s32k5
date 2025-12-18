@@ -1,0 +1,31 @@
+# Copyright 2025 NXP
+# SPDX-License-Identifier: MIT
+
+if PLATFORM_TYPE_s32k5
+
+config BOOTSTRAP_PF_S32K5_DYN_ALLOC_OVERRIDE
+	bool "Override dynamic allocation region"
+	help
+	  Specify region of dynamic allocations manually. By default the whole
+	  CRAM region of the respective CPE is used.
+
+if BOOTSTRAP_PF_S32K5_DYN_ALLOC_OVERRIDE
+
+config BOOTSTRAP_PF_S32K5_DYN_ALLOC_START
+	hex "Dynamic alloction base address"
+	default 0x22000000
+	help
+	  Lower address of region where dynamic allocations are done. This
+	  includes the multiboot information and possibly dynamic placement
+	  of the initial tasks.
+
+config BOOTSTRAP_PF_S32K5_DYN_ALLOC_END
+	hex "Dynamic allocations end address"
+	default 0x220FFFFF
+	help
+	  Upper address (inclusive) of region where dynamic allocations are
+	  done.
+
+endif # BOOTSTRAP_PF_S32K5_DYN_ALLOC_OVERRIDE
+
+endif # PLATFORM_TYPE_s32k5
