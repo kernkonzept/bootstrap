@@ -138,14 +138,16 @@ class Platform_s32n final : public Platform_arm, public Boot_modules_image_mode
 
   void init() override
   {
-    // Setup core TCMs
-    static unsigned long const tcm_bases[4] =
-    {
-      Rtu_tcm_c0_base, Rtu_tcm_c1_base, Rtu_tcm_c2_base, Rtu_tcm_c3_base
-    };
-    unsigned long tcm_base = tcm_bases[current_node()];
+    // Enable TCMs at EL2 and EL1/0
+    unsigned long tcm_base = 0;
+    switch (current_node())
+      {
+      case 0: tcm_base = Rtu_tcm_c0_base; break;
+      case 2: tcm_base = Rtu_tcm_c2_base; break;
+      default: panic("Running on invalid core!\n"); break;
+      }
 
-    // IMP_xTCMREGIONR. ENABLEEL2=1, ENABLEEL10=1
+    // IMP_xTCMREGIONR
     asm volatile ("mcr p15, 0, %0, c9, c1, 0" : : "r"(tcm_base | 0x00000003));
     asm volatile ("mcr p15, 0, %0, c9, c1, 1" : : "r"(tcm_base | 0x00100003));
     asm volatile ("mcr p15, 0, %0, c9, c1, 2" : : "r"(tcm_base | 0x00200003));
