@@ -59,10 +59,15 @@ class Platform_s32n final : public Platform_arm, public Boot_modules_image_mode
    */
   static bool validate_area(Region *search_area, [[maybe_unused]] unsigned node)
   {
+    enum : unsigned long
+    {
 #ifdef CONFIG_BOOTSTRAP_PF_S32N_DYN_ALLOC_OVERRIDE
-    enum : unsigned long {
       Dyn_alloc_begin = CONFIG_BOOTSTRAP_PF_S32N_DYN_ALLOC_START,
       Dyn_alloc_end   = CONFIG_BOOTSTRAP_PF_S32N_DYN_ALLOC_END,
+#else
+      Dyn_alloc_begin = Rtu_cram_base,
+      Dyn_alloc_end   = Rtu_cram_end,
+#endif
     };
 
     if (search_area->begin() <= Dyn_alloc_end
@@ -74,17 +79,6 @@ class Platform_s32n final : public Platform_arm, public Boot_modules_image_mode
           search_area->end(Dyn_alloc_end);
         return true;
       }
-#else
-    if (search_area->begin() <= Rtu_cram_end
-        && search_area->end() >= Rtu_cram_base)
-      {
-        if (search_area->begin() < Rtu_cram_base)
-          search_area->begin(Rtu_cram_base);
-        if (search_area->end() > Rtu_cram_end)
-          search_area->end(Rtu_cram_end);
-        return true;
-      }
-#endif
 
     return false;
   }
