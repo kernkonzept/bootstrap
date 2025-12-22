@@ -450,14 +450,14 @@ public:
   void nodes_by_prop_value(char const *name, void const *val, int len,
                            CB &&cb) const
   {
-    nodes_by(cb, [=](int node)
+    nodes_by(cb, [this, name, val, len](int node)
       { return fdt_node_offset_by_prop_value(_fdt, node, name, val, len); });
   }
 
   template<typename CB>
   void nodes_by_compatible(char const *compatible, CB &&cb) const
   {
-    nodes_by(cb, [=](int node)
+    nodes_by(cb, [this, compatible](int node)
       { return fdt_node_offset_by_compatible(_fdt, node, compatible); });
   }
 
