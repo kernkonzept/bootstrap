@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2020-2021, 2023-2024 Kernkonzept GmbH.
+ * Copyright (C) 2015, 2020-2021, 2023-2025 Kernkonzept GmbH.
  * Author(s): Adam Lackorzynski <adam@l4re.org
  *            Marcus Haehnel <marcus.haehnel@kernkonzept.com>
  *

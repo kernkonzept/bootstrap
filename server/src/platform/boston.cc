@@ -1,7 +1,7 @@
 /*
  * \brief  Support for the MIPS Boston platform
  *
- * Copyright (C) 2015-2017, 2023 Kernkonzept GmbH
+ * Copyright (C) 2015-2017, 2023, 2025 Kernkonzept GmbH
  * Author: Adam Lackorzynski <adam@l4re.org>
  *
  */

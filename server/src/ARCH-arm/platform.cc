@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2024 Kernkonzept GmbH.
+ * Copyright (C) 2014-2025 Kernkonzept GmbH.
  * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)

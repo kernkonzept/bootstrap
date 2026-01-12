@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Kernkonzept GmbH.
+ * Copyright (C) 2020, 2025 Kernkonzept GmbH.
  * Authors: Marcus Hähnel <marcus.haehnel@kernkonzept.com>
  *
  * License: see LICENSE.spdx (in this directory or the directories above)

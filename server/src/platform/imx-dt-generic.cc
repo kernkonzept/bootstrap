@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Kernkonzept GmbH.
+ * Copyright (C) 2024-2025 Kernkonzept GmbH.
  * Author(s): Adam Lackorzynski <adam@os.inf.tu-dresden.de>
  *            Christian Pötzsch <christian.poetzsch@kernkonzept.com>
  *
