@@ -33,10 +33,17 @@ class Platform_arm_rcar3 : public Platform_dt_arm
     kuart_flags       |=   L4_kernel_options::F_uart_base
                          | L4_kernel_options::F_uart_baud
                          | L4_kernel_options::F_uart_irq;
+
+    set_uart_compatible(&kuart, "renesas,scif");
     static L4::Uart_sh _uart;
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
+  }
+
+  void late_setup(l4_kernel_info_t *kip) override
+  {
+    set_dtb_in_kip(kip);
   }
 
   void reboot() override
