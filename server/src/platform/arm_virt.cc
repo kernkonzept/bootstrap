@@ -48,14 +48,10 @@ class Platform_arm_virt : public Platform_dt_arm
 
   void init() override
   {
-    kuart.baud   = 115200;
-    kuart_flags |= L4_kernel_options::F_uart_baud;
-
     dt.check_for_dt();
-    dt.get_stdout_uart(nullptr, &parse_gic_irq, &kuart, &kuart_flags);
+    dt.get_stdout_uart("arm,pl011", &parse_gic_irq, &kuart, &kuart_flags);
 
     static L4::Io_register_block_mmio r(kuart.base_address);
-    set_uart_compatible(&kuart, "arm,pl011");
     static L4::Uart_pl011 _uart(kuart.base_baud);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
