@@ -330,15 +330,6 @@ Dt::Node Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
   return parse_uart(uart, parse_irq, kuart, kuart_flags);
 }
 
-const char *Dt::get_stdout_uart_compatible(unsigned long *baud) const
-{
-  Node uart = get_stdout_uart_node(baud);
-  if (!uart.is_valid())
-    return nullptr;
-
-  return uart.get_prop_str("compatible");
-}
-
 Dt::Node Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
                         L4_kernel_options::Uart *kuart,
                         unsigned int *kuart_flags) const
