@@ -311,8 +311,15 @@ Dt::Node Dt::get_stdout_uart(char const *compatible, Parse_irq_fn parse_irq,
   if (!uart.is_valid())
     return Node();
 
-  if (compatible && !uart.check_compatible(compatible))
-    return Node();
+  if (compatible)
+    {
+      if (!uart.check_compatible(compatible))
+        return Node();
+
+      strncpy(kuart->compatible_id, compatible,
+              sizeof(kuart->compatible_id) - 1);
+      kuart->compatible_id[sizeof(kuart->compatible_id) - 1] = '\0';
+    }
 
   if (baud)
     {
@@ -380,13 +387,6 @@ Dt::Node Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
   l4_uint32_t reg_shift;
   if (uart.get_prop_u32("reg-shift", reg_shift))
     kuart->reg_shift = reg_shift;
-
-  const char *compatible = uart.get_prop_str("compatible");
-  if (!compatible)
-    return Node();
-
-  strncpy(kuart->compatible_id, compatible, sizeof(kuart->compatible_id) - 1);
-  kuart->compatible_id[sizeof(kuart->compatible_id) - 1] = '\0';
 
   return uart;
 }

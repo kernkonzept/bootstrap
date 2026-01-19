@@ -24,17 +24,22 @@ class Platform_arm_gen : public Platform_dt_arm
     if (!node.is_valid())
       return;
 
-    if (kuart.compatible_id[0])
+    node.stringlist_for_each("compatible",
+                             [&](unsigned, const char *c)
       {
         L4::Uart *uart
-          = l4re_dev_uart_create_by_dt_compatible_once(kuart.compatible_id,
-                                                       kuart.base_baud);
+          = l4re_dev_uart_create_by_dt_compatible_once(c, kuart.base_baud);
         if (!uart)
-          return;
+          return Dt::Continue;
+
         static L4::Io_register_block_mmio r(kuart.base_address);
         uart->startup(&r);
         set_stdio_uart(uart);
-      }
+
+        set_uart_compatible(&kuart, c);
+
+        return Dt::Break;
+      });
   }
 
   void late_setup(l4_kernel_info_t *kip) override

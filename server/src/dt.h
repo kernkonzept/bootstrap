@@ -239,6 +239,16 @@ public:
     bool get_prop_u64(char const *name, l4_uint64_t &val) const
     { return get_prop_val(name, val); }
 
+    template<typename CB>
+    void stringlist_for_each(char const *name, CB &&cb) const
+    {
+      int num_strs = fdt_stringlist_count(_fdt, _off, name);
+      for (int i = 0; i < num_strs; i++)
+        if (char const *str = fdt_stringlist_get(_fdt, _off, name, i, nullptr))
+          if (invoke_cb(cb, i, str) == Break)
+            break;
+    }
+
     char const *get_prop_str(char const *name) const;
 
     Array get_array(char const *name) const
