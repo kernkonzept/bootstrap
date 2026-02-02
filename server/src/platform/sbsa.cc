@@ -21,12 +21,9 @@ namespace {
 
 char const * const psci_methods[] = { "unsupported", "SMC", "HVC" };
 
-class Platform_arm_sbsa : public Platform_arm,
-                          public Boot_modules_image_mode
+class Platform_arm_sbsa : public Platform_dt_arm
 {
   enum Psci_method { Psci_unsupported, Psci_smc, Psci_hvc };
-
-  Dt dt;
 
   unsigned _uart_variant;
 
@@ -58,14 +55,14 @@ class Platform_arm_sbsa : public Platform_arm,
 public:
   bool probe() override { return true; }
 
+  l4_addr_t get_fdt_addr() const override { return (unsigned long)efi.fdt(); }
+
   void init() override
   {
     // Prefer device tree over ACPI
     if (efi.fdt())
       {
         printf("SBSA with device tree\n");
-
-        dt.init((unsigned long)efi.fdt());
 
         kuart.base_baud = 0;
         auto uart = dt.get_stdout_uart(nullptr, &Platform_dt_arm::parse_gic_irq,
