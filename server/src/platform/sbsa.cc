@@ -30,6 +30,31 @@ class Platform_arm_sbsa : public Platform_arm,
 
   unsigned _uart_variant;
 
+  void set_compatible_from_uart_variant(unsigned variant)
+  {
+    switch (variant)
+      {
+      case Acpi::Spcr::Arm_pl011:
+      case Acpi::Spcr::Bcm2835:
+        set_uart_compatible(&kuart, "arm,pl011");
+        break;
+      case Acpi::Spcr::Arm_sbsa:
+      case Acpi::Spcr::Arm_sbsa_32bit:
+        set_uart_compatible(&kuart, "arm,sbsa-uart");
+        break;
+      case Acpi::Spcr::Arm_dcc:
+        set_uart_compatible(&kuart, "arm,dcc");
+        break;
+      case Acpi::Spcr::Nsc16550:
+      case Acpi::Spcr::Compat16550:
+        set_uart_compatible(&kuart, "ns16550");
+        break;
+      default:
+        set_uart_compatible(&kuart, "l4re,uart-unknown");
+        break;
+      }
+  }
+
 public:
   bool probe() override { return true; }
 
@@ -56,6 +81,8 @@ public:
           _uart_variant = Acpi::Spcr::Arm_sbsa;
         else
           _uart_variant = Acpi::Spcr::Nsc16550;
+
+        set_compatible_from_uart_variant(_uart_variant);
 
         Dt::Node psci = dt.node_by_compatible("arm,psci-1.0");
         if (!psci.is_valid())
@@ -93,27 +120,7 @@ public:
         // as ACPI's UART choices are a subset of DT's possibilities, and
         // let the kernel choose via compatible_id.
         _uart_variant = spcr->type;
-        switch (spcr->type)
-          {
-          case Acpi::Spcr::Arm_pl011:
-          case Acpi::Spcr::Bcm2835:
-            strcpy(kuart.compatible_id, "arm,pl011");
-            break;
-          case Acpi::Spcr::Arm_sbsa:
-          case Acpi::Spcr::Arm_sbsa_32bit:
-            strcpy(kuart.compatible_id, "arm,sbsa-uart");
-            break;
-          case Acpi::Spcr::Arm_dcc:
-            strcpy(kuart.compatible_id, "arm,dcc");
-            break;
-          case Acpi::Spcr::Nsc16550:
-          case Acpi::Spcr::Compat16550:
-            strcpy(kuart.compatible_id, "ns16550");
-            break;
-          default:
-            strcpy(kuart.compatible_id, "l4re,uart-unknown");
-            break;
-          }
+        set_compatible_from_uart_variant(_uart_variant);
 
         kuart.base_address = spcr->base.address;
         kuart.irqno = spcr->irq_gsiv;
