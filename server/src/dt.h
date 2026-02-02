@@ -180,6 +180,68 @@ public:
     }
   };
 
+  class Parent_cache
+  {
+  public:
+    struct Cache_elem
+    {
+      int node;
+      int parent;
+    };
+
+    void scan(const void *fdt)
+    {
+      enum { Stack_len = 16 };
+      int parent_stack[Stack_len];
+      int depth = 0;
+      for (int node = fdt_next_node(fdt, -1, &depth);
+           node >= 0;
+           node = fdt_next_node(fdt, node, &depth))
+        {
+          int parent = depth > 0 && depth <= Stack_len
+                       ? parent_stack[depth - 1] : -1;
+          if (_num_elems < Max_num_elems)
+            {
+              if (depth < Stack_len)
+                {
+                  _cache[_num_elems].node   = node;
+                  _cache[_num_elems].parent = parent;
+                  parent_stack[depth] = node;
+                  ++_num_elems;
+                }
+            }
+          else
+            break;
+        }
+    }
+
+    int get_parent(int node)
+    {
+      int min = 0;
+      int max = _num_elems - 1;
+      while (max >= min)
+        {
+          int idx = min + ((max - min) / 2);
+
+          if (_cache[idx].node == node)
+            return _cache[idx].parent;
+          else if (_cache[idx].node > node)
+            max = idx - 1;
+          else // _cache[idx].node < node
+            min = idx + 1;
+        }
+
+      return -1;
+    }
+
+  private:
+    enum { Max_num_elems = 1024 };
+    /// Cached node->parent mappings, sorted by ascending offset,
+    /// which enables get_parent() to use binary search.
+    Cache_elem _cache[Max_num_elems];
+    int _num_elems = 0;
+  };
+
   class Node
   {
   public:
@@ -193,7 +255,15 @@ public:
     { return _off == 0; }
 
     Node parent_node() const
-    { return Node(_fdt, fdt_parent_offset(_fdt, _off)); }
+    {
+      int parent = _parent_cache.get_parent(_off);
+      if (parent == -1)
+        {
+          warn("parent_node() cache-miss, consider increasing cache.\n");
+          return Node(_fdt, fdt_parent_offset(_fdt, _off));
+        }
+      return Node(_fdt, parent);
+    }
 
     char const *get_name(char const *default_name = nullptr) const
     {
@@ -588,5 +658,8 @@ protected:
   }
 
   void const *_fdt = nullptr;
+
+public:
+  static Parent_cache _parent_cache;
 };
 

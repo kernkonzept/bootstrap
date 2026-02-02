@@ -13,6 +13,8 @@
 
 #include "dt.h"
 
+Dt::Parent_cache Dt::_parent_cache;
+
 void Dt::init(unsigned long fdt_addr)
 {
   if (!fdt_addr)
@@ -28,6 +30,8 @@ void Dt::init(unsigned long fdt_addr)
            fdt_strerror(fdt_check), fdt_check);
       return;
     }
+
+  Dt::_parent_cache.scan(_fdt);
 }
 
 void Dt::check_for_dt() const
