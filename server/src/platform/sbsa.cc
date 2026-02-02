@@ -23,8 +23,6 @@ char const * const psci_methods[] = { "unsupported", "SMC", "HVC" };
 
 class Platform_arm_sbsa : public Platform_dt_arm
 {
-  enum Psci_method { Psci_unsupported, Psci_smc, Psci_hvc };
-
   unsigned _uart_variant;
 
   void set_compatible_from_uart_variant(unsigned variant)
@@ -81,22 +79,7 @@ public:
 
         set_compatible_from_uart_variant(_uart_variant);
 
-        Dt::Node psci = dt.node_by_compatible("arm,psci-1.0");
-        if (!psci.is_valid())
-          psci = dt.node_by_compatible("arm,psci-0.2");
-        if (!psci.is_valid())
-          psci = dt.node_by_compatible("arm,psci");
-
-        _psci_method = Psci_unsupported;
-
-        if (psci.is_valid())
-          {
-            const char *method = psci.get_prop_str("method");
-            if (method && strcmp(method, "smc"))
-              _psci_method = Psci_smc;
-            else if (method && strcmp(method, "hvc"))
-              _psci_method = Psci_hvc;
-          }
+        query_psci_method();
 
         // Disable ACPI visibility for L4Re components, such as fiasco and io
         efi.disable_acpi();
@@ -137,10 +120,10 @@ public:
           panic("No ACPI FADT found!");
 
         if (fadt->arm_boot_flags & Acpi::Fadt::Psci_compliant)
-          _psci_method = (fadt->arm_boot_flags & Acpi::Fadt::Psci_use_hvc)
+          set_psci_method((fadt->arm_boot_flags & Acpi::Fadt::Psci_use_hvc)
                           ? Psci_hvc
-                          : Psci_smc;
-        printf("PSCI: %s\n", psci_methods[_psci_method]);
+                          : Psci_smc);
+        printf("PSCI: %s\n", psci_methods[get_psci_method()]);
       }
 
     efi.setup_gop();
@@ -204,22 +187,8 @@ public:
 
   void reboot() override
   {
-    register unsigned long r0 asm("r0") = 0x84000009;
-    switch (_psci_method)
-      {
-      case Psci_smc: asm volatile ("smc #0" : : "r"(r0)); break;
-      case Psci_hvc: asm volatile ("hvc #0" : : "r"(r0)); break;
-      // We could probably support the reset-reg method too
-      default: printf("Error: no PSCI support!\n"); break;
-      }
-
-    // should not be reached
-    printf("PSCI reboot failed!\n");
-    l4_infinite_loop();
+    reboot_psci();
   }
-
-private:
-  Psci_method _psci_method = Psci_unsupported;
 };
 }
 

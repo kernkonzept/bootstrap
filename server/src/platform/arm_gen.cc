@@ -40,6 +40,8 @@ class Platform_arm_gen : public Platform_dt_arm
 
         return Dt::Break;
       });
+
+    query_psci_method();
   }
 
   void late_setup(l4_kernel_info_t *kip) override

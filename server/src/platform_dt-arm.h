@@ -44,6 +44,26 @@ public:
     return interrupts.get(0, 1) + (gic_type == 0 ? 32 : 0);
   }
 
+  void query_psci_method()
+  {
+    Dt::Node psci = dt.node_by_compatible("arm,psci-1.0");
+    if (!psci.is_valid())
+      psci = dt.node_by_compatible("arm,psci-0.2");
+    if (!psci.is_valid())
+      psci = dt.node_by_compatible("arm,psci");
+
+    set_psci_method(Psci_unsupported);
+
+    if (psci.is_valid())
+      {
+        const char *method = psci.get_prop_str("method");
+        if (method && !strcmp(method, "smc"))
+          set_psci_method(Psci_smc);
+        else if (method && !strcmp(method, "hvc"))
+          set_psci_method(Psci_hvc);
+      }
+  }
+
   void set_dtb_in_kip(l4_kernel_info_t *kip)
   {
     kip->dt_addr = reinterpret_cast<l4_umword_t>(dt.fdt());

@@ -19,6 +19,7 @@ class Platform_arm : public Platform_base
 {
 public:
   enum class EL_Support { EL2, EL1, Unknown };
+  enum Psci_method { Psci_unsupported, Psci_smc, Psci_hvc };
 
   void init_regions() override
   {
@@ -36,15 +37,28 @@ public:
     modules()->init_mod_regions();
   }
 
-  static void reboot_psci()
+  void set_psci_method(Psci_method method) { _psci_method = method; }
+  Psci_method get_psci_method() const { return _psci_method; }
+
+  void reboot_psci()
   {
     register unsigned long r0 asm("r0") = 0x84000009;
-    asm volatile(
 #ifdef ARCH_arm
-                 ".arch armv7-a\n"
+    asm volatile(".arch armv7-a\n"
                  ".arch_extension sec\n"
+                 ".arch_extension virt\n");
 #endif
-                 "smc #0" : : "r" (r0));
+    switch (_psci_method)
+      {
+      case Psci_smc: asm volatile ("smc #0" : : "r"(r0)); break;
+      case Psci_hvc: asm volatile ("hvc #0" : : "r"(r0)); break;
+      // We could probably support the reset-reg method too
+      default: printf("Error: no PSCI support!\n"); break;
+      }
+
+    // should not be reached
+    printf("PSCI reboot failed!\n");
+    l4_infinite_loop();
   }
 
 #ifdef ARCH_arm
@@ -74,6 +88,7 @@ public:
 
 private:
   EL_Support kernel_type = EL_Support::Unknown;
+  Psci_method _psci_method = Psci_smc;
 
   virtual bool arm_switch_to_hyp() { return false; }
 };
