@@ -31,12 +31,16 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
     if (node.check_compatible("fsl,imx8mp-uart"))
       {
         static L4::Uart_imx8 uart;
+        set_uart_compatible(&kuart, "fsl,imx8mp-uart");
         _uart = &uart;
       }
     // imx95
-    else if (node.check_compatible("fsl,imx95-lpuart"))
+    // imx8pm
+    else if (   node.check_compatible("fsl,imx95-lpuart")
+             || node.check_compatible("fsl,imx8qm-lpuart"))
       {
         static L4::Uart_lpuart uart(kuart.base_baud);
+        set_uart_compatible(&kuart, "fsl,imx8qm-lpuart");
         _uart = &uart;
       }
 
@@ -45,6 +49,11 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
         _uart->startup(&r);
         set_stdio_uart(_uart);
       }
+  }
+
+  void late_setup(l4_kernel_info_t *kip) override
+  {
+    set_dtb_in_kip(kip);
   }
 
   void reboot() override
