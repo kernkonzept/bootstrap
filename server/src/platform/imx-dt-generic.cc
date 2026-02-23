@@ -6,8 +6,12 @@
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_IMX
 #include <l4/drivers/uart_imx.h>
+#endif
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_LPUART
 #include <l4/drivers/uart_lpuart.h>
+#endif
 #include "platform_dt-arm.h"
 #include "startup.h"
 
@@ -27,6 +31,7 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
     static L4::Io_register_block_mmio r(kuart.base_address);
 
     L4::Uart *_uart = nullptr;
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_IMX
     // imx8mp
     if (node.check_compatible("fsl,imx8mp-uart"))
       {
@@ -34,15 +39,18 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
         set_uart_compatible(&kuart, "fsl,imx8mp-uart");
         _uart = &uart;
       }
+#endif
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_LPUART
     // imx95
     // imx8pm
-    else if (   node.check_compatible("fsl,imx95-lpuart")
-             || node.check_compatible("fsl,imx8qm-lpuart"))
+    if (!_uart && node.check_compatible("fsl,imx95-lpuart")
+               || node.check_compatible("fsl,imx8qm-lpuart"))
       {
         static L4::Uart_lpuart uart(kuart.base_baud);
         set_uart_compatible(&kuart, "fsl,imx8qm-lpuart");
         _uart = &uart;
       }
+#endif
 
     if (_uart)
       {
