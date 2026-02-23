@@ -44,14 +44,17 @@ public:
   {
     register unsigned long r0 asm("r0") = 0x84000009;
 #ifdef ARCH_arm
-    asm volatile(".arch armv7-a\n"
-                 ".arch_extension sec\n"
-                 ".arch_extension virt\n");
+# define ARCH_EXT             \
+    ".arch armv7-a\n"         \
+    ".arch_extension sec\n"   \
+    ".arch_extension virt\n"
+#else
+# define ARCH_EXT
 #endif
     switch (_psci_method)
       {
-      case Psci_smc: asm volatile ("smc #0" : : "r"(r0)); break;
-      case Psci_hvc: asm volatile ("hvc #0" : : "r"(r0)); break;
+      case Psci_smc: asm volatile (ARCH_EXT "smc #0" : : "r"(r0)); break;
+      case Psci_hvc: asm volatile (ARCH_EXT "hvc #0" : : "r"(r0)); break;
       // We could probably support the reset-reg method too
       default: printf("Error: no PSCI support!\n"); break;
       }
