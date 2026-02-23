@@ -377,14 +377,17 @@ BID_POST_PROG_LINK_$(TARGET)     = $(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl 
 
 $(TARGET): $(LDSCRIPT) $(OBJS_$(TARGET))
 
+# Link address of the bootstrap binary - for arm_gen we set it to 0 such
+# that it is DT_DYN. PIE build is enforced through PLATFORM_TYPE selection
+bootstrap_link_address = $(if $(filter arm_gen,$(PLATFORM_TYPE)),0,$(call default_reloc,$(ARCH)))
 
 startup.o: $(STARTUP_C_dep)
-CPPFLAGS_boot_modules.cc += -DLINKADDR=$(strip $(call default_reloc,$(ARCH)))
+CPPFLAGS_boot_modules.cc += -DLINKADDR=$(strip $(call bootstrap_link_address))
 
 %.ld: %.ld.in $(GENERAL_D_LOC) $(BOOTSTRAP_LD_dep)
 	@$(GEN_MESSAGE)
 	$(VERBOSE)$(MKDIR) $(@D)
-	$(VERBOSE)$(CPP) -P $(CPPFLAGS) -DLINKADDR=$(strip $(call default_reloc,$(ARCH))) $< -o $@
+	$(VERBOSE)$(CPP) -P $(CPPFLAGS) -DLINKADDR=$(strip $(call bootstrap_link_address)) $< -o $@
 
 clean cleanall::
 	$(VERBOSE)$(RM) mod.make.inc mods.offsets mod*.bin mbi_modules.bin $(LDSCRIPT)
