@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_8250
 #include <l4/drivers/uart_16550.h>
+#endif
 #include <l4/sys/compiler.h>
 #include "support.h"
 #include "platform-mips.h"
@@ -21,6 +23,7 @@ class Platform_mips_ci20 : public Platform_single_region_ram<Platform_mips>
 public:
   void init() override
   {
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_8250
     kuart.base_baud    = 3000000;
     kuart.reg_shift    = 2;
 
@@ -62,6 +65,7 @@ public:
     kuart_flags       |=   L4_kernel_options::F_uart_base
                          | L4_kernel_options::F_uart_baud;
     kuart_flags |= L4_kernel_options::F_uart_irq;
+#endif
   }
 
   void setup_memory_map() override
