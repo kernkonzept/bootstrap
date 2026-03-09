@@ -13,7 +13,9 @@
 
 #include <strings.h>
 
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_SBI
 #include <l4/drivers/uart_sbi.h>
+#endif
 
 void Platform_riscv_base::init()
 {
@@ -26,8 +28,10 @@ l4_addr_t Platform_riscv_base::get_fdt_addr() const
 
 void Platform_riscv_base::init_dt()
 {
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_SBI
   static L4::Uart_sbi _uart;
   set_stdio_uart(&_uart);
+#endif
 
   Platform_dt<Platform_base>::init_dt();
   dt.check_for_dt();
