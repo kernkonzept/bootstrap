@@ -13,7 +13,10 @@
 #include "support.h"
 #include "startup.h"
 #include "platform-arm.h"
+
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_OMAP35X
 #include <l4/drivers/uart_omap35x.h>
+#endif
 
 namespace {
 class Platform_arm_omap : public Platform_single_region_ram<Platform_arm>
@@ -44,10 +47,12 @@ class Platform_arm_omap : public Platform_single_region_ram<Platform_arm>
                          | L4_kernel_options::F_uart_baud
                          | L4_kernel_options::F_uart_irq;
 
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_OMAP35X
     static L4::Uart_omap35x _uart;
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
+#endif
   }
 
   bool arm_switch_to_hyp() override
