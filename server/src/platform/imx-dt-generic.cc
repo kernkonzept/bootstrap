@@ -43,8 +43,8 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
 #ifdef CONFIG_DRIVERS_FRST_UART_DRV_LPUART
     // imx95
     // imx8pm
-    if (!_uart && node.check_compatible("fsl,imx95-lpuart")
-               || node.check_compatible("fsl,imx8qm-lpuart"))
+    if (!_uart && (node.check_compatible("fsl,imx95-lpuart")
+                   || node.check_compatible("fsl,imx8qm-lpuart")))
       {
         static L4::Uart_lpuart uart(kuart.base_baud);
         set_uart_compatible(&kuart, "fsl,imx8qm-lpuart");
