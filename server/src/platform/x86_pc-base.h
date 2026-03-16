@@ -1022,10 +1022,10 @@ public:
           printf("Separating comport arguments by other characters than '='\n"
                  "is deprecated and will be removed in the future. Please\n"
                  "adapt your configuration!\n");
-        if ((pci = !strncmp(s, "pci:", 4)))
+        if ((pci = starts_with(s, "pci:")))
           s += 4;
 
-        if (pci && !strncmp(s, "probe", 5))
+        if (pci && starts_with(s, "probe"))
           scan_pci_uarts(&du, 115200); // does not return
 
         char *ep;

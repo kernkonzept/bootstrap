@@ -195,7 +195,7 @@ Platform_riscv_base::parse_isa_ext(l4_kip_platform_info_arch &arch_info) const
         // Not a cpu node.
         return; // continue
 
-      if (strncmp(isa, "rv32", 4) && strncmp(isa, "rv64", 4))
+      if (!starts_with(isa, "rv32") && !starts_with(isa, "rv64"))
         // Cpu does not have a valid riscv isa.
         return; // continue
 

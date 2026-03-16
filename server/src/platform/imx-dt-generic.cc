@@ -77,13 +77,13 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
             // Note that the first RAM region does not necessarily start at
             // 0xX0000000!
             unsigned long long min_base;
-            if (!strncmp(c, "fsl,imx8m", 9))
+            if (starts_with(c, "fsl,imx8m"))
               min_base = 0x40200000;
-            else if (!strncmp(c, "fsl,imx8q", 9))
+            else if (starts_with(c, "fsl,imx8q"))
               min_base = 0x80020000; // no typo!
-            else if (!strncmp(c, "fsl,imx93", 9))
+            else if (starts_with(c, "fsl,imx93"))
               min_base = 0x80200000;
-            else if (!strncmp(c, "fsl,imx94", 9) || !strncmp(c, "fsl,imx95", 9))
+            else if (starts_with(c, "fsl,imx94") || starts_with(c, "fsl,imx95"))
               min_base = 0x90200000;
             else
               return Dt::Continue;

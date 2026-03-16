@@ -50,6 +50,19 @@ inline T *l4_trunc_page(T *p)
   return reinterpret_cast<T*>(l4_trunc_page(reinterpret_cast<l4_addr_t>(p)));
 }
 
+/**
+ * Return true if C string 'str' starts with 'prefix'.
+ *
+ * Both parameters are string arrays. Both strings are compared using the number
+ * of characters in the second string.
+ */
+template<unsigned N>
+bool
+starts_with(char const *str, char const (& prefix)[N])
+{
+  return !strncmp(str, prefix, N - 1);
+}
+
 static inline void __attribute__((always_inline))
 clear_bss()
 {
