@@ -551,7 +551,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
     panic("\nCould not gather load section infos (%s)", error_msg);
 
   // Just do relocation if it's required. Otherwise it might break working
-  // setups by provoking collisions with other (unrelocatable) binaries.
+  // setups by provoking collisions with other (non-relocatable) binaries.
   if (si.needs_relocation && si.has_dynamic && si.start < si.end)
     {
       si.align = cxx::max(si.align, min_align);
@@ -634,13 +634,13 @@ load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
 extern "C" void syncICache(unsigned long start, unsigned long size);
 #endif
 
-/*
+/**
  * Replace the placeholder string in the utest_opts feature with the config
  * string given on the command line.
  *
  * If the argument is found on the given command line and the KIP contains the
  * feature string of the kernel unit test framework, the argument is written
- * over the feature string's palceholder.
+ * over the feature string's placeholder.
  *
  * \param cmdline  Kernel command line to search for argument.
  * \param info     Kernel info page.
