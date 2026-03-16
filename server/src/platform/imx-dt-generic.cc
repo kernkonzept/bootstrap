@@ -59,6 +59,46 @@ class Platform_arm_imx_dt_generic : public Platform_dt_arm
       }
   }
 
+  /**
+   * Make sure the kernel is loaded to a physical address similar to Linux
+   * loaded by u-boot.
+   * During PSCI calls, the ATF ensures that passed addresses follow certain
+   * rules, e.g. for CPU_ON, the entry point must be >= PLAT_NS_IMAGE_OFFSET.
+   */
+  void setup_memory_map() override
+  {
+    Platform_dt_arm::setup_memory_map();
+
+    Dt::Node root = dt.node_by_path("/");
+    if (root.is_valid())
+      {
+        root.stringlist_for_each("compatible", [](unsigned, const char *c)
+          {
+            // Note that the first RAM region does not necessarily start at
+            // 0xX0000000!
+            unsigned long long min_base;
+            if (!strncmp(c, "fsl,imx8m", 9))
+              min_base = 0x40200000;
+            else if (!strncmp(c, "fsl,imx8q", 9))
+              min_base = 0x80020000; // no typo!
+            else if (!strncmp(c, "fsl,imx93", 9))
+              min_base = 0x80200000;
+            else if (!strncmp(c, "fsl,imx94", 9) || !strncmp(c, "fsl,imx95", 9))
+              min_base = 0x90200000;
+            else
+              return Dt::Continue;
+
+            auto rsvd_start = mem_manager->ram->begin()->begin();
+            auto rsvd_end = min_base - 1;
+            if (rsvd_start < rsvd_end)
+              mem_manager->regions->add(
+                Region(rsvd_start, rsvd_end, "ATF-reserved", Region::Boot));
+
+            return Dt::Break;
+          });
+      }
+  }
+
   void late_setup(l4_kernel_info_t *kip) override
   {
     set_dtb_in_kip(kip);
