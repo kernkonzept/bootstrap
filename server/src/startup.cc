@@ -566,8 +566,19 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
       si.start &= ~(si.align - 1U);
       unsigned align_shift = sizeof(unsigned long) * 8
                              - __builtin_clzl(si.align) - 1;
+      /*
+       * Always load the kernel behind bootstrap, assuming bootstrap and the
+       * kernel are glued together as boot loaders and platforms might have
+       * minimal loading addresses they are not announcing in device tree,
+       * only through their setting of the kernel's load address (example:
+       * i.MX8 and i.MX9).
+       */
+      l4_addr_t min_addr = 0;
+      if (type == Region::Kernel)
+        min_addr = reinterpret_cast<l4_addr_t>(__builtin_return_address(0));
       l4_addr_t addr = _mem_manager.find_free_ram(si.end - si.start + 1U,
-                                                  0, ~0UL, align_shift, node);
+                                                  min_addr, ~0UL,
+                                                  align_shift, node);
       if (!addr)
         panic("Not enough free memory to load binary");
 
