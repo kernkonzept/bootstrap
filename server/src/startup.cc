@@ -654,7 +654,7 @@ search_and_setup_utest_feature(char const *cmdline, l4_kernel_info_t *info)
     return;
 
   char const feat_prefix[] = "utest_opts=";
-  size_t prefix_len = strlen(feat_prefix);
+  size_t constexpr prefix_len = const_strlen(feat_prefix);
   char const *s = l4_kip_version_string(info);
 
   if (!s)

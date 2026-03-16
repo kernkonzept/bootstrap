@@ -63,6 +63,14 @@ starts_with(char const *str, char const (& prefix)[N])
   return !strncmp(str, prefix, N - 1);
 }
 
+/**
+ * Return the number of characters in a C string (sans the terminating '\0').
+ *
+ * This function actually replaces strlen() for strings known at build time.
+ */
+template<unsigned N> constexpr size_t const_strlen(const char(&)[N])
+{ return N > 0 ? N - 1 : 0; }
+
 static inline void __attribute__((always_inline))
 clear_bss()
 {
