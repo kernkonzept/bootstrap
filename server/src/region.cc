@@ -172,7 +172,7 @@ Region_list::find(Region const &o) const
 }
 
 Region *
-Region_list::contains(Region const &o)
+Region_list::contains(Region const &o) const
 {
   for (Region *c = _reg; c < _end; ++c)
     if (c->contains(o))
@@ -212,7 +212,7 @@ Region::vprint() const
 }
 
 void
-Region_list::dump()
+Region_list::dump() const
 {
   Region const *i;
   Region const *j;

@@ -284,7 +284,7 @@ public:
   Region *find(Region const &o) const;
 
   /** Search for the region that contains o. */
-  Region *contains(Region const &o);
+  Region *contains(Region const &o) const;
 
   /**
    * Search for a memory region not overlapping any known region,
@@ -307,7 +307,7 @@ public:
   bool sub(Region const &r);
 
   /** Dump the whole region list. */
-  void dump();
+  void dump() const;
 
   /** Get the begin() iterator. */
   Region *begin() const { return _reg; }
