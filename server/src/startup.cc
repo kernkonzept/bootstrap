@@ -35,7 +35,6 @@
 /* local stuff */
 #include "platform.h"
 #include "exec.h"
-#include "macros.h"
 #include "region.h"
 #include "memcpy_aligned.h"
 #include "module.h"

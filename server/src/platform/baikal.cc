@@ -13,7 +13,6 @@
 #include <l4/drivers/uart_16550.h>
 #include "platform-mips.h"
 #include "support.h"
-#include "macros.h"
 #include "panic.h"
 #include "startup.h"
 #include "mips-defs.h"

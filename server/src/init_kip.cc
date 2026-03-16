@@ -13,7 +13,6 @@
 #include "panic.h"
 #include "assert.h"
 
-#include "macros.h"
 #include "init_kip.h"
 #include "region.h"
 #include "startup.h"
