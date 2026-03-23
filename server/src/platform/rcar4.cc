@@ -12,7 +12,10 @@
  * License: see LICENSE.spdx (in this directory or the directories above)
  */
 
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_SH
 #include <l4/drivers/uart_sh.h>
+#endif
+
 #include "support.h"
 #include "startup.h"
 #include "platform_dt-arm.h"
@@ -33,10 +36,13 @@ class Platform_arm_rcar4 : public Platform_dt_arm
     kuart_flags       |=   L4_kernel_options::F_uart_base
                          | L4_kernel_options::F_uart_baud
                          | L4_kernel_options::F_uart_irq;
+
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_SH
     static L4::Uart_sh _uart;
     static L4::Io_register_block_mmio r(kuart.base_address);
     _uart.startup(&r);
     set_stdio_uart(&_uart);
+#endif
   }
 
   void reboot() override
