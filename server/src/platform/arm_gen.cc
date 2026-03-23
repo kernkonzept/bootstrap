@@ -32,7 +32,11 @@ class Platform_arm_gen : public Platform_dt_arm
         if (!uart)
           return Dt::Continue;
 
-        static L4::Io_register_block_mmio r(kuart.base_address);
+        l4_uint8_t shift;
+        if (uart->reg_shift(&shift))
+          kuart.reg_shift = shift;
+        static L4::Io_register_block_mmio r(kuart.base_address,
+                                            kuart.reg_shift);
         uart->startup(&r);
         set_stdio_uart(uart);
 
