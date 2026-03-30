@@ -13,7 +13,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_8250
 #include <l4/drivers/uart_16550.h>
+#endif
+
 #include "support.h"
 #include "platform-mips.h"
 #include "startup.h"
@@ -45,6 +48,7 @@ public:
 
     kuart.baud = 115200;
 
+#ifdef CONFIG_DRIVERS_FRST_UART_DRV_8250
     static L4::Uart_16550 _uart(kuart.base_baud, 0, 0, 8, 0);
     static L4::Io_register_block_mmio r(kuart.base_address + Mips::KSEG1,
                                         kuart.reg_shift);
@@ -52,6 +56,7 @@ public:
     _uart.startup(&r);
     _uart.change_mode(L4::Uart_16550::MODE_8N1, kuart.baud);
     set_stdio_uart(&_uart);
+#endif
 
     kuart.access_type  = L4_kernel_options::Uart_type_mmio;
     kuart_flags       |=   L4_kernel_options::F_uart_base
