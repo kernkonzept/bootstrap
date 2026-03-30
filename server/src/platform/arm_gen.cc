@@ -52,6 +52,16 @@ class Platform_arm_gen : public Platform_dt_arm
   void reboot() override
   {
     reboot_psci();
+
+    if (dt.have_fdt())
+      {
+        // QCOM: Fallback for older platforms without PSCI support in the
+        // firmware
+        l4_uint64_t addr;
+        Dt::Node pshold = dt.node_by_compatible("qcom,pshold");
+        if (pshold.is_valid() && pshold.get_reg(0, &addr))
+          *reinterpret_cast<volatile l4_uint32_t *>(addr) = 0;
+      }
   }
 };
 }
