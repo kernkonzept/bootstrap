@@ -245,6 +245,21 @@ void Dt::setup_memory() const
         });
     }
 
+  // Process the DT /memreserve/ ranges
+  for (int n = 0; n < fdt_num_mem_rsv(_fdt); ++n)
+    {
+      uint64_t addr;
+      uint64_t size;
+      if (!fdt_get_mem_rsv(_fdt, n, &addr, &size))
+        {
+          info("      memreserve range: %10llx - %10llx\n",
+               static_cast<l4_uint64_t>(addr),
+               static_cast<l4_uint64_t>(addr + size - 1));
+          mem_manager->regions->add(
+            Region::start_size(addr, size, "memreserve", Region::Arch));
+        }
+    }
+
   // Add device tree to memory map
   mem_manager->regions->add(
     Region::start_size(_fdt, fdt_totalsize(_fdt), ".dtb", Region::Root));
