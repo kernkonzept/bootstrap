@@ -359,6 +359,9 @@ Dt::Node Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
       *kuart_flags |= L4_kernel_options::F_uart_irq;
     }
 
+  // We are not ready yet to consider clocks, thus disabled. We need to work
+  // through the clock network to feed devices their proper clock value.
+#if 0
   l4_uint32_t base_baud;
   if (uart.get_prop_u32("clock-frequency", base_baud))
     {
@@ -371,6 +374,7 @@ Dt::Node Dt::parse_uart(Node uart, Parse_irq_fn parse_irq,
       if (clock.is_valid() && clock.get_prop_u32("clock-frequency", base_baud))
         kuart->base_baud = base_baud;
     }
+#endif
 
   l4_uint32_t baud;
   if (uart.get_prop_u32("current-speed", baud))
