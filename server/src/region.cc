@@ -52,7 +52,7 @@ Region_list::find_free_rev(Region const &search, unsigned long long _size,
   unsigned long long size  = l4_round_size(_size, align);
   while (1)
     {
-      end = l4_trunc_size(end - size - 1, align);
+      end = l4_trunc_size(end - (size - 1), align);
 
       if (end < start)
         return 0;
