@@ -58,17 +58,34 @@ class Platform_arm_gen : public Platform_dt_arm
 
   void reboot() override
   {
-    reboot_psci();
-
-    if (dt.have_fdt())
+    if (get_psci_method() == Psci_unsupported)
       {
-        // QCOM: Fallback for older platforms without PSCI support in the
-        // firmware
-        l4_uint64_t addr;
-        Dt::Node pshold = dt.node_by_compatible("qcom,pshold");
-        if (pshold.is_valid() && pshold.get_reg(0, &addr))
-          *reinterpret_cast<volatile l4_uint32_t *>(addr) = 0;
+        if (dt.have_fdt())
+          {
+            // Fallback for older platforms without PSCI support in the
+            // firmware
+            l4_uint64_t addr;
+            Dt::Node pshold = dt.node_by_compatible("qcom,pshold");
+            if (pshold.is_valid() && pshold.get_reg(0, &addr))
+              *reinterpret_cast<volatile l4_uint32_t *>(addr) = 0;
+
+            Dt::Node bcm2711_pm = dt.node_by_compatible("brcm,bcm2711-pm");
+            if (bcm2711_pm.is_valid() && bcm2711_pm.get_reg(0, &addr))
+              {
+                enum { Rstc = 0x1c, Wdog = 0x24 };
+
+                L4::Io_register_block_mmio r(addr);
+
+                l4_uint32_t pw = 0x5a << 24;
+                r.write(Wdog, pw | 8);
+                r.write(Rstc, (r.read<l4_uint32_t>(Rstc) & ~0x30) | pw | 0x20);
+              }
+          }
       }
+    else
+      reboot_psci();
+
+    l4_infinite_loop();
   }
 
   // NXP LX2160
