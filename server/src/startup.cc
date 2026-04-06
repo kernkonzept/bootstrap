@@ -579,6 +579,10 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
       l4_addr_t addr = _mem_manager.find_free_ram(si.end - si.start + 1U,
                                                   min_addr, ~0UL,
                                                   align_shift, node);
+      if (!addr) // If that did not work, include region before bootstrap
+        addr = _mem_manager.find_free_ram(si.end - si.start + 1U,
+                                          0, ~0UL,
+                                          align_shift, node);
       if (!addr)
         panic("Not enough free memory to load binary");
 
