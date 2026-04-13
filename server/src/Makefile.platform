@@ -1,5 +1,20 @@
-
 # ARM platforms
+
+## NXP (arm + arm64)
+DT_GEN_PLATFORMS-arm   += imx8mp imx8q imx95 ls1046 lx2160 s32g
+## Qualcomm
+DT_GEN_PLATFORMS-arm   += msm8916 msm8939 sm8150
+DT_GEN_PLATFORMS-arm32 += msm8226 msm8909 msm8974
+## Renesas
+DT_GEN_PLATFORMS-arm += rcar3 rcar4
+## Other (AMD, TI, generic)
+DT_GEN_PLATFORMS-arm += zynqmp ti_am arm_gen
+
+$(foreach p,$(DT_GEN_PLATFORMS-arm) $(DT_GEN_PLATFORMS-arm32),\
+  $(eval SUPPORT_CC_arm-$(p)   := platform/arm_gen.cc dt.cc))
+$(foreach p,$(DT_GEN_PLATFORMS-arm) $(DT_GEN_PLATFORMS-arm64),\
+  $(eval SUPPORT_CC_arm64-$(p) := platform/arm_gen.cc dt.cc))
+
 SUPPORT_CC_arm-sa1000          := platform/sa1000.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-pxa             := platform/pxa.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-integrator      := platform/integrator.cc platform_single_ram_region.cc
@@ -22,7 +37,6 @@ SUPPORT_CC_arm-imx21           := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx28           := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-ls1021atwr      := platform/layerscape.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-ls1012afrdm     := platform/layerscape.cc platform_single_ram_region.cc
-SUPPORT_CC_arm-ls1046          := platform/arm_gen.cc dt.cc
 DEFAULT_RELOC_arm-imx21        := 0x00200000  # because of blob
 SUPPORT_CC_arm-imx35           := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx51           := platform/imx.cc platform_single_ram_region.cc
@@ -30,10 +44,7 @@ SUPPORT_CC_arm-imx6            := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx6ul          := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx7            := platform/imx.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-imx8m           := platform/imx.cc platform_single_ram_region.cc
-SUPPORT_CC_arm-imx8mp          := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-imx8q           := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm-imx8x           := platform/imx.cc
-SUPPORT_CC_arm-imx95           := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm-om              := platform/om.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-kirkwood        := platform/kirkwood.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-rpi             := platform/rpi.cc dt.cc
@@ -41,23 +52,12 @@ SUPPORT_CC_arm-exynos4         := platform/exynos.cc platform_single_ram_region.
 SUPPORT_CC_arm-exynos5         := platform/exynos.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-zedboard        := platform/zynq.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-parallella      := platform/zynq.cc platform_single_ram_region.cc
-SUPPORT_CC_arm-zynqmp          := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm-cubieboard2     := platform/sunxi.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-armada38x       := platform/armada38x.cc platform_single_ram_region.cc
-SUPPORT_CC_arm-rcar3           := platform/arm_gen.cc dt.cc
 DEFAULT_RELOC_arm-rcar3        := 0x09000000
-SUPPORT_CC_arm-rcar4           := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm-arm_virt        := platform/arm_virt.cc dt.cc \
                                   qemu_fw_cfg.cc qemu_fw_cfg_mmio.cc qemu_ramfb.cc
 SUPPORT_CC_arm-armada37xx      := platform/armada37xx.cc dt.cc
-SUPPORT_CC_arm-s32g            := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-lx2160          := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-msm8226         := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-msm8909         := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-msm8916         := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-msm8939         := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-msm8974         := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm-ti_am           := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm-arm_fvp_base    := platform/arm_fvp_base.cc
 SUPPORT_CRT0_arm-arm_fvp_base  := ARCH-arm/spin_addr_boot-generic.S
 SUPPORT_CC_arm-arm_fvp_base_r  := platform/arm_fvp_base_r.cc
@@ -79,7 +79,6 @@ DEFINES_arm-rcar4_r52          := -DCRT0_PLATFORM_EARLY_INIT=\"platform/rcar4_r5
 SUPPORT_CC_arm-arm_mps3_an536  := platform/arm_mps3_an536.cc
 SUPPORT_CRT0_arm-arm_mps3_an536  := ARCH-arm/spin_addr_boot-generic.S
 DEFAULT_RELOC_arm-arm_mps3_an536 := 0
-SUPPORT_CC_arm-arm_gen         := platform/arm_gen.cc dt.cc
 
 # ARM64
 SUPPORT_CC_arm64-rv            := platform/rv.cc platform_single_ram_region.cc
@@ -90,32 +89,18 @@ SUPPORT_CC_arm64-arm_fvp_base_r := platform/arm_fvp_base_r.cc
 SUPPORT_CRT0_arm64-arm_fvp_base_r := ARCH-arm64/spin_addr_boot-generic.S
 DEFAULT_RELOC_arm64-arm_fvp_base_r := 0
 SUPPORT_CC_arm64-armada37xx    := platform/armada37xx.cc dt.cc
-SUPPORT_CC_arm64-rcar3         := platform/arm_gen.cc dt.cc
 DEFAULT_RELOC_arm64-rcar3      := 0x09000000
-SUPPORT_CC_arm64-rcar4         := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm64-rpi           := platform/rpi.cc dt.cc
 SUPPORT_CC_arm64-ls1012afrdm   := platform/layerscape.cc platform_single_ram_region.cc
-SUPPORT_CC_arm64-ls1046        := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-zynqmp        := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm64-arm_virt      := platform/arm_virt.cc dt.cc \
                                   qemu_fw_cfg.cc qemu_fw_cfg_mmio.cc qemu_ramfb.cc
 SUPPORT_CC_arm64-imx8m         := platform/imx.cc platform_single_ram_region.cc
-SUPPORT_CC_arm64-imx8mp        := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-imx8q         := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm64-imx8x         := platform/imx.cc
-SUPPORT_CC_arm64-imx95         := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-s32g          := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-lx2160        := platform/arm_gen.cc dt.cc
 DEFAULT_RELOC_arm64-lx2160     := 0x02000000 # Because of u-boot regions
-SUPPORT_CC_arm64-msm8916       := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-msm8939       := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-sm8150        := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-ti_am         := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm64-arm_sbsa      := acpi.cc platform/sbsa.cc dt.cc
 IS_EFI_arm64-arm_sbsa          := y
 SUPPORT_CC_arm64-orin          := dt.cc platform/orin.cc
 IS_EFI_arm64-orin              := y
-SUPPORT_CC_arm64-arm_gen       := platform/arm_gen.cc dt.cc
 
 # PPC
 SUPPORT_CC_ppc32-mpc5200       := platform/mpc5200.cc
