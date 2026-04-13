@@ -25,18 +25,6 @@ class Platform_arm_zynq : public Platform_single_region_ram<Platform_arm>
     kuart.baud      = 115200;
     kuart.reg_shift = 0;
 
-#ifdef PLATFORM_TYPE_zynqmp
-    kuart.base_baud = 99648000;
-    switch (PLATFORM_UART_NR) {
-      default:
-      case 0: kuart.base_address = 0xff000000;
-              kuart.irqno        = 32 + 21;
-              break;
-      case 1: kuart.base_address = 0xff010000;
-              kuart.irqno        = 32 + 22;
-              break;
-    };
-#else
     kuart.base_baud = 49536000;
     switch (PLATFORM_UART_NR) {
       case 0: kuart.base_address = 0xe0000000; // QEMU
@@ -47,7 +35,6 @@ class Platform_arm_zynq : public Platform_single_region_ram<Platform_arm>
               kuart.irqno        = 82;
               break;
     };
-#endif
 
     kuart.access_type  = L4_kernel_options::Uart_type_mmio;
     kuart_flags       |=   L4_kernel_options::F_uart_base

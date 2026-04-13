@@ -41,7 +41,7 @@ SUPPORT_CC_arm-exynos4         := platform/exynos.cc platform_single_ram_region.
 SUPPORT_CC_arm-exynos5         := platform/exynos.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-zedboard        := platform/zynq.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-parallella      := platform/zynq.cc platform_single_ram_region.cc
-SUPPORT_CC_arm-zynqmp          := platform/zynq.cc platform_single_ram_region.cc
+SUPPORT_CC_arm-zynqmp          := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm-cubieboard2     := platform/sunxi.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-armada38x       := platform/armada38x.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-rcar3           := platform/arm_gen.cc dt.cc
@@ -96,7 +96,7 @@ SUPPORT_CC_arm64-rcar4         := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm64-rpi           := platform/rpi.cc dt.cc
 SUPPORT_CC_arm64-ls1012afrdm   := platform/layerscape.cc platform_single_ram_region.cc
 SUPPORT_CC_arm64-ls1046        := platform/arm_gen.cc dt.cc
-SUPPORT_CC_arm64-zynqmp        := platform/zynq.cc platform_single_ram_region.cc
+SUPPORT_CC_arm64-zynqmp        := platform/arm_gen.cc dt.cc
 SUPPORT_CC_arm64-arm_virt      := platform/arm_virt.cc dt.cc \
                                   qemu_fw_cfg.cc qemu_fw_cfg_mmio.cc qemu_ramfb.cc
 SUPPORT_CC_arm64-imx8m         := platform/imx.cc platform_single_ram_region.cc
