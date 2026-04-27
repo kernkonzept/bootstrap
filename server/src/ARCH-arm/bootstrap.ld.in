@@ -50,7 +50,7 @@ SECTIONS
   . = ALIGN(4096);
   .data :
   {
-    *(.data .data.* .gnu.linkonce.d.*)
+    *(.data EXCLUDE_DEVS .data.* .gnu.linkonce.d.*)
     *(.anno)
 
     CTORS

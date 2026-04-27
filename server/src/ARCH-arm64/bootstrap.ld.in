@@ -50,12 +50,12 @@ SECTIONS
   . = ALIGN(4096);
   .data :
   {
-    DEVS
-    *(.data .data.* .gnu.linkonce.d.*)
+    *(.data EXCLUDE_DEVS .data.* .gnu.linkonce.d.*)
     *(.anno)
 
     CTORS
     PLATFORMS
+    DEVS
   } : common
 
   /* exception frames for C++ */

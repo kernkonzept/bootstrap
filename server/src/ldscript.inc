@@ -26,3 +26,6 @@
     PROVIDE (__L4RE_DEVICE_BEGIN = .); \
     KEEP (*(.data.l4redevice)) \
     PROVIDE (__L4RE_DEVICE_END = .);
+
+#define EXCLUDE_DEVS EXCLUDE_FILE \
+    (*libdrivers_uart.a)
