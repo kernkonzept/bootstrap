@@ -260,9 +260,14 @@ void Dt::setup_memory() const
         }
     }
 
-  // Add device tree to memory map
-  mem_manager->regions->add(
-    Region::start_size(_fdt, fdt_totalsize(_fdt), ".dtb", Region::Root));
+  // Add device tree to memory map, unless already done by u-boot (e.g. RCar3).
+  Region r_fdt_new
+    = Region::start_size(_fdt, fdt_totalsize(_fdt), ".dtb", Region::Root);
+  if (Region *r_fdt_found = mem_manager->regions->find(r_fdt_new))
+    warn("No .dtb region: bootloader has already reserved DT region %llx-%llx!\n",
+         r_fdt_found->begin(), r_fdt_found->end());
+  else
+    mem_manager->regions->add(r_fdt_new);
 }
 
 l4_uint64_t Dt::cpu_release_addr() const
