@@ -1047,15 +1047,11 @@ l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph,
   if (ph->p_type != PT_LOAD)
     return 0;
 
-#if defined(CONFIG_BOOTSTRAP_ROOTTASK_NX)
   unsigned short rights = L4_FPAGE_RO;
   if (ph->p_flags & PF_W)
     rights |= L4_FPAGE_W;
   if (ph->p_flags & PF_X)
     rights |= L4_FPAGE_X;
-#else
-  unsigned short rights = L4_FPAGE_RWX;
-#endif
 
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.
