@@ -12,15 +12,6 @@ config BOOTSTRAP_ROOTTASK_NX
 	  parts of the memory mapped as both executable and writable due to the
 	  system design.
 
-	  Also this precludes self-adaptation of Moe when compiled for the wrong
-	  kernel type (virtualization enabled vs. non-virt). So only enable this
-	  when you understand the features limitations and are sure that you
-	  need it.
-
-	  If you enable this feature and the system fails to boot after loading
-	  Sigma0, ensure the KERNEL_CPU_VIRT option is in sync with the
-	  respective kernel configuration.
-
 	  If in doubt, choose n.
 
 config BOOTSTRAP_THUMB_ENTRY
