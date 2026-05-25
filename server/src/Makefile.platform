@@ -1,19 +1,8 @@
 # ARM platforms
 
-## NXP (arm + arm64)
-DT_GEN_PLATFORMS-arm   += imx8mp imx8q imx95 ls1046 lx2160 s32g
-## Qualcomm
-DT_GEN_PLATFORMS-arm   += msm8916 msm8939 sm8150
-DT_GEN_PLATFORMS-arm32 += msm8226 msm8909 msm8974
-## Renesas
-DT_GEN_PLATFORMS-arm += rcar3 rcar4
-## Other (AMD, TI, generic)
-DT_GEN_PLATFORMS-arm += zynqmp ti_am arm_gen
-
-$(foreach p,$(DT_GEN_PLATFORMS-arm) $(DT_GEN_PLATFORMS-arm32),\
-  $(eval SUPPORT_CC_arm-$(p)   := platform/arm_gen.cc dt.cc))
-$(foreach p,$(DT_GEN_PLATFORMS-arm) $(DT_GEN_PLATFORMS-arm64),\
-  $(eval SUPPORT_CC_arm64-$(p) := platform/arm_gen.cc dt.cc))
+$(if $(IS_GEN_DT_PLATFORM),\
+  $(foreach a,$(PLATFORM_ARCH),\
+    $(eval SUPPORT_CC_$(a)-$(PLATFORM_TYPE) := platform/arm_gen.cc dt.cc)))
 
 SUPPORT_CC_arm-sa1000          := platform/sa1000.cc platform_single_ram_region.cc
 SUPPORT_CC_arm-pxa             := platform/pxa.cc platform_single_ram_region.cc
