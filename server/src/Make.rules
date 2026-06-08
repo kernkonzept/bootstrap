@@ -460,7 +460,7 @@ clean cleanall::
 	$(VERBOSE)$(RM) mod*.bin
 	$(VERBOSE)$(RM) $(SRC32_C:.c=.o32) $(SRC32_CC:.cc=.o32) $(SRC32_S:.S=.o32)
 	$(VERBOSE)$(RM) .redo-change-tracker
-	$(VERBOSE)$(RM) ARCH-*/* platform/*
+	$(VERBOSE)$(RM) -r ARCH-*/* platform/*
 
 cleanall::
 	$(VERBOSE)$(RM) $(od)bootstrap_* $(od)bootstrap.* bootstrap boot*.efi
