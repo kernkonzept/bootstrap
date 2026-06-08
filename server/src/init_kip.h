@@ -20,7 +20,3 @@ void init_kip_infos(l4_kernel_info_t *l4i, boot_info_t *bi,
 
 void init_kip_md(l4_kernel_info_t *l4i,
                  Region_list *ram, Region_list *regions);
-
-#if defined(ARCH_ppc32)
-void init_kip_v2_arch(l4_kernel_info_t *);
-#endif

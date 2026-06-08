@@ -29,8 +29,8 @@ enum
   Image_info_flag_arch_x86     = 0 << Image_info_flag_arch_offset,
   Image_info_flag_arch_arm     = 1 << Image_info_flag_arch_offset,
   Image_info_flag_arch_mips    = 2 << Image_info_flag_arch_offset,
-  Image_info_flag_arch_powerpc = 3 << Image_info_flag_arch_offset,
-  Image_info_flag_arch_sparc   = 4 << Image_info_flag_arch_offset,
+  // 3 << Image_info_flag_arch_offset: reserved for powerpc
+  // 4 << Image_info_flag_arch_offset: reserved for sparc
   Image_info_flag_arch_riscv   = 5 << Image_info_flag_arch_offset,
 
 #if defined(ARCH_x86) || defined(ARCH_amd64)
@@ -39,10 +39,6 @@ enum
   Image_info_flag_arch_current = Image_info_flag_arch_arm,
 #elif defined(ARCH_mips)
   Image_info_flag_arch_current = Image_info_flag_arch_mips,
-#elif defined(ARCH_sparc)
-  Image_info_flag_arch_current = Image_info_flag_arch_sparc,
-#elif defined(ARCH_ppc32)
-  Image_info_flag_arch_current = Image_info_flag_arch_powerpc,
 #elif defined(ARCH_riscv)
   Image_info_flag_arch_current = Image_info_flag_arch_riscv,
 #else

@@ -256,7 +256,7 @@ sub build_objects(@)
   print $fd "};\n";
   close $fd;
 
-  my $section_attr = ($arch ne 'sparc' && $arch ne 'arm'
+  my $section_attr = ($arch ne 'arm'
        ? '\"a\", @progbits'
        : '\"a\"' );
 

@@ -91,12 +91,6 @@ IS_EFI_arm64-arm_sbsa          := y
 SUPPORT_CC_arm64-orin          := dt.cc platform/orin.cc
 IS_EFI_arm64-orin              := y
 
-# PPC
-SUPPORT_CC_ppc32-mpc5200       := platform/mpc5200.cc
-
-# Sparc
-SUPPORT_CC_sparc-leon3         := platform/leon3.cc
-
 # x86
 ifneq ($(BOOTSTRAP_DO_UEFI),y)
 SUPPORT_CC_x86-pc              := platform/x86_pc.cc

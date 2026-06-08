@@ -29,11 +29,9 @@ DEFAULT_RELOC_amd64 := 0x002d0000
 DEFAULT_RELOC_mips32:= 0x802d0000
 DEFAULT_RELOC_mips64:= 0xffffffff802d0000
 DEFAULT_RELOC_mips   = $(DEFAULT_RELOC_mips$(CPU_ABI))
-DEFAULT_RELOC_ppc32 := 0x002d0000
 DEFAULT_RELOC_riscv32 := 0x00400000
 DEFAULT_RELOC_riscv64 := 0x00200000
 DEFAULT_RELOC_riscv  = $(DEFAULT_RELOC_riscv$(BITS))
-DEFAULT_RELOC_sparc := 0x00800000
 RELOC_PHYS          := y
 LDFLAGS              = -nostdlib -nocrt $(LDNOWARNRWX)
 EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
@@ -160,11 +158,8 @@ SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI)  += ARCH-arm64/efi.cc
 SRC_CC_arm64-y$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/head.cc
 SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
 		   ARCH-mips/cpu.cc
-SRC_CC_ppc32    += ARCH-ppc32/init_kip_v2-arch.cc \
-		   ARCH-ppc32/reboot.cc ARCH-ppc32/head.cc
 SRC_CC_riscv    += ARCH-riscv/reboot.cc ARCH-riscv/head.cc \
                    ARCH-riscv/platform_riscv.cc dt.cc
-SRC_CC_sparc	+= ARCH-sparc/reboot.cc ARCH-sparc/head.cc
 SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE))
 
 SRC_S-$(INTERNAL_CRT0) += ARCH-$(ARCH)/crt0.S $(SUPPORT_CRT0_$(ARCH)-$(PLATFORM_TYPE))
@@ -201,7 +196,6 @@ endif
 
 REQUIRES_LIBS_arm   += libfdt
 REQUIRES_LIBS_arm64 += libfdt
-REQUIRES_LIBS_ppc32 += drivers_of
 REQUIRES_LIBS_riscv += libfdt
 REQUIRES_LIBS       += drivers_uart libc_minimal cxx_base cxx_io
 
@@ -287,7 +281,7 @@ $(od)bootstrap_$(SUFFIX).efi: $(od)$(EFI_IMAGE)
 $(od)bootstrap_$(SUFFIX).%: $(od)bootstrap.%
 	$(VERBOSE)$(LN) -f $< $@
 
- ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips riscv))
+ ifeq ($(ARCH),$(filter $(ARCH),arm arm64 mips riscv))
    BID_POST_PROG_LINK_MSG_$(od)$(BOOTSTRAP_ELF_NAME) = echo -e "  ==> Post-processing $@"
    BID_POST_PROG_LINK_$(od)$(BOOTSTRAP_ELF_NAME)     = \
       $(VERBOSE)LC_ALL=C $(NM) -C $@ | \
@@ -339,7 +333,7 @@ $(od)bootstrap.efi: $(od)$(EFI_IMAGE)
     INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap.efi
   endif
 
-  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips riscv))
+  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 mips riscv))
     ifeq ($(MKIMAGE_PRESENT),y)
       INSTALL_FILES += $(BOOTSTRAP_UIMAGE) $(BOOTSTRAP_ITB)
     else
@@ -396,7 +390,7 @@ mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) \
 
   # We need the default images to be ready for image mode on these architectures
   # as they are populated using the l4image tool.
-  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 ppc32 mips riscv))
+  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 mips riscv))
     CPPFLAGS                   += -DIMAGE_MODE
   endif
 endif
@@ -421,7 +415,6 @@ $(BOOTSTRAP_RAW): $(BOOTSTRAP_ELF_NAME)
 	ln -sf $^ $@
 
 MKIMAGE_ARCH-$(ARCH) = $(ARCH)
-MKIMAGE_ARCH-ppc32   = ppc
 MKIMAGE_ARCH-mips    = $(if $(filter "64",$(CONFIG_CPU_ABI)),mips64,mips)
 
 MKIMAGE_ARCH = $(MKIMAGE_ARCH-$(ARCH))

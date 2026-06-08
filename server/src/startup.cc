@@ -908,10 +908,6 @@ startup(char const *cmdline)
 
       init_kip_infos(l4i, &boot_info, mbi);
       plat->setup_kernel_options(lko);
-#if defined(ARCH_ppc32)
-      init_kip_v2_arch(l4i);
-      printf("CPU at %lu Khz\n", l4i->frequency_cpu);
-#endif
     }
 
   // Note: we have to ensure that the original ELF binaries are not modified
@@ -950,6 +946,7 @@ startup(char const *cmdline)
 #if defined(ARCH_mips)
   {
     printf("  Flushing caches ...\n");
+#if 0
     for (Region *i = ram.begin(); i < ram.end(); ++i)
       {
         if (i->end() >= (512 << 20))
@@ -959,6 +956,7 @@ startup(char const *cmdline)
         syncICache((unsigned long)i->begin(), (unsigned long)i->size());
       }
     printf("  done\n");
+#endif
   }
 #endif
 
