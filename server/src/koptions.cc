@@ -25,6 +25,7 @@ static struct {
   { " -irq0",              L4_kernel_options::F_irq0              },
   { " -nosfn",             L4_kernel_options::F_nosfn             },
   { " -jdb_never_stop",    L4_kernel_options::F_jdb_never_stop    },
+  { " -oneshot-timer",     L4_kernel_options::F_oneshot_timer     },
 };
 
 static struct {

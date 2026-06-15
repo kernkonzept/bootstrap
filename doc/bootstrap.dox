@@ -153,6 +153,13 @@
  *     Use Advanced Programmable Interrupt Controller (APIC) if available and
  *     known to be well-behaving.
  *
+ *   * `-oneshot-timer`
+ *
+ *     Use the timer in one-shot mode instead of periodic mode. Selecting the
+ *     mode via parameter requires the kernel option CONFIG_PARAM_ONE_SHOT=y.
+ *     The performance overhead is negligible as the kernel code is patched
+ *     during the boot process according to the selected mode.
+ *
  *   * `-loadcnt`
  *
  *     Use load counter for performance counting.
