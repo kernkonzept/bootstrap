@@ -39,6 +39,8 @@ static struct {
                       offsetof(L4_kernel_options::Options, tbuf_entries) },
   { " -out_buf",      L4_kernel_options::F_out_buf,
                       offsetof(L4_kernel_options::Options, out_buf) },
+  { " -perf_profile", L4_kernel_options::F_perf_profile,
+                      offsetof(L4_kernel_options::Options, perf_profile) },
 };
 
 #define MEMBERSIZE(type, member) sizeof((reinterpret_cast<type *>(0))->member)

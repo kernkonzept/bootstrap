@@ -35,12 +35,13 @@ namespace L4_kernel_options
     F_serial_input      = 1 << 24,
 
     F_oneshot_timer     = 1 << 25,
+    F_perf_profile      = 1 << 26,
   };
 
   enum
   {
     Magic = 0x4C344B43,
-    Version_current = 5,
+    Version_current = 6,
   };
 
   enum Uart_type
@@ -75,6 +76,8 @@ namespace L4_kernel_options
     l4_uint32_t  flags;            ///< Option flags
 
     l4_uint32_t  kmemsize;         ///< Wanted kernel memory size in KiB
+
+    l4_uint32_t  perf_profile;     ///< CPU performance profile
 
     Uart uart;                     ///< Kernel UART
 

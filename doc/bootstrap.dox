@@ -161,6 +161,29 @@
  *     Selecting the mode via parameter requires the kernel option
  *     CONFIG_PARAM_ONE_SHOT=y.
  *
+ *   * `-perf_profile=<profile number>` (x86/amd64 only)
+ *
+ *     Define the desired CPU performance profile selected by the kernel. The
+ *     following profiles are supported:
+ *
+ *     - `0` - _low power_
+ *
+ *       Prefer low power consumption over performance.
+ *
+ *     - `1` - _distributed_
+ *
+ *       Prefer evenly distributed power consumption and performance over all
+ *       cores and limit the maximum single core turbo frequency.
+ *
+ *     - `2` - _maximum single core_
+ *
+ *       Maximum single core performance.
+ *
+ *     If this command line option is not passed, the kernel uses the CPU
+ *     performance profile according to the "Default CPU performance profile"
+ *     kernel option, which in turn defaults to the _distributed_ performance
+ *     profile.
+ *
  *   * `-loadcnt`
  *
  *     Use load counter for performance counting.
