@@ -841,7 +841,22 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 
         mods[cnt].mod_start = reinterpret_cast<l4_addr_t>(mod.start());
         mods[cnt].mod_end   = mods[cnt].mod_start + mod.size();
-        mods[cnt].flags     = mod.flags() & Mod_info_flag_mod_mask;
+        l4util_l4mod_mod_info_flag flags;
+        switch (mod.flags() & Mod_info_flag_mod_mask)
+          {
+          case Mod_info_flag_mod_unspec:
+            flags = L4util_l4mod_mod_flag_unspec; break;
+          case Mod_info_flag_mod_kernel:
+            flags = L4util_l4mod_mod_flag_kernel; break;
+          case Mod_info_flag_mod_sigma0:
+            flags = L4util_l4mod_mod_flag_sigma0; break;
+          case Mod_info_flag_mod_roottask:
+            flags = L4util_l4mod_mod_flag_roottask; break;
+          default:
+            panic("Unknown module flag %x while creating MBI for mod '%s'",
+                  mod.flags() & Mod_info_flag_mod_mask, mod.cmdline());
+          }
+        mods[cnt].flags = flags;
         cnt++;
       }
 
