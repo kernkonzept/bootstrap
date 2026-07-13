@@ -378,16 +378,16 @@ public:
         switch (i)
           {
           case 0:
-            l4m_mods[i].flags = Mod_info_flag_mod_kernel;
+            l4m_mods[i].flags = L4util_l4mod_mod_flag_kernel;
             break;
           case 1:
-            l4m_mods[i].flags = Mod_info_flag_mod_sigma0;
+            l4m_mods[i].flags = L4util_l4mod_mod_flag_sigma0;
             break;
           case 2:
-            l4m_mods[i].flags = Mod_info_flag_mod_roottask;
+            l4m_mods[i].flags = L4util_l4mod_mod_flag_roottask;
             break;
           default:
-            l4m_mods[i].flags = 0;
+            l4m_mods[i].flags = L4util_l4mod_mod_flag_unspec;
             break;
           };
         l4m_mods[i].mod_start = mods[i].mod_start;
