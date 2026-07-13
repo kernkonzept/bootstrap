@@ -33,7 +33,7 @@ struct Internal_module_base
     m->cmdline = reinterpret_cast<l4_addr_t>(cmdline_store);
     memcpy(cmdline_store, _cmdline, cmdline_size());
     set_region(m);
-    m->flags = 0;
+    m->flags = L4util_l4mod_mod_flag_unspec;
   }
 
 private:
