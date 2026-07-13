@@ -13,8 +13,7 @@
 #include <l4/util/mb_info.h>
 #include <l4/util/printf_helpers.h>
 
-static char const Mod_reg[] = ".Module";
-char const *const Mod_info::Mod_reg = ::Mod_reg;
+char const *const Mod_info::Mod_reg = ".Module";
 
 /* */
 enum
@@ -87,7 +86,7 @@ Region
 Boot_modules::mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                          Region::Type type)
 {
-  return Region::start_size(start, size, ::Mod_reg, type,
+  return Region::start_size(start, size, Mod_info::Mod_reg, type,
                             static_cast<Region::Subtype_info>(index));
 }
 
@@ -95,7 +94,7 @@ void
 Boot_modules::merge_mod_regions()
 {
   for (Region &r : *mem_manager->regions)
-    if (r.name() == ::Mod_reg)
+    if (r.name() == Mod_info::Mod_reg)
       r.sub_type(Region::Root_section_rwx);
 
   mem_manager->regions->optimize();
@@ -123,7 +122,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
 
   if (src == dest)
     {
-      mem_manager->regions->add(Region::start_size(dest, size, ::Mod_reg,
+      mem_manager->regions->add(Region::start_size(dest, size, Mod_info::Mod_reg,
                                                    Region::Root));
       return;
     }
@@ -181,7 +180,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
   memmove(vdest, vsrc, size);
   char *x = vdest + size;
   memset(x, 0, l4_round_page(x) - x);
-  mem_manager->regions->add(Region::start_size(dest, size, ::Mod_reg,
+  mem_manager->regions->add(Region::start_size(dest, size, Mod_info::Mod_reg,
                                                Region::Root));
 }
 
@@ -262,7 +261,7 @@ Boot_modules::move_modules(unsigned long modaddr)
   // to move_modules()
   for (Region *i = mem_manager->regions->begin();
        i < mem_manager->regions->end();)
-    if (i->name() == ::Mod_reg)
+    if (i->name() == Mod_info::Mod_reg)
       i = mem_manager->regions->remove(i);
     else
       ++i;
@@ -426,7 +425,7 @@ drop_mod_region(Mod_info *mod)
   // remove the module region for now
   for (Region &r : *mem_manager->regions)
     {
-      if (r.name() == ::Mod_reg && r.sub_type() == mod->index())
+      if (r.name() == Mod_info::Mod_reg && r.sub_type() == mod->index())
         {
           mem_manager->regions->remove(&r);
           return true;
@@ -646,7 +645,7 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
           for (Region *r = mem_manager->regions->begin();
                r != mem_manager->regions->end();)
             {
-              if (r->name() == ::Mod_reg && r->sub_type() == mod.index())
+              if (r->name() == Mod_info::Mod_reg && r->sub_type() == mod.index())
                 r = mem_manager->regions->remove(r);
               else
                 ++r;
@@ -738,7 +737,7 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
       Region mr = mod.region();
       for (Region &r : *mem_manager->regions)
         {
-          if (r.overlaps(mr) && r.name() != ::Mod_reg)
+          if (r.overlaps(mr) && r.name() != Mod_info::Mod_reg)
             {
               // overlaps with some non-module, assumingly an ELF region
               // so move us out of the way
