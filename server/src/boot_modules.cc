@@ -102,20 +102,22 @@ Boot_modules::merge_mod_regions()
 
 
 /**
- * \brief move a boot module from src to dest.
- * \param i The module index
- * \param dest The destination address
- * \param src  The source address
- * \param size The size of the module in bytes
+ * Move a boot module from `src` to `dest` and create a suitable region in the
+ * global 'regions' list.
  *
- * The src and dest buffers may overlap, at the destination set size is
- * rounded to the next page boundary.
+ * \param i     The module index.
+ * \param dest  The destination address.
+ * \param src   The source address.
+ * \param size  The size of the module in bytes.
+ *
+ * The `src` and `dest` buffers may overlap. The remaining bytes of the last
+ * page of the destination area are filled with zeros.
  */
 void
 Boot_modules::_move_module(unsigned i, void *dest,
                            void const *src, unsigned long size)
 {
- // Check for overlapping regions at the destination.
+  // Check for overlapping regions at the destination.
   enum { Overlap_check = 1 };
 
   if (src == dest)
