@@ -119,7 +119,8 @@ bool setup_ramfb(l4util_l4mod_info *mbi)
       return false;
     }
   mem_manager->regions->add(Region::start_size(vbe_addr, vbe_size, ".vbe",
-                                               Region::Root, L4_FPAGE_RW));
+                                               Region::Root,
+                                               Region::Root_section_rw));
 
   // Add ramfb VBE info to MBI.
   mbi->vbe_ctrl_info = vbe_addr;

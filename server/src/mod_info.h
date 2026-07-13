@@ -248,7 +248,8 @@ public:
   Region region(bool round = false, Region::Type type = Region::Boot) const
   {
     return Region::start_size(start(), round ? l4_round_page(size()) : size(),
-                              Mod_reg, type, index());
+                              Mod_reg, type,
+                              static_cast<Region::Subtype_info>(index()));
   }
 
   short index() const;

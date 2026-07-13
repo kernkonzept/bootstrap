@@ -87,7 +87,8 @@ Region
 Boot_modules::mod_region(unsigned index, l4_addr_t start, l4_addr_t size,
                          Region::Type type)
 {
-  return Region::start_size(start, size, ::Mod_reg, type, index);
+  return Region::start_size(start, size, ::Mod_reg, type,
+                            static_cast<Region::Subtype_info>(index));
 }
 
 void
@@ -95,7 +96,7 @@ Boot_modules::merge_mod_regions()
 {
   for (Region &r : *mem_manager->regions)
     if (r.name() == ::Mod_reg)
-      r.sub_type(L4_FPAGE_RWX);
+      r.sub_type(Region::Root_section_rwx);
 
   mem_manager->regions->optimize();
 }
@@ -808,7 +809,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
 
   Region_list *regions = mem_manager->regions;
   regions->add(Region::start_size(mbi_ram, mbi_size_full, ".mbi_rt",
-                                  Region::Root, L4_FPAGE_RWX));
+                                  Region::Root, Region::Root_section_rwx));
   memset(mbi, 0, mbi_size);
 
   l4util_l4mod_mod *mods = reinterpret_cast<l4util_l4mod_mod *>(mbi + 1);

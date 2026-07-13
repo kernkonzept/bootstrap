@@ -21,7 +21,8 @@ ptab_alloc(l4_uint32_t *out_ptab_pa)
 
   // mark the region as reserved
   mem_manager->regions->add(
-    Region::start_size(ptab, PAGE_SIZE, ".ptab", Region::Boot, L4_FPAGE_RW));
+    Region::start_size(ptab, PAGE_SIZE, ".ptab",
+                       Region::Boot, Region::Root_section_rw));
 
   memset((void *)ptab, 0, PAGE_SIZE);
   *out_ptab_pa = ptab;

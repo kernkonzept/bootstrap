@@ -115,7 +115,9 @@ struct Platform_x86_1 : Platform_x86
                 static_assert(MB_ART_NVS == Region::Arch_nvs,
                               "Multiboot ACPI NVS memory type matches");
                 regions->add(Region::start_size(mmap->addr, mmap->size, ".BIOS",
-                                                Region::Arch, mmap->type));
+                                                Region::Arch,
+                                                static_cast<Region::Subtype_info>(
+                                                  mmap->type)));
                 break;
               case MB_ART_UNUSABLE:
                 regions->add(Region::start_size(mmap->addr, mmap->size, ".BIOS",
@@ -123,7 +125,9 @@ struct Platform_x86_1 : Platform_x86
                 break;
               case 20:
                 regions->add(Region::start_size(mmap->addr, mmap->size, ".BIOS",
-                                                Region::Arch, mmap->type));
+                                                Region::Arch,
+                                                static_cast<Region::Subtype_info>(
+                                                  mmap->type)));
                 break;
               default:
                 break;
@@ -131,7 +135,7 @@ struct Platform_x86_1 : Platform_x86
           }
       }
 
-    regions->add(Region::start_size(0ULL, 0x1000, ".BIOS", Region::Arch, 0));
+    regions->add(Region::start_size(0ULL, 0x1000, ".BIOS", Region::Arch));
   }
 
   void late_setup(l4_kernel_info_t *kip) override
@@ -328,7 +332,8 @@ public:
 
     // mark the region as reserved
     mem_manager->regions->add(Region::start_size(_mb, total_size, ".mbi_rt",
-                                                 Region::Root, L4_FPAGE_RWX));
+                                                 Region::Root,
+                                                 Region::Root_section_rwx));
     if (Verbose_mbi)
       printf("  reserved %lu bytes at %p\n", total_size, _mb);
 

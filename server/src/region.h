@@ -13,6 +13,7 @@
 #include <l4/sys/compiler.h>
 #include <l4/sys/kip>
 #include <l4/sys/l4int.h>
+#include <l4/sys/types.h>
 #include <assert.h>
 
 #include "types.h"
@@ -21,17 +22,40 @@
 class Region
 {
 public:
-  enum Type { No_mem, Kernel, Sigma0, Boot, Root, Arch, Ram, Info };
-
-  enum Subtype_info
+  enum Type
   {
+    No_mem, // Not added to KIP memory descriptors!
+    Kernel, // => L4::Kip::Mem_desc::Reserved
+    Sigma0, // => L4::Kip::Mem_desc::Dedicated
+    Boot,   // Not added to KIP memory descriptors!
+    Root,   // => L4::Kip::Mem_desc::Mem_type::Bootloader
+    Arch,   // => L4::Kip::Mem_desc::Mem_type::Arch
+    Ram,    // => L4::Kip::Mem_desc::Mem_type::Conventional
+    Info    // => L4::Kip::Mem_desc::Mem_type::Info
+  };
+
+  // Must be compatible with L4::Kip::Mem_desc subtype.
+  enum Subtype_info : unsigned char
+  {
+    No_subtype = 0,
+
+    // Type Info: Sub types are used as L4::Kip::Mem_desc sub type!
     Info_acpi_rsdp = L4::Kip::Mem_desc::Info_acpi_rsdp,
 
+    // Type Arch: Sub types are used as L4::Kip::Mem_desc sub type!
     Arch_acpi = L4::Kip::Mem_desc::Arch_acpi_tables,
     Arch_nvs = L4::Kip::Mem_desc::Arch_acpi_nvs,
 
-    /** Regions that are reserved early and discarded before any elf loading */
+    // Type Boot:
+    /** Regions that are reserved early and discarded before any ELF loading */
     Boot_temporary = 5,
+
+    // Type Root: Sub types are used as L4::Kip::Mem_desc sub type!
+    Root_section_x = L4_FPAGE_X,
+    Root_section_w = L4_FPAGE_W,
+    Root_section_ro = L4_FPAGE_RO,
+    Root_section_rw = L4_FPAGE_RW,
+    Root_section_rwx = L4_FPAGE_RWX,
   };
 
   /** Basic noop constructor, to be able to have array without ini code */
@@ -63,7 +87,7 @@ public:
    * @param eager Mark region as eagerly mapped by kernel
    */
   Region(unsigned long long begin, unsigned long long end,
-         char const *name = 0, Type t = No_mem, short sub = 0,
+         char const *name = 0, Type t = No_mem, Subtype_info sub = No_subtype,
          bool eager = false)
   : _begin(begin), _end(end), _name(name), _t(t), _s(sub), _eager(eager)
   {
@@ -94,7 +118,7 @@ public:
    */
   static Region start_size(unsigned long long begin, unsigned long long size,
                            char const *name = 0, Type t = No_mem,
-                           short sub = 0, bool eager = false)
+                           Subtype_info sub = No_subtype, bool eager = false)
   {
     assert(size > 0);
     return Region(begin, begin + size - 1, name, t, sub, eager);
@@ -111,7 +135,7 @@ public:
    */
   static Region start_size(void const *begin, unsigned long long size,
                            char const *name = 0, Type t = No_mem,
-                           short sub = 0, bool eager = false)
+                           Subtype_info sub = No_subtype, bool eager = false)
   {
     return start_size(reinterpret_cast<l4_addr_t>(begin), size, name, t, sub,
                       eager);
@@ -127,8 +151,8 @@ public:
    * @param eager Mark region as eagerly mapped by kernel
    */
   template< typename T >
-  static Region from_ptr(T const *begin, char const *name = 0,
-                         Type t = No_mem, short sub = 0, bool eager = false)
+  static Region from_ptr(T const *begin, char const *name = 0, Type t = No_mem,
+                         Subtype_info sub = No_subtype, bool eager = false)
   { return Region::start_size(reinterpret_cast<l4_addr_t>(begin), sizeof(T),
                               name, t, sub, eager); }
 
@@ -144,7 +168,8 @@ public:
    */
   template< typename T >
   static Region array(T const *begin, unsigned long size, char const *name = 0,
-                      Type t = No_mem, short sub = 0, bool eager = false)
+                      Type t = No_mem, Subtype_info sub = No_subtype,
+                      bool eager = false)
   {
     return Region::start_size(reinterpret_cast<l4_addr_t>(begin),
                               sizeof(T) * size, name, t, sub, eager);
@@ -180,9 +205,9 @@ public:
   /** Set the type of the region. */
   void type(Type t) { _t = t; }
   /** Get the subtype of the region. */
-  short sub_type() const { return _s; }
+  Subtype_info sub_type() const { return static_cast<Subtype_info>(_s); }
   /** Set the subtype of the region. */
-  void sub_type(short s) { _s = s; }
+  void sub_type(Subtype_info s) { _s = s; }
 
   /** Print the region [begin; end] */
   void print(bool aligned = false) const;
@@ -225,6 +250,14 @@ private:
   unsigned char _t, _s;
   bool _eager;
 };
+
+constexpr Region::Subtype_info &operator |=(Region::Subtype_info &lhs,
+                                            Region::Subtype_info rhs)
+{
+  lhs = static_cast<Region::Subtype_info>(
+          static_cast<l4_uint32_t>(lhs) | static_cast<l4_uint32_t>(rhs));
+  return lhs;
+}
 
 
 /** List of memory regions, based on an fixed size array. */

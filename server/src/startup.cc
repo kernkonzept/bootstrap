@@ -1045,18 +1045,20 @@ l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph,
   if (ph->p_type != PT_LOAD)
     return 0;
 
-  unsigned short rights = L4_FPAGE_RO;
+  Region::Subtype_info rights = Region::Root_section_ro;
   if (ph->p_flags & PF_W)
-    rights |= L4_FPAGE_W;
+    rights |= Region::Root_section_w;
   if (ph->p_flags & PF_X)
-    rights |= L4_FPAGE_X;
+    rights |= Region::Root_section_x;
+
+  Region::Subtype_info subtype = info->type == Region::Root
+    ? rights : Region::No_subtype;
 
   // The subtype is used only for Root regions. For other types set subtype to 0
   // in order to allow merging regions with the same subtype.
   Region n = Region::start_size(ph->p_paddr + info->offset, ph->p_memsz,
                                 m.cmdline ? m.cmdline : ".[Unknown]",
-                                info->type, info->type == Region::Root ? rights : 0,
-                                info->type != Region::Kernel);
+                                info->type, subtype, info->type != Region::Kernel);
 
   if (Region *r = find_region_overlap(n))
     {
