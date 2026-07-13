@@ -164,13 +164,13 @@ public:
     return this;
   }
 
-  int base_mod_idx(Mod_info_flags mod_info_mod_type, unsigned) override
+  int base_mod_idx(l4util_l4mod_mod_info_flag mod_info_mod_type, unsigned) override
   {
     switch (mod_info_mod_type)
       {
-      case Mod_info_flag_mod_kernel:
-      case Mod_info_flag_mod_sigma0:
-      case Mod_info_flag_mod_roottask:
+      case L4util_l4mod_mod_flag_kernel:
+      case L4util_l4mod_mod_flag_sigma0:
+      case L4util_l4mod_mod_flag_roottask:
         if (mod_info_mod_type - 1 < (int)num_modules())
           return mod_info_mod_type - 1;
         // fall through

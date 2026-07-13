@@ -12,30 +12,11 @@
 
 #include <l4/cxx/string>
 #include <l4/sys/l4int.h>
+#include <l4/util/l4mod.h>
 #include <region.h>
 
 #define BOOTSTRAP_MOD_INFO_MAGIC_HDR "<< L4Re-bootstrap-modinfo-hdr >>"
 #define BOOTSTRAP_MOD_INFO_MAGIC_MOD "<< L4Re-bootstrap-modinfo-mod >>"
-
-/*
- * Flags for a module
- *
- * Bits 0..2: Type of module
- *            0:   unspecified, any module
- *            1:   kernel
- *            2:   sigma0
- *            3:   roottask
- *            4-7: reserved
- */
-
-enum Mod_info_flags
-{
-  Mod_info_flag_mod_unspec    = 0,
-  Mod_info_flag_mod_kernel    = 1,
-  Mod_info_flag_mod_sigma0    = 2,
-  Mod_info_flag_mod_roottask  = 3,
-  Mod_info_flag_mod_mask      = 7 << 0,
-};
 
 enum Mod_header_flags
 {
@@ -234,12 +215,12 @@ public:
   void start(char const *addr)
   { _start = abs2rel(addr); }
 
-  Mod_info_flags flags() const
-  { return Mod_info_flags(_flags); }
+  l4util_l4mod_mod_info_flag flags() const
+  { return l4util_l4mod_mod_info_flag(_flags); }
 
   bool is_base_module() const
   {
-    unsigned v = _flags & Mod_info_flag_mod_mask;
+    unsigned v = _flags & L4util_l4mod_mod_flag_mask;
     return v > 0 && v <= Num_base_modules;
   }
 

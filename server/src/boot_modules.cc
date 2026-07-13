@@ -533,11 +533,11 @@ Boot_modules_image_mode::finalize_mod_regions()
 }
 
 int
-Boot_modules_image_mode::base_mod_idx(Mod_info_flags mod_info_mod_type,
+Boot_modules_image_mode::base_mod_idx(l4util_l4mod_mod_info_flag mod_info_mod_type,
                                       unsigned node)
 {
   for (Mod_info const &m : mod_header->mods())
-    if ((m.flags() & Mod_info_flag_mod_mask) == mod_info_mod_type
+    if ((m.flags() & L4util_l4mod_mod_flag_mask) == mod_info_mod_type
         && m.is_for_node(node))
       return m.index();
 
@@ -841,23 +841,8 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
           }
 
         mods[cnt].mod_start = reinterpret_cast<l4_addr_t>(mod.start());
-        mods[cnt].mod_end   = mods[cnt].mod_start + mod.size();
-        l4util_l4mod_mod_info_flag flags;
-        switch (mod.flags() & Mod_info_flag_mod_mask)
-          {
-          case Mod_info_flag_mod_unspec:
-            flags = L4util_l4mod_mod_flag_unspec; break;
-          case Mod_info_flag_mod_kernel:
-            flags = L4util_l4mod_mod_flag_kernel; break;
-          case Mod_info_flag_mod_sigma0:
-            flags = L4util_l4mod_mod_flag_sigma0; break;
-          case Mod_info_flag_mod_roottask:
-            flags = L4util_l4mod_mod_flag_roottask; break;
-          default:
-            panic("Unknown module flag %x while creating MBI for mod '%s'",
-                  mod.flags() & Mod_info_flag_mod_mask, mod.cmdline());
-          }
-        mods[cnt].flags = flags;
+        mods[cnt].mod_end = mods[cnt].mod_start + mod.size();
+        mods[cnt].flags = mod.flags() & L4util_l4mod_mod_flag_mask;
         cnt++;
       }
 

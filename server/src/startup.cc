@@ -802,7 +802,7 @@ startup(char const *cmdline)
 
   Boot_modules *mods = plat->modules();
 
-  int idx_kern = mods->base_mod_idx(Mod_info_flag_mod_kernel);
+  int idx_kern = mods->base_mod_idx(L4util_l4mod_mod_flag_kernel);
   l4_addr_t fiasco_offset = 0;
   unsigned first_node = plat->first_node();
   unsigned const num_nodes = plat->num_nodes();
@@ -830,12 +830,12 @@ startup(char const *cmdline)
       if (!kip_exists_for_node(mods->module(idx_kern), n))
         continue;
 
-      int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, n);
+      int idx_sigma0 = mods->base_mod_idx(L4util_l4mod_mod_flag_sigma0, n);
       if (idx_sigma0 >= 0)
         add_elf_regions(mods->module(idx_sigma0), Region::Sigma0,
                         &sigma0_offset[i], n);
 
-      int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, n);
+      int idx_roottask = mods->base_mod_idx(L4util_l4mod_mod_flag_roottask, n);
       if (idx_roottask >= 0)
         add_elf_regions(mods->module(idx_roottask), Region::Root,
                         &roottask_offset[i], n);
@@ -878,7 +878,7 @@ startup(char const *cmdline)
       boot_info.roottask_start = 0;
 
       /* setup sigma0 */
-      int idx_sigma0 = mods->base_mod_idx(Mod_info_flag_mod_sigma0, n);
+      int idx_sigma0 = mods->base_mod_idx(L4util_l4mod_mod_flag_sigma0, n);
       if (idx_sigma0 >= 0)
         boot_info.sigma0_start = load_elf_module(mods->module(idx_sigma0),
                                                  "[SIGMA0]",
@@ -887,7 +887,7 @@ startup(char const *cmdline)
         printf("  WARNING: No sigma0 module for node %d -- setup might not boot!\n", n);
 
       /* setup roottask */
-      int idx_roottask = mods->base_mod_idx(Mod_info_flag_mod_roottask, n);
+      int idx_roottask = mods->base_mod_idx(L4util_l4mod_mod_flag_roottask, n);
       if (idx_roottask >= 0)
         boot_info.roottask_start = load_elf_module(mods->module(idx_roottask),
                                                    "[ROOTTASK]",
