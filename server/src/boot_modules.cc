@@ -163,7 +163,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
            dest_addr, dest_addr + size - 1, size_str);
 
   if (!mem_manager->ram->contains(dest))
-    panic("Panic: Would move outside of RAM");
+    panic("Would move module outside of RAM");
 
   if (Overlap_check)
     {
@@ -174,7 +174,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
                  dest, static_cast<char *>(dest) + size - 1);
           overlap->vprint();
           mem_manager->regions->dump();
-          panic("cannot move module");
+          panic("Cannot move module");
         }
     }
   memmove(vdest, vsrc, size);
@@ -196,7 +196,7 @@ mod_insert_sorted(unsigned short v, CMP const &cmp)
   enum { Max_mods = sizeof(mod_sorter) / sizeof(mod_sorter[0]) };
 
   if (mod_sorter_end >= mod_sorter + Max_mods)
-    panic("too much modules for module sorter");
+    panic("Too many modules for module sorter");
 
   unsigned short *i = mod_sorter;
   unsigned short const *const e = mod_sorter_end;
@@ -273,11 +273,10 @@ Boot_modules::move_modules(unsigned long modaddr)
   char *to = (char *)mem_manager->find_free_ram(req_size, modaddr);
   if (!to)
     {
-      printf("fatal: could not find free RAM region for modules\n"
-             "       need %lx bytes above %lx\n", req_size, modaddr);
+      printf("Need %lx bytes above %lx:\n", req_size, modaddr);
       mem_manager->ram->dump();
       mem_manager->regions->dump();
-      exit(5);
+      panic("Could not find free RAM region for modules!");
     }
 
   // sort the modules according to the start address
@@ -485,10 +484,10 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
 {
   unsigned long dest_size = mod->size_uncompressed();
   if (!dest)
-    panic("fatal: cannot decompress module: %s (no memory)\n", mod->name());
+    panic("Cannot decompress module: %s (no memory)", mod->name());
 
   if (!mem_manager->ram->contains(Region::start_size(dest, dest_size)))
-    panic("fatal: module %s does not fit into RAM", mod->name());
+    panic("Module %s does not fit into RAM", mod->name());
 
   l4_addr_t image =
     reinterpret_cast<l4_addr_t>(decompress(mod->name(), mod->start(),
@@ -496,8 +495,7 @@ decompress_mod(Mod_info *mod, l4_addr_t dest, Region::Type type = Region::Boot)
                                            mod->size(),
                                            mod->size_uncompressed()));
   if (image != dest)
-    panic("fatal cannot decompress module: %s (decompression error)\n",
-          mod->name());
+    panic("Cannot decompress module: %s (decompression error)", mod->name());
 
   drop_mod_region(mod);
 
@@ -698,7 +696,7 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
     }
 
   if (!destbuf)
-    panic("fatal: cannot find memory to  decompress modules");
+    panic("Cannot find memory to  decompress modules");
 
   printf("Uncompressing modules (modaddr = %p (%s)):\n", destbuf,
          fwd ? "forwards" : "backwards");
@@ -746,11 +744,10 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
               l4_uint64_t to = mem_manager->find_free_ram(mod.size());
               if (!to)
                 {
-                  printf("fatal: could not find free RAM region for module\n"
-                         "       need %x bytes\n", mod.size());
+                  printf("Need %x bytes:\n", mod.size());
                   mem_manager->ram->dump();
                   mem_manager->regions->dump();
-                  panic("\n");
+                  panic("Could not find free RAM region for module!");
                 }
               move_module(mod.index(), reinterpret_cast<char *>(to));
               break;
@@ -807,7 +804,7 @@ Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_l
   l4_uint64_t mbi_ram = mem_manager->find_free_ram(mbi_size_full, mod_addr);
   auto *mbi = reinterpret_cast<l4util_l4mod_info *>(mbi_ram);
   if (!mbi)
-    panic("fatal: could not allocate MBI memory: %lu bytes\n", mbi_size_full);
+    panic("Could not allocate MBI memory: %lu bytes", mbi_size_full);
 
   Region_list *regions = mem_manager->regions;
   regions->add(Region::start_size(mbi_ram, mbi_size_full, ".mbi_rt",

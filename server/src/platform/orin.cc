@@ -47,7 +47,7 @@ public:
     efi.disable_acpi();
 
     if (!efi.fdt())
-      panic("L4Re needs to be booted with device tree!\n");
+      panic("L4Re needs to be booted with device tree!");
   }
 
   Boot_modules *modules() override { return this; }
@@ -76,7 +76,7 @@ public:
     unsigned fdt_size = dt.fdt_size();
     _fdt = reinterpret_cast<void *>(mem_manager->find_free_ram(fdt_size));
     if (!_fdt)
-      panic("fatal: could not allocate memory for DT\n");
+      panic("Could not allocate memory for DT");
 
     memcpy(_fdt, efi.fdt(), fdt_size);
     mem_manager->regions->add(Region::start_size(_fdt, fdt_size));

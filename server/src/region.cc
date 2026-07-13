@@ -81,7 +81,7 @@ Region_list::add_nolimitcheck(Region const &region, bool may_overlap)
       optimize();
 
       if (_end >= _max)
-        panic("Bootstrap: %s: Region overflow\n", __func__);
+        panic("Region overflow");
     }
 
   Region *r;
@@ -99,7 +99,7 @@ Region_list::add_nolimitcheck(Region const &region, bool may_overlap)
               r->vprint();
 
               dump();
-              panic("region overlap");
+              panic("Region overlap");
             }
           memmove(r + 1, r, (end() - r) * sizeof(Region));
           break;

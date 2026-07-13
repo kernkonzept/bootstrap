@@ -201,7 +201,7 @@ l4_kernel_info_t *find_kip(Boot_modules::Module const &mod, l4_addr_t offset,
   Hdr_info hdr;
   hdr.hdr_type = PT_CUSTOM_L4_KIP;
   if (exec_load_elf(l4_exec_find_hdr, &hdr, mod, &error_msg) != 1)
-    panic("could not find kernel info page, maybe your kernel is too old");
+    panic("Could not find kernel info page, maybe your kernel is too old");
 
   auto *kip = reinterpret_cast<l4_kernel_info_t *>(hdr.start + offset);
   kip = search_kip(kip, hdr.size, node);
@@ -547,7 +547,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
 
   r = exec_load_elf(l4_exec_gather_info, &si, m, &error_msg);
   if (r)
-    panic("\nCould not gather load section infos (%s)", error_msg);
+    panic("Could not gather load section infos (%s)", error_msg);
 
   // Just do relocation if it's required. Otherwise it might break working
   // setups by provoking collisions with other (non-relocatable) binaries.
@@ -615,7 +615,7 @@ add_elf_regions(Boot_modules::Module const &m, Region::Type type,
               printf("%c", c < 32 ? '.' : c);
             }
         }
-      panic("\n\nThis is an invalid binary, fix it (%s).", error_msg);
+      panic("\nThis is an invalid binary, fix it (%s).", error_msg);
     }
 }
 
@@ -632,7 +632,7 @@ load_elf_module(Boot_modules::Module const &mod, l4_addr_t offset)
   int r = exec_load_elf(l4_exec_read_exec, reinterpret_cast<void*>(offset), mod,
                     &error_msg);
   if (r)
-    panic("Can't load module (%s)\n", error_msg);
+    panic("Can't load module (%s)", error_msg);
 
   Region m = Region::start_size(mod.start, l4_round_page(mod.end) - mod.start);
   if (!regions.sub(m))
@@ -785,7 +785,7 @@ startup(char const *cmdline)
                "adapt your configuration.\n");
       l4_addr_t addr = strtoul(s, 0, 0);
       if (addr >= ULONG_MAX - RAM_BASE)
-        panic("Bogus '-modaddr 0x%lx' parameter\n", addr);
+        panic("Bogus '-modaddr 0x%lx' parameter", addr);
       _mod_addr = RAM_BASE + addr;
     }
 
@@ -1014,7 +1014,7 @@ l4_exec_read_exec(void *opaque, ElfW(Phdr) const *ph,
     {
       printf("could not find %lx\n", l4_addr_t{mem_addr});
       regions.dump();
-      panic("Oops: region for module not found\n");
+      panic("Region for module not found");
     }
 
   f->name(m.cmdline ? m.cmdline :  ".[Unknown]");
@@ -1065,7 +1065,7 @@ l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph,
       printf("  overlaps with:         \t");
       r->vprint();
       regions.dump();
-      panic("region overlap");
+      panic("Region overlap");
     }
 
   regions.add(n, true);

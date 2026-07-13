@@ -90,7 +90,7 @@ bool setup_ramfb(l4util_l4mod_info *mbi)
   l4_addr_t fb = mem_manager->find_free_ram_rev(fb_size, 0, ~0UL,
                                                 L4_SUPERPAGESHIFT);
   if (!fb)
-    panic("fatal: could not allocate memory for frame buffer.\n");
+    panic("Could not allocate memory for frame buffer.");
 
   // mark the region as reserved
   mem_manager->regions->add(

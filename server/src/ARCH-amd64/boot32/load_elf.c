@@ -37,8 +37,8 @@ static void relocate_rela_entry(Elf64_Rela* rel, Elf64_Sxword offset)
       // Should not appear with --no-dynamic-linker and -Bsymbolic
       case R_X86_64_GLOB_DAT:
       default:
-        printf("Info: type=0x%llx @ %llx -- ", rel->r_info, rel->r_offset);
-        panic("not supported");
+         printf("RELA info: type=0x%llx @ %llx\n", rel->r_info, rel->r_offset);
+         panic("Unsupported RELA entry");
     }
 }
 

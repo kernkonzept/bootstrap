@@ -58,12 +58,12 @@ Platform_arm::setup_kernel_config(l4_kernel_info_t *kip)
 
       if (   ((ia->cpuinfo.MIDR >> 16) & 0xf) != 0xf // ARMv7
           || (((ia->cpuinfo.ID_PFR[1] >> 12) & 0xf) == 0)) // No Virt Ext
-        panic("\nCPU does not support Virtualization Extensions\n");
+        panic("CPU does not support Virtualization Extensions");
 
       if (!arm_switch_to_hyp())
-        panic("\nNo switching functionality available on this platform.\n");
+        panic("No switching functionality available on this platform.");
       if (!running_in_hyp_mode())
-        panic("\nFailed to switch to HYP as required by Fiasco.OC.\n");
+        panic("Failed to switch to HYP as required by Fiasco.OC.");
     }
 
   if (kernel_type == EL_Support::EL1 && running_in_hyp_mode())

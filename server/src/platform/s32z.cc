@@ -122,7 +122,7 @@ class Platform_s32z final : public Platform_arm, public Boot_modules_image_mode
         asm volatile ("mcr p15, 0, %0, c9, c1, 2" : : "r"(0x34200003));
       }
     else
-      panic("Running on invalid core!\n");
+      panic("Running on invalid core!");
 
     mem_manager->validate = &validate_area;
   }

@@ -213,9 +213,7 @@ public:
       }
 
     if (mbi->mods_count == 0)
-      {
-        panic("fatal: Multiboot data does not contain any modules.\n");
-      }
+      panic("Multiboot data does not contain any modules.");
 
     Region_list *regions = mem_manager->regions;
 
@@ -261,7 +259,7 @@ public:
          * with start == end == 0 for empty files loaded as modules.
          */
         if (mb_mod[i].mod_start >= mb_mod[i].mod_end)
-          panic("Found a module with implausible size %d (%s). Aborting.\n",
+          panic("Found a module with implausible size %d (%s).",
                 mb_mod[i].mod_end - mb_mod[i].mod_start,
                 (char const *)(l4_addr_t)mb_mod[i].cmdline);
         regions->add(mod_region(i, mb_mod[i].mod_start,
@@ -326,7 +324,7 @@ public:
     // try to find a free region for the MBI
     char *_mb = (char *)mem_manager->find_free_ram(total_size);
     if (!_mb)
-      panic("fatal: could not allocate memory for multi-boot info\n");
+      panic("Could not allocate memory for multi-boot info");
 
     // mark the region as reserved
     mem_manager->regions->add(Region::start_size(_mb, total_size, ".mbi_rt",

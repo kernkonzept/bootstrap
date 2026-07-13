@@ -138,7 +138,7 @@ class Platform_s32n final : public Platform_arm, public Boot_modules_image_mode
       {
       case 0: tcm_base = Rtu_tcm_c0_base; break;
       case 2: tcm_base = Rtu_tcm_c2_base; break;
-      default: panic("Running on invalid core!\n"); break;
+      default: panic("Running on invalid core!"); break;
       }
 
     // IMP_xTCMREGIONR

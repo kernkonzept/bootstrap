@@ -80,7 +80,7 @@ class Platform_arm_virt : public Platform_dt_arm
     bool kernel_uses_smmuv3 = l4_kip_kernel_has_feature(kip, "arm,smmu-v3");
 
     if (kernel_uses_smmuv3 && !have_smmuv3)
-      panic("Error: Microkernel uses SMMU-v3 but QEMU missing '-M virt,iommu=smmuv3'");
+      panic("Microkernel uses SMMU-v3 but QEMU missing '-M virt,iommu=smmuv3'");
 
     set_dtb_in_kip(kip);
   }

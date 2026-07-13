@@ -71,7 +71,7 @@ public:
   {
     unsigned long ram = RAM_SIZE_MB;
     if (RAM_BASE != 0)
-      panic("ERROR: RAM_BASE must be 0x0 on MIPS\n");
+      panic("RAM_BASE must be 0x0 on MIPS");
 
     unsigned long b = ram > 128 ? 128 : ram;
     printf("  Memory 0: 00000000 - %08lx (%lu MiB)\n", (b << 20) - 1, b);

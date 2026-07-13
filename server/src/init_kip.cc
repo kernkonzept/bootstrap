@@ -24,7 +24,7 @@ void
 init_kip_infos(l4_kernel_info_t *l4i, boot_info_t *bi, l4util_l4mod_info *mbi)
 {
   if (L4_KIP_VERSION_FIASCO != l4_kip_version(l4i))
-    panic("cannot load kernels other than Fiasco");
+    panic("Cannot load kernels other than Fiasco");
 
   l4i->user_ptr = reinterpret_cast<unsigned long>(mbi);
 

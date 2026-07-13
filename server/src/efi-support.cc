@@ -127,7 +127,7 @@ Efi::firmware_announce_memory(Region n)
   r = uefi_call_wrapper(_sys_table->BootServices->AllocatePages, 4,
                         AllocateAddress, EfiLoaderCode, num_pages, &addr);
   if (r != EFI_SUCCESS)
-    panic("EFI: AllocatePages failed: %u\n", (unsigned)r);
+    panic("EFI: AllocatePages failed: %u", (unsigned)r);
 }
 
 void
@@ -143,7 +143,7 @@ Efi::exit_boot_services()
   r = uefi_call_wrapper(_sys_table->BootServices->ExitBootServices, 2,
                         _image, key);
   if (r != EFI_SUCCESS)
-    panic("EFI: ExitBootServices failed: %u\n", (unsigned)r);
+    panic("EFI: ExitBootServices failed: %u", (unsigned)r);
 
   // The EFI console is not available any more!
   if (uart() == &efi_console)
@@ -180,7 +180,7 @@ Efi::setup_memory()
   if (!efi_mem_desc)
     panic("EFI: failed to get memory map");
   if (desc_ver != EFI_MEMORY_DESCRIPTOR_VERSION)
-    panic("EFI: unexpected memory descriptor version: 0x%x\n", desc_ver);
+    panic("EFI: unexpected memory descriptor version: 0x%x", desc_ver);
 
   void *const map_end = (char *)efi_mem_desc + num_entries * desc_size;
   for (char *d = (char *)efi_mem_desc; d < map_end; d += desc_size)

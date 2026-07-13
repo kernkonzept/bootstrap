@@ -88,7 +88,7 @@ public:
       {
         Acpi::Sdt sdt;
         if (!sdt.init(efi.acpi_rsdp()))
-          panic("No ACPI RSDP found!\n");
+          panic("No ACPI RSDP found!");
         else
           printf("SBSA with ACPI\n");
 

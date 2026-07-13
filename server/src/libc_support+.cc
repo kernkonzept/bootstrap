@@ -204,6 +204,7 @@ void
 panic(const char *fmt, ...)
 {
   va_list v;
+  putchar('\n');
   va_start (v, fmt);
   vprintf(fmt, v);
   va_end(v);

@@ -17,7 +17,7 @@ ptab_alloc(l4_uint32_t *out_ptab_pa)
   // try to find a free region for the page table
   l4_addr_t ptab = mem_manager->find_free_ram_rev(PAGE_SIZE, 0, ~0U);
   if (!ptab)
-    panic("fatal: could not allocate memory for page table\n");
+    panic("Could not allocate memory for page table");
 
   // mark the region as reserved
   mem_manager->regions->add(
