@@ -105,25 +105,30 @@ Boot_modules::merge_mod_regions()
  * Move a boot module from `src` to `dest` and create a suitable region in the
  * global 'regions' list.
  *
- * \param i     The module index.
- * \param dest  The destination address.
- * \param src   The source address.
- * \param size  The size of the module in bytes.
+ * \param index    The module index.
+ * \param dest     The destination address.
+ * \param src      The source address.
+ * \param size     The size of the module in bytes.
+ * \param name     Region name of the new module region. Usually this is
+ *                 '.Module' (Mod_info::Mod_reg).
+ * \param type     Type of the new module region (see Region::Type).
+ * \param subtype  Subtype of the new module region (see Region::Subtype_info).
  *
  * The `src` and `dest` buffers may overlap. The remaining bytes of the last
  * page of the destination area are filled with zeros.
  */
 void
-Boot_modules::_move_module(unsigned i, void *dest,
-                           void const *src, unsigned long size)
+Boot_modules::_move_module(unsigned index, void *dest,
+                           void const *src, unsigned long size,
+                           char const *name, Region::Type type,
+                           Region::Subtype_info subtype)
 {
   // Check for overlapping regions at the destination.
   enum { Overlap_check = 1 };
 
   if (src == dest)
     {
-      mem_manager->regions->add(Region::start_size(dest, size, Mod_info::Mod_reg,
-                                                   Region::Root));
+      mem_manager->regions->add(Region::start_size(dest, size, name, type, subtype));
       return;
     }
 
@@ -145,7 +150,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
         get_printable(vsrc[3]), '\0'
       };
       printf("  moving module %02d { %lx, %lx } (%s) -> { %lx - %lx } [%s]\n",
-             i, src_addr, src_addr + size - 1, magic_str,
+             index, src_addr, src_addr + size - 1, magic_str,
              dest_addr, dest_addr + size - 1, size_str);
 
       for (unsigned a = 0; a < 0x100;)
@@ -159,7 +164,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
     }
   else
     printf("  moving module %02d { %lx-%lx } -> { %lx-%lx } [%s]\n",
-           i, src_addr, src_addr + size - 1,
+           index, src_addr, src_addr + size - 1,
            dest_addr, dest_addr + size - 1, size_str);
 
   if (!mem_manager->ram->contains(dest))
@@ -180,8 +185,7 @@ Boot_modules::_move_module(unsigned i, void *dest,
   memmove(vdest, vsrc, size);
   char *x = vdest + size;
   memset(x, 0, l4_round_page(x) - x);
-  mem_manager->regions->add(Region::start_size(dest, size, Mod_info::Mod_reg,
-                                               Region::Root));
+  mem_manager->regions->add(Region::start_size(dest, size, name, type, subtype));
 }
 
 /// sorter data for up to 256 modules (stores module indexes)
@@ -881,6 +885,7 @@ Boot_modules_image_mode::move_module(unsigned index, void *dest)
         }
     }
 
-  _move_module(index, dest, mod->start(), mod->size());
+  _move_module(index, dest, mod->start(), mod->size(), Mod_info::Mod_reg,
+               Region::Root, Region::No_subtype);
   mod->start(reinterpret_cast<char const *>(dest));
 }

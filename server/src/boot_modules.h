@@ -92,7 +92,8 @@ public:
 
 protected:
   void _move_module(unsigned index, void *dest, void const *src,
-                    unsigned long size);
+                    unsigned long size, char const *name,
+                    Region::Type type, Region::Subtype_info subtype);
 };
 
 inline Boot_modules::~Boot_modules() {}

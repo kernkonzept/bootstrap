@@ -284,7 +284,8 @@ public:
   {
     l4util_l4mod_mod *mod = (l4util_l4mod_mod *)(unsigned long)l4mi->mods_addr + index;
     unsigned long size = mod->mod_end - mod->mod_start;
-    _move_module(index, dest, (char const *)(l4_addr_t)mod->mod_start, size);
+    _move_module(index, dest, (char const *)(l4_addr_t)mod->mod_start, size,
+                 Mod_info::Mod_reg, Region::Root, Region::No_subtype);
 
     assert ((l4_addr_t)dest < 0xfffffff0);
     assert ((l4_addr_t)dest < 0xfffffff0 - size);
