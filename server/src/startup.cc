@@ -286,29 +286,21 @@ L4_kernel_options::Options *find_kopts(Boot_modules::Module const &mod,
   return ko;
 }
 
-static char const *
-check_arg_str(char const *cmdline, const char *arg)
-{
-  char const *s = cmdline;
-  while ((s = strstr(s, arg)))
-    {
-      if (s == cmdline
-          || isspace(s[-1]))
-        return s + strlen(arg);
-    }
-  return nullptr;
-}
-
 /**
  * Scan the command line for the given argument.
  *
- * return pointer after argument, nullptr if not found
+ * \param cmdline  Command line, may be nullptr.
+ * \param arg      Argument to scan the command line for.
+ *
+ * \returns pointer after argument, nullptr if not found.
  */
 char const *
 check_arg(char const *cmdline, const char *arg)
 {
-  if (cmdline)
-    return check_arg_str(cmdline, arg);
+  if (char const *s = cmdline)
+    while ((s = strstr(s, arg)))
+      if (s == cmdline || isspace(s[-1]))
+        return s + strlen(arg);
 
   return nullptr;
 }
@@ -396,16 +388,13 @@ setup_memory_map(char const *cmdline)
   bool parsed_mem_option = false;
   const char *s = cmdline;
 
-  if (s)
+  while ((s = check_arg(s, "-mem=")))
     {
-      while ((s = check_arg_str(s, "-mem=")))
+      unsigned long sz, offset = 0;
+      if (!parse_mem_layout(s, &sz, &offset))
         {
-          unsigned long sz, offset = 0;
-          if (!parse_mem_layout(s, &sz, &offset))
-            {
-              parsed_mem_option = true;
-              ram.add(Region::start_size(offset, sz, ".ram", Region::Ram));
-            }
+          parsed_mem_option = true;
+          ram.add(Region::start_size(offset, sz, ".ram", Region::Ram));
         }
     }
 
