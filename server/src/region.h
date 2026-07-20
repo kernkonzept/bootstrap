@@ -48,7 +48,11 @@ public:
     Arch_cpu_fw = L4::Kip::Mem_desc::Arch_cpu_fw,
 
     // Type Boot:
-    /** Regions that are reserved early and discarded before any ELF loading */
+    /**
+     * Regions that are reserved early and discarded before any ELF loading.
+     * Applies only to modules with name() != Mod_info::Mod_reg.
+     * Modules with name() == Mod_info::Mod_reg use sub_type() == module index.
+     */
     Boot_temporary = 5,
 
     // Type Root: Sub types are used as L4::Kip::Mem_desc sub type!
