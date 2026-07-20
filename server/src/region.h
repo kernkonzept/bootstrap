@@ -355,6 +355,17 @@ public:
   /** Remove the region given by the iterator r. */
   Region *remove(Region *r);
 
+  /** Remove all regions from the list which which meet the condition. */
+  template<typename Functor>
+  void remove_if(Functor &&condition)
+  {
+    for (Region *r = begin(); r != end();)
+      if (condition(r))
+        r = remove(r);
+      else
+        ++r;
+  }
+
   /** Optimize the region list.
    * Basically merges all regions with the same type, subtype, and name
    * that have a begin and end address on the same memory page.

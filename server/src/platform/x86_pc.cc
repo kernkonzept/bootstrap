@@ -435,14 +435,10 @@ public:
     mbi = 0;
 
     // remove the old MBI from the reserved memory
-    for (Region *r = mem_manager->regions->begin();
-         r != mem_manager->regions->end();)
+    mem_manager->regions->remove_if([](Region const *r)
       {
-        if (strcmp(r->name(), ".mbi"))
-          ++r;
-        else
-          r = mem_manager->regions->remove(r);
-      }
+        return strcmp(r->name(), ".mbi") == 0;
+      });
 
     move_modules(mod_addr);
 

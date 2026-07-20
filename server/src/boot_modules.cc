@@ -269,12 +269,10 @@ Boot_modules::move_modules(unsigned long modaddr)
   // regions here and add new reserved regions in move_modules() afterwards.
   // NOTE: we must be sure that we do not need to allocate any memory from here
   // to move_modules()
-  for (Region *i = mem_manager->regions->begin();
-       i < mem_manager->regions->end();)
-    if (i->name() == Mod_info::Mod_reg)
-      i = mem_manager->regions->remove(i);
-    else
-      ++i;
+  mem_manager->regions->remove_if([](Region const *r)
+    {
+      return r->name() == Mod_info::Mod_reg;
+    });
 
   printf("  Moving up to %d modules behind %lx\n", count, modaddr);
   unsigned long req_size = calc_modules_size(this, L4_PAGESHIFT);
@@ -639,14 +637,10 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
           char const *mstart = mod.start();
           char const *mend = mod.start() + mod.size();
           // remove the module region for now
-          for (Region *r = mem_manager->regions->begin();
-               r != mem_manager->regions->end();)
+          mem_manager->regions->remove_if([mod](Region const *r)->bool
             {
-              if (r->name() == Mod_info::Mod_reg && r->sub_type() == mod.index())
-                r = mem_manager->regions->remove(r);
-              else
-                ++r;
-            }
+              return r->name() == Mod_info::Mod_reg && r->sub_type() == mod.index();
+            });
 
           if (rpos < mend)
             {
