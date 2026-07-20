@@ -31,7 +31,7 @@ public:
 
 private:
   Region new_region(EFI_MEMORY_DESCRIPTOR const *td, char const *name,
-                    Region::Type type, char sub = 0);
+                    Region::Type type, Region::Subtype_info sub = Region::No_subtype);
 
 
   EFI_HANDLE _image;

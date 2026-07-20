@@ -161,7 +161,7 @@ Efi::exit_boot_services()
 
 Region
 Efi::new_region(EFI_MEMORY_DESCRIPTOR const *m, char const *name,
-                Region::Type type, char sub)
+                Region::Type type, Region::Subtype_info sub)
 {
   return Region::start_size(m->PhysicalStart, 0x1000 * m->NumberOfPages, name,
                             type, sub);
@@ -243,7 +243,7 @@ l4util_l4mod_info *Efi::construct_mbi(l4util_l4mod_info *mbi)
     }
 
   mem_manager->regions->add(Region::start_size(vbe_addr, vbe_sz, ".vbe",
-                                               Region::Root, L4_FPAGE_RW));
+                                               Region::Root, Region::Root_section_rw));
 
   mbi->vbe_ctrl_info = vbe_addr;
   mbi->vbe_mode_info = vbe_addr + sizeof(l4util_mb_vbe_ctrl_t);
