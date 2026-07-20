@@ -50,19 +50,19 @@ init_kip_md(l4_kernel_info_t *l4i, Region_list *ram, Region_list *regions)
   Mem_desc *md = Mem_desc::first(l4i);
   assert((unsigned long)md - (unsigned long)l4i >= sizeof(*l4i));
 
-  for (Region const* c = ram->begin(); c != ram->end(); ++c)
+  for (Region const &r : *ram)
     {
       // Exclude any non 1K-aligned conventional memory.
-      unsigned long long begin = l4_round_size(c->begin(), 10);
-      unsigned long long end = l4_trunc_size(c->end() + 1, 10) - 1;
+      unsigned long long begin = l4_round_size(r.begin(), 10);
+      unsigned long long end = l4_trunc_size(r.end() + 1, 10) - 1;
       (md++)->set(begin, end, Mem_desc::Conventional);
     }
 
-  for (Region const *c = regions->begin(); c != regions->end(); ++c)
+  for (Region const &r : *regions)
     {
       Mem_desc::Mem_type type = Mem_desc::Reserved;
       unsigned char sub_type = 0;
-      switch (c->type())
+      switch (r.type())
         {
         case Region::No_mem:
         case Region::Ram:
@@ -76,17 +76,17 @@ init_kip_md(l4_kernel_info_t *l4i, Region_list *ram, Region_list *regions)
           break;
         case Region::Root:
           type = Mem_desc::Bootloader;
-          sub_type = c->sub_type();
+          sub_type = r.sub_type();
           break;
         case Region::Arch:
           type = Mem_desc::Arch;
-          sub_type = c->sub_type();
+          sub_type = r.sub_type();
           break;
         case Region::Info:
           type = Mem_desc::Info;
-          sub_type = c->sub_type();
+          sub_type = r.sub_type();
           break;
         }
-      (md++)->set(c->begin(), c->end(), type, sub_type, false, c->eager());
+      (md++)->set(r.begin(), r.end(), type, sub_type, false, r.eager());
     }
 }

@@ -206,9 +206,8 @@ void Dt::setup_memory() const
           // Ignore multiple similar given regions
           Region n = Region::start_size(start, sz, ".ram", Region::Ram);
           bool duplicate = false;
-          for (Region *i = mem_manager->ram->begin();
-               i != mem_manager->ram->end(); ++i)
-            if (i->overlaps(n) && i->type() == n.type())
+          for (auto const &i : *mem_manager->ram)
+            if (i.overlaps(n) && i.type() == n.type())
               {
                 duplicate = true;
                 break;
