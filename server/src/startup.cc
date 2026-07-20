@@ -357,6 +357,9 @@ parse_mem_layout(const char *s, unsigned long *sz, unsigned long *offset)
   if (!parse_memvalue(ep + 1, offset, &ep))
     return false;
 
+  if (*ep != '\0' && !isspace(*ep))
+    return false;
+
   return true;
 }
 
