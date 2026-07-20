@@ -369,7 +369,7 @@ dump_ram_map(bool show_total = false)
 {
   unsigned long long sum = 0;
   char s[64];
-  for (Region &r : ram)
+  for (Region const &r : ram)
     {
       l4util_human_readable_size(s, sizeof(s), r.size());
       printf("  RAM: %016llx - %016llx: %s\n", r.begin(), r.end(), s);
@@ -1003,10 +1003,10 @@ l4_exec_read_exec(void *opaque, ElfW(Phdr) const *ph,
   return 0;
 }
 
-static Region *
+static Region const *
 find_region_overlap(Region const &n)
 {
-  for (Region &r : regions)
+  for (Region const &r : regions)
     if (r.overlaps(n) && r.name() != Mod_info::Mod_reg
         && !(r.type() == Region::Boot && r.sub_type() == Region::Boot_temporary))
       return &r;
@@ -1041,7 +1041,7 @@ l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph,
                                 m.cmdline ? m.cmdline : ".[Unknown]",
                                 info->type, subtype, info->type != Region::Kernel);
 
-  if (Region *r = find_region_overlap(n))
+  if (Region const *r = find_region_overlap(n))
     {
       printf("  New region for list %s:\t", n.name());
       n.vprint();

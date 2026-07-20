@@ -734,13 +734,13 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
     }
 
   // move kernel, sigma0 and roottask out of the way
-  for (Mod_info &mod : mod_header->mods())
+  for (Mod_info const &mod : mod_header->mods())
     {
       if (!mod.is_base_module())
         continue;
 
       Region mr = mod.region();
-      for (Region &r : *mem_manager->regions)
+      for (Region const &r : *mem_manager->regions)
         {
           if (r.overlaps(mr) && r.name() != Mod_info::Mod_reg)
             {
