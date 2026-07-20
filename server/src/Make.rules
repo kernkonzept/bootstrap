@@ -531,6 +531,7 @@ all::
 	[ -z "$${BUILD_FAIL}" ] || ( \
 		printf "Bootstrap $(OSYSTEM) build check failed for:\n$${BUILD_FAIL}" && false \
 	)
+	$(if $(CONFIG_HAVE_BIDPC_GNU_EFI),$(if $(filter amd64 x86 arm64,$(BUILD_ARCH)),$(MAKE) PLATFORM_CHECK=y BOOTSTRAP_DO_UEFI=y,echo "No EFI for $(BUILD_ARCH) yet."),echo "No gnu-efi available, no UEFI build test.")
 endif
 endif
 
