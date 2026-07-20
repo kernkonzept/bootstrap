@@ -319,13 +319,12 @@ get_memory_max_size(char const *cmdline)
   return ~0ULL;
 }
 
-static int
+static bool
 parse_memvalue(const char *s, unsigned long *val, char **ep)
 {
-
   *val = strtoul(s, ep, 0);
   if (*val == ~0UL)
-    return 1;
+    return false;
 
   switch (**ep)
     {
@@ -334,31 +333,31 @@ parse_memvalue(const char *s, unsigned long *val, char **ep)
     case 'k': case 'K': *val <<= 10; (*ep)++;
     };
 
-  return 0;
+  return true;
 }
 
 /*
  * Parse a memory layout string: size@offset
  * E.g.: 256M@0x40000000, or 128M@128M
  */
-static int
+static bool
 parse_mem_layout(const char *s, unsigned long *sz, unsigned long *offset)
 {
   char *ep;
 
-  if (parse_memvalue(s, sz, &ep))
-    return 1;
+  if (!parse_memvalue(s, sz, &ep))
+    return false;
 
   if (*sz == 0)
-    return 1;
+    return false;
 
   if (*ep != '@')
-    return 1;
+    return false;
 
-  if (parse_memvalue(ep + 1, offset, &ep))
-    return 1;
+  if (!parse_memvalue(ep + 1, offset, &ep))
+    return false;
 
-  return 0;
+  return true;
 }
 
 /**
@@ -392,10 +391,10 @@ setup_memory_map(char const *cmdline)
     {
       unsigned long sz, offset = 0;
       if (!parse_mem_layout(s, &sz, &offset))
-        {
-          parsed_mem_option = true;
-          ram.add(Region::start_size(offset, sz, ".ram", Region::Ram));
-        }
+        panic("Invalid '-mem=%s' parameter", s);
+
+      parsed_mem_option = true;
+      ram.add(Region::start_size(offset, sz, ".ram", Region::Ram));
     }
 
   if (!parsed_mem_option)
