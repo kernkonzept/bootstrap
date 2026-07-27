@@ -63,7 +63,10 @@ _start:
 .Lsctlr_done:
 
 	/* Figure how to move */
-        ldr     x7, crt_end_bin
+	.extern image_info
+	adr     x8, image_info /* Find image_info */
+	ldr     x7, [x8, #56]  /* read module_data_end field */
+	add     x7, x7, x8     /* add both together to get real address */
 	add     x7, x7, #7	/* Round up to word size for ldr and str... */
 	bic     x7, x7, #7	/* ...below */
 	subs	x8, x5, x4	/* x8 is the distance between the blocks */
@@ -104,7 +107,6 @@ move_behind:
 	.align 3
 .LCrun:       .8byte run
 .LCstart_bin: .8byte _start
-crt_end_bin:  .8byte _end_of_initial_bootstrap // patched by l4image
 
 run:
 #endif

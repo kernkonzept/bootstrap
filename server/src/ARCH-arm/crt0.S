@@ -81,7 +81,10 @@ _start:
 	mcr p15, 0, r6, c1, c0
 
 	/* Figure how to move */
-        ldr     r7, crt_end_bin_lsb
+    ldr     r8, .LCimage_info /* calculate address of image_info */
+    sub     r8, r5 /* sub .LCrun */
+    add     r8, r4 /* add &run */
+	ldr     r7, [r8, #60] /* module_data_end member offset + half its size => only the lower word */
 	add     r7, r7, #3	/* Round up to word size for ldr and str... */
 	bic     r7, r7, #3	/* ...below */
 	subs	r8, r5, r4	/* r8 is the distance between the blocks */
@@ -122,8 +125,7 @@ move_behind:
 
 .LCrun:       .word run
 .LCstart_bin: .word _start
-crt_end_bin:     .word 0
-crt_end_bin_lsb: .word _end_of_initial_bootstrap; // patched by l4image
+.LCimage_info: .word image_info
 
 run:
 #endif

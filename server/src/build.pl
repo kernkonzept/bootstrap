@@ -338,7 +338,7 @@ sub postprocess
   error("Multiple or no image info headers found -- must not be") if $count != 1;
 
   my $fn_nm = $fn;
-  my ($_img_base, $_end, $_module_data_start, $bin_addr_end_bin);
+  my ($symbol_image_info, $symbol_module_data_start, $symbol_end_of_initial_bootstrap);
   my $restart_nm;
   do
     {
@@ -354,22 +354,19 @@ sub postprocess
               $restart_nm = 1;
               last;
             }
-          $_img_base          = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[ABDTNR]\s+_img_base$/i;
-          $_end               = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BD]\s+_end$/i;
-          $_module_data_start = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTNR]\s+_module_data_start$/i;
-          $bin_addr_end_bin   = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+t\s+crt_end_bin$/i;
+          $symbol_image_info        = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[ABDTNR]\s+image_info$/i;
+          $symbol_module_data_start = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTNR]\s+_module_data_start$/i;
+          $symbol_end_of_initial_bootstrap = Math::BigInt->from_hex($1) if /^([0-9a-f]+)\s+[BDTNR]\s+_end_of_initial_bootstrap$/i;
         }
       close $nm;
     }
   while ($restart_nm);
 
-
-  $bin_addr_end_bin = Math::BigInt->new() unless defined $bin_addr_end_bin;
-
-  error("Did not find _end symbol in binary") unless defined $_end;
-  error("Did not find _img_base symbol in binary") unless defined $_img_base;
   error("Did not find _module_data_start symbol in binary")
-    unless defined $_module_data_start;
+    unless defined $symbol_module_data_start;
+
+  error("Did not find image_info symbol in binary")
+    unless defined $symbol_image_info;
 
   my $compensate_nm_bug = sub {
     # In some binutils distributions nm has a bug where it sign-extends 32-bit
@@ -381,10 +378,16 @@ sub postprocess
     return $adr;
   };
 
-  $_img_base          = $compensate_nm_bug->($_img_base);
-  $_end               = $compensate_nm_bug->($_end);
-  $_module_data_start = $compensate_nm_bug->($_module_data_start);
-  $bin_addr_end_bin   = $compensate_nm_bug->($bin_addr_end_bin);
+  $symbol_image_info               = $compensate_nm_bug->($symbol_image_info);
+  $symbol_module_data_start        = $compensate_nm_bug->($symbol_module_data_start);
+  $symbol_end_of_initial_bootstrap = $compensate_nm_bug->($symbol_end_of_initial_bootstrap)
+    if defined $symbol_end_of_initial_bootstrap;
+
+  # module_data_start needs to be relative to &image_info
+  my $new_module_data_start = $symbol_module_data_start - $symbol_image_info;
+
+  # module_data_start needs to be relative to &image_info
+  my $new_module_data_end = $symbol_end_of_initial_bootstrap - $symbol_image_info;
 
   open(my $fd, "+<$fn") || error("Could not open '$fn': $!");
   binmode $fd;
@@ -399,16 +402,15 @@ sub postprocess
   if ($v)
     {
       printf "ELF: Filling image_info data at ELF-file pos 0x%x\n", $pos;
-      print "ELF: _img_base=", $_img_base->as_hex(), "\n";
-      print "ELF: _end=", $_end->as_hex(), "\n";
-      print "ELF: _module_data_start=", $_module_data_start->as_hex(), "\n";
-      print "ELF: bin_addr_end_bin=", $bin_addr_end_bin->as_hex(), "\n";
+      print "ELF: _image_info=", $symbol_image_info->as_hex(), "\n";
+      print "ELF: _module_data_start=", $symbol_module_data_start->as_hex(), "\n";
+      print "ELF: _end_of_initial_bootstrap=", $symbol_end_of_initial_bootstrap->as_hex(), "\n";
     }
 
   $pos += L4::Image::dsi('BOOTSTRAP_IMAGE_INFO_MAGIC_LEN'); # jump over magic
 
-  my ($_crc32, $_version, $_flags, $start_in_image, $end_in_image,
-      undef, undef, $mod_header_in_image, $attrs_in_header)
+  my ($_crc32, $_version, $_flags,
+      $orig_module_data_start, $orig_module_data_end, $orig_module_header, $orig_attrs)
     = unpack(L4::Image::dsi('TEMPLATE_IMAGE_INFO'),
              substr($buf, $pos, L4::Image::dsi('IMAGE_INFO_SIZE')));
 
@@ -418,10 +420,10 @@ sub postprocess
       print  " crc32=$_crc32\n";
       print  " version=$_version\n";
       print  " flags=$_flags\n";
-      printf " start_in_image=%x\n", $start_in_image;
-      printf " end_in_image=%x\n", $end_in_image;
-      printf " mod_header_in_image=%x\n", $mod_header_in_image;
-      printf " attrs_in_header=%x\n", $attrs_in_header;
+      printf " module_data_start=%x\n", $orig_module_data_start;
+      printf " module_data_end=%x\n", $orig_module_data_end;
+      printf " module_header=%x\n", $orig_module_header;
+      printf " attrs=%x\n", $orig_attrs;
     }
 
   my $fn_offs = dirname($fn)."/mods.offsets";
@@ -433,18 +435,18 @@ sub postprocess
       error "Coulnd't run $fn_offs: $!" unless $offsets;
     }
 
-  my $_mod_header = 0;
+  my $new_module_header = 0;
   if (defined $offsets->{mod_header})
     {
-      $_mod_header = $offsets->{mod_header} + $_module_data_start - $_img_base;
-      printf "_mod_header=%x\n", $_mod_header if $v;
+      $new_module_header = $new_module_data_start + $offsets->{mod_header};
+      printf "_mod_header=%x\n", $new_module_header if $v;
     }
 
-  my $_attrs = 0;
+  my $new_attrs = 0;
   if (defined $offsets->{attrs})
     {
-      $_attrs = $offsets->{attrs} + $_module_data_start - $_img_base;
-      printf "_attrs=%x\n", $_attrs if $v;
+      $new_attrs = $new_module_data_start + $offsets->{attrs};
+      printf "_attrs=%x\n", $new_attrs if $v;
     }
 
   sysseek($fd, $pos, 0);
@@ -452,9 +454,10 @@ sub postprocess
                           0, # crc32
                           $_version,
                           $_flags,
-                          $_img_base, $_end, $_module_data_start,
-                          $bin_addr_end_bin,
-                          $_mod_header, $_attrs),
+                          $new_module_data_start,
+                          $new_module_data_end,
+                          $new_module_header,
+                          $new_attrs),
                 L4::Image::dsi('IMAGE_INFO_SIZE'));
   error("Could not patch binary")
     if not defined $r or $r != L4::Image::dsi('IMAGE_INFO_SIZE');

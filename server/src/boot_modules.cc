@@ -53,25 +53,30 @@ struct Image_info
   char magic[32]      = "<< L4Re Bootstrap Image Info >>";
   l4_uint32_t crc32   = 0;
   /// Version of the data structure
-  l4_uint32_t version = 2;
+  l4_uint32_t version = 3;
   /// Boolean-style info and small numbers
   l4_uint64_t flags   =   (sizeof(long) == 8 ? Image_info_flag_arch_width_64bit
                                               : Image_info_flag_arch_width_32bit)
                          | Image_info_flag_arch_current;
-  /// Start of bootstrap binary -- virtual address
-  l4_uint64_t start_of_binary   = 0;
-  /// End of bootstrap binary -- virtual address
-  l4_uint64_t end_of_binary     = 0;
-  /// Where all the data starts -- virtual address
-  l4_uint64_t module_data_start = 0;
-  /// If non-zero, stores the end of bootstrap-image
-  l4_uint64_t bin_addr_end_bin  = 0;
 
-  /// Offset to module-header, relative to _start
+  /*
+   * Info for the following fields:
+   *  - relative to &image_info at link-time
+   *  - absolute at runtime, in particular after init_modules_infos() ran
+   */
+
+  /// Where all the data starts
+  l4_uint64_t module_data_start = 0;
+  /// Where all the data ends
+  l4_uint64_t module_data_end   = 0;
+  /// Offset to module-header
   l4_uint64_t module_header     = 0;
-  /// Offset to global attr-store, relative to _start
+  /// Offset to global attr-store
   l4_uint64_t attrs             = 0;
 } __attribute__((packed)) image_info;
+
+// Necessary for crt0
+static_assert(offsetof(Image_info, module_data_end) == 56);
 
 // Get 'c' if it is printable, '.' else.
 static char
@@ -369,46 +374,33 @@ static inline unsigned long modinfo_payload_size()
 
 void init_modules_infos()
 {
-#if defined(__PIC__) || defined(__PIE__)
-  // Fixup header addresses when being compiled position independent
-  extern int _img_base;      /* begin of image -- defined in bootstrap.ld.in */
-  l4_uint64_t off
-    = reinterpret_cast<l4_uint64_t>(&_img_base) - image_info.start_of_binary;
-  image_info.start_of_binary   += off;
-  image_info.end_of_binary     += off;
-  image_info.module_data_start += off;
-  if (image_info.bin_addr_end_bin)
-    image_info.bin_addr_end_bin  += off;
-#endif
+  if (  image_info.version == 0
+      || image_info.module_data_start == 0
+      || image_info.module_data_end == 0
+      || image_info.module_header == 0)
+    panic("bootstrap ELF file post-processing did not run");
+
+  l4_uint64_t image_info_addr =
+    Platform_base::platform->to_phys(reinterpret_cast<l4_addr_t>(&image_info));
+
+  image_info.module_data_start += image_info_addr;
+  image_info.module_data_end   += image_info_addr;
+  image_info.module_header     += image_info_addr;
+  image_info.attrs             += image_info_addr;
 
   // Debugging help, shall be removed in final version
   if (Verbose_load)
     {
       printf("image_info=%p Version: %d\n", &image_info, image_info.version);
-      printf("   image_info.start_of_binary=%llx\n", image_info.start_of_binary);
-      printf("   image_info.end_of_binary=%llx\n", image_info.end_of_binary);
       printf("   image_info.module_data_start=%llx\n", image_info.module_data_start);
-      printf("   image_info.bin_addr_end_bin=%llx\n", image_info.bin_addr_end_bin);
       printf("   image_info.module_header=%llx\n", image_info.module_header);
       printf("   image_info.attrs=%llx\n", image_info.attrs);
     }
 
-  if (  image_info.version == 0
-      || image_info.end_of_binary == 0
-      || image_info.module_data_start == 0
-      || image_info.module_header == 0)
-    panic("bootstrap ELF file post-processing did not run");
-
-  l4_uint64_t mod_header_addr
-    = Platform_base::platform->to_phys(image_info.start_of_binary
-                                       + image_info.module_header);
-  mod_header = reinterpret_cast<Mod_header *>(mod_header_addr);
+  mod_header = reinterpret_cast<Mod_header *>(image_info.module_header);
   assert((reinterpret_cast<unsigned long>(mod_header) & 7ul) == 0);
 
-  l4_uint64_t global_attrs_addr
-     = Platform_base::platform->to_phys(image_info.start_of_binary
-                                        + image_info.attrs);
-  Mod_attr_list::_global_attrs = reinterpret_cast<char*>(global_attrs_addr);
+  Mod_attr_list::_global_attrs = reinterpret_cast<char*>(image_info.attrs);
 
   modinfo_gen_payload_size();
 
