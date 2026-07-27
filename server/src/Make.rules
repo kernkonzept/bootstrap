@@ -6,14 +6,11 @@
 # - BOOTSTRAP_ELF_NAME
 # - BOOTSTRAP_MODULES_LIST
 # - BOOTSTRAP_DO_RAW_IMAGE
-# - BOOTSTRAP_DO_UIMAGE
-# - BOOTSTRAP_DO_ITB
 # - BUILD_PIE  Set to 1 if you want bootstrap to be position independent.
 #              Automatically set for UEFI mode (see below). Also enables outer
 #              bootstrap on amd64 multiboot to load relocatable image.
 # - BOOTSTRAP_DO_UEFI if set to y an image which is bootable by UEFI is built
 # - BOOTSTRAP_NO_STRIP if set no stripping of image
-# - BOOTSTRAP_UIMAGE_COMPRESSION: set to none, gzip, or bzip2
 # - BOOTSTRAP_CMDLINE: compiled-in command line, only used if no cmdline
 #                      given
 # - BOOTSTRAP_OUTPUT_DIR: Optional alternative output directory for all
@@ -101,9 +98,6 @@ BOOTSTRAP_SEARCH_PATH        ?= $(OBJ_DIR)
 BOOTSTRAP_MODULES_LIST       ?= $(SRC_DIR)/modules.list
 BOOTSTRAP_MODULE_PATH_BINLIB ?= $(OBJ_BASE)/bin/$(subst -,/,$(SYSTEM)):$(OBJ_BASE)/lib/$(subst -,/,$(SYSTEM))
 BOOTSTRAP_ELF_NAME           ?= bootstrap.elf
-MKIMAGE                      ?= mkimage
-MKIMAGE_PRESENT              := $(if $(shell command -v $(MKIMAGE)),y)
-BOOTSTRAP_UIMAGE_COMPRESSION ?= none
 
 ifneq ($(ENTRY),)
 od := $(if $(BOOTSTRAP_OUTPUT_DIR),$(if $(wildcard $(BOOTSTRAP_OUTPUT_DIR)),,$(shell mkdir -p $(BOOTSTRAP_OUTPUT_DIR))))
@@ -123,8 +117,6 @@ endif
 MODE		 = sigma0
 
 BOOTSTRAP_RAW     ?= $(od)bootstrap.raw
-BOOTSTRAP_UIMAGE  ?= $(od)bootstrap.uimage
-BOOTSTRAP_ITB     ?= $(od)bootstrap.itb
 
 ifneq ($(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE)),)
 DEFAULT_RELOC_$(ARCH) := $(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE))
@@ -294,25 +286,14 @@ $(od)bootstrap_$(SUFFIX).%: $(od)bootstrap.%
                  fi ) || exit 1; \
       $(if $(BOOTSTRAP_NO_STRIP),,$(STRIP) $@)
 
-   ifneq ($(BOOTSTRAP_DO_RAW_IMAGE)$(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
+   ifneq ($(BOOTSTRAP_DO_RAW_IMAGE),)
      INSTALL_FILES      += bootstrap.raw bootstrap_$(SUFFIX).raw
-     ifneq ($(BOOTSTRAP_DO_UIMAGE)$(BOOTSTRAP_DO_ITB),)
-       ifeq ($(MKIMAGE_PRESENT),y)
-         ifneq ($(BOOTSTRAP_DO_UIMAGE),)
-           INSTALL_FILES    += bootstrap.uimage bootstrap_$(SUFFIX).uimage
-         else
-           INSTALL_FILES    += bootstrap.itb bootstrap_$(SUFFIX).itb
-         endif
-       else
-         $(error mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage/itb)
-       endif
-     endif
    endif
  endif
 
 all:: $(addprefix $(IMAGES_DIR)/,$(INSTALL_FILES))
 	$(VERBOSE)echo "  Image size(s) in bytes:"
-	$(VERBOSE)for f in $(filter bootstrap_$(SUFFIX).elf bootstrap.raw bootstrap.uimage bootstrap.itb, $(INSTALL_FILES)); do \
+	$(VERBOSE)for f in $(filter bootstrap_$(SUFFIX).elf bootstrap.raw, $(INSTALL_FILES)); do \
 	  find $(if $(od),$(od),.) -name $$f -printf " %30f:  %s\n"; \
 	done
 	$(if $(LDFLAGS_$(od)bootstrap.elf),$(VERBOSE)echo "  Start address: $(BOOTSTRAP_LINKADDR)")
@@ -330,14 +311,6 @@ $(od)bootstrap.efi: $(od)$(EFI_IMAGE)
 	$(VERBOSE)$(LN) -f $< $@
 
     INSTALL_FILES-$(BOOTSTRAP_DO_UEFI) += bootstrap.efi
-  endif
-
-  ifeq ($(ARCH),$(filter $(ARCH),arm arm64 mips riscv))
-    ifeq ($(MKIMAGE_PRESENT),y)
-      INSTALL_FILES += $(BOOTSTRAP_UIMAGE) $(BOOTSTRAP_ITB)
-    else
-      $(warning mkimage($(MKIMAGE)) host tool missing, cannot build bootstrap.uimage/itb)
-    endif
   endif
 endif # ENTRY
 
@@ -405,44 +378,8 @@ $(BOOTSTRAP_RAW): $(BOOTSTRAP_ELF_NAME)
 	$(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl postprocess_raw $(ARCH) "$@"
 	$(VERBOSE)chmod -x $@
 
-%.gzip: %
-	gzip -c9 $^ > $@
-
-%.bzip2: %
-	bzip2 -c9 $^ > $@
-
-%.none: %
-	ln -sf $^ $@
-
-MKIMAGE_ARCH-$(ARCH) = $(ARCH)
-MKIMAGE_ARCH-mips    = $(if $(filter "64",$(CONFIG_CPU_ABI)),mips64,mips)
-
-MKIMAGE_ARCH = $(MKIMAGE_ARCH-$(ARCH))
-
 BID_POST_PROG_LINK_MSG_$(TARGET) = echo -e "  [$(PKGNAME_DIRNAME)] ==> Image post-processing $@"
 BID_POST_PROG_LINK_$(TARGET)     = $(VERBOSE)L4DIR=$(L4DIR) $(SRC_DIR)/build.pl postprocess $@
-
-# u-boot images, based on raw-version
-$(BOOTSTRAP_UIMAGE): $(BOOTSTRAP_RAW).$(BOOTSTRAP_UIMAGE_COMPRESSION)
-	@$(GEN_MESSAGE)
-	@# mkimage writes the same file which does not play well with hardlinks
-	$(VERBOSE)$(RM) -f $@
-	$(VERBOSE)$(MKIMAGE) -e $(call default_reloc,$(ARCH)) \
-	   -a $(call default_reloc,$(ARCH)) -A $(MKIMAGE_ARCH)  \
-	   -C $(BOOTSTRAP_UIMAGE_COMPRESSION) \
-	   -n "L4Re Image @ $$(LC_ALL=C date)" \
-	   -d $^ $@
-
-$(BOOTSTRAP_ITB): $(BOOTSTRAP_RAW)
-	@$(GEN_MESSAGE)
-	@# mkimage writes the same file which does not play well with hardlinks
-	$(VERBOSE)$(RM) -f $@
-	$(VERBOSE)$(MKIMAGE) -f auto -e $(call default_reloc,$(ARCH)) \
-	   -a $(call default_reloc,$(ARCH)) -A $(MKIMAGE_ARCH)  \
-	   -C $(BOOTSTRAP_UIMAGE_COMPRESSION) \
-	   -n "L4Re Image @ $$(LC_ALL=C date)" \
-	   -d $^ $@ \
-	   $(if $(BOOTSTRAP_ITB_DTB),-b $(BOOTSTRAP_ITB_DTB))
 
 $(TARGET): $(LDSCRIPT) $(OBJS_$(TARGET))
 
