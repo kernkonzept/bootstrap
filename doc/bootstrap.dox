@@ -155,8 +155,11 @@
  *
  *   * `-oneshot-timer`
  *
- *     Use the timer in one-shot mode instead of periodic mode. Selecting the
- *     mode via parameter requires the kernel option CONFIG_PARAM_ONE_SHOT=y.
+ *     Use the timer in one-shot mode instead of periodic mode. This can reduce
+ *     the number of timer interrupts and thus improve performance of user-land
+ *     applications.
+ *     Selecting the mode via parameter requires the kernel option
+ *     CONFIG_PARAM_ONE_SHOT=y.
  *
  *   * `-loadcnt`
  *
