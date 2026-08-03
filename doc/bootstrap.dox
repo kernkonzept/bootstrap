@@ -85,7 +85,7 @@
  *
  *     Add a region of memory of `<size>` at `<offset>` to the system's memory
  *     map. Both `<size>` and `<offset>` may be suffixed by either `G`, `M`, or
- *     `K`/`k` to denote GiB, MiB, or KiB, respectively.
+ *     `K` to denote GiB, MiB, or KiB, respectively.
  *
  *     This option may be specified multiple times. If the option is not given,
  *     a platform-specific method for determining the memory layout will be
