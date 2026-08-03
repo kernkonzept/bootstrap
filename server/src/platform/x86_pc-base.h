@@ -15,6 +15,11 @@
 #include <assert.h>
 #include <stdio.h>
 
+enum
+{
+  PCI_CLASS_SERIAL_USB_XHCI = 0x0c0330,
+};
+
 /** VGA console output */
 
 static void vga_init()
@@ -1071,6 +1076,15 @@ public:
   void disable_pci_bus_master()
   {
     for (Pci_iterator i; i != Pci_iterator::end(); ++i)
-      i.disable_bus_master();
+      {
+        // Until the handoff protocol for the Xhci controller went through,
+        // the firmware might use it. Disabling DMA at this time might cause
+        // the controller to crash. Therefore we must defer disabling the
+        // bus master until after xhci handoff.
+        unsigned cc = i.pci_class();
+        if (cc == PCI_CLASS_SERIAL_USB_XHCI)
+          continue;
+        i.disable_bus_master();
+      }
   }
 };

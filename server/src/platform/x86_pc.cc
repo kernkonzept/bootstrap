@@ -630,11 +630,6 @@ xhci_handoff(Pci_iterator const &dev)
 
 }
 
-enum
-{
-  PCI_CLASS_SERIAL_USB_XHCI = 0x0c0330,
-};
-
 static void
 pci_quirks()
 {
@@ -642,7 +637,10 @@ pci_quirks()
     {
       unsigned cc = i.pci_class();
       if (cc == PCI_CLASS_SERIAL_USB_XHCI)
-        xhci_handoff(i);
+        {
+          xhci_handoff(i);
+          i.disable_bus_master();
+        }
     }
 }
 
