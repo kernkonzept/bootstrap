@@ -94,15 +94,7 @@ get_memory_max_address()
  */
 l4_uint64_t mem_end = get_memory_max_address();
 
-/*
- * IMAGE_MODE means that all boot modules are linked together to one
- * big binary.
- */
-#ifdef IMAGE_MODE
 static l4_addr_t _mod_addr = l4_addr_t{RAM_BASE} + MODADDR;
-#else
-static l4_addr_t _mod_addr;
-#endif
 
 static const char *builtin_cmdline = CMDLINE;
 

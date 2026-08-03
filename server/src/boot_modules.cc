@@ -763,7 +763,7 @@ Boot_modules_image_mode::decompress_mods(l4_addr_t total_size, l4_addr_t mod_add
 #endif // CONFIG_BOOTSTRAP_COMPRESS
 
 /**
- * Create the basic multi-boot structure in IMAGE_MODE
+ * Create the basic multi-boot structure
  */
 l4util_l4mod_info *
 Boot_modules_image_mode::construct_mbi(unsigned long mod_addr, Internal_module_list const &internal_mods)
