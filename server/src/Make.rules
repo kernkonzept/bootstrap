@@ -32,9 +32,9 @@ DEFAULT_RELOC_riscv  = $(DEFAULT_RELOC_riscv$(BITS))
 RELOC_PHYS          := y
 LDFLAGS              = -nostdlib -nocrt $(LDNOWARNRWX)
 EXTRA_GENERAL_D_DEP += .redo-change-tracker $(BID_RAM_BASE_DEP) \
-		       $(wildcard $(L4DIR)/conf/Makeconf.boot $(OBJ_BASE)/conf/Makeconf.boot) \
-		       $(SRC_DIR)/build.pl $(BOOTSTRAP_MODULES_LIST) \
-		       $(SRC_DIR)/Makefile.platform $(L4DIR)/tool/lib/L4/Image.pm \
+                       $(wildcard $(L4DIR)/conf/Makeconf.boot $(OBJ_BASE)/conf/Makeconf.boot) \
+                       $(SRC_DIR)/build.pl $(BOOTSTRAP_MODULES_LIST) \
+                       $(SRC_DIR)/Makefile.platform $(L4DIR)/tool/lib/L4/Image.pm \
                        $(L4DIR)/tool/bin/l4image
 INCLUDE_MAKE_RULES   = $(SRC_DIR)/*/Make.rules
 BOOTSTRAP_LD_dep    := $(SRC_DIR)/ldscript.inc
@@ -106,7 +106,7 @@ else
 override BOOTSTRAP_OUTPUT_DIR :=
 endif
 
-PRIVATE_INCDIR	 = $(SRC_DIR) $(SRC_DIR)/ARCH-$(ARCH)
+PRIVATE_INCDIR = $(SRC_DIR) $(SRC_DIR)/ARCH-$(ARCH)
 
 ifeq ($(ARCH),amd64)
   TARGET        := $(od)bootstrap64.elf
@@ -114,9 +114,9 @@ else
   TARGET        := $(od)$(BOOTSTRAP_ELF_NAME)
 endif
 
-MODE		 = sigma0
+MODE             = sigma0
 
-BOOTSTRAP_RAW     ?= $(od)bootstrap.raw
+BOOTSTRAP_RAW   ?= $(od)bootstrap.raw
 
 ifneq ($(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE)),)
 DEFAULT_RELOC_$(ARCH) := $(DEFAULT_RELOC_$(ARCH)-$(PLATFORM_TYPE))
@@ -134,22 +134,22 @@ CXXFLAGS_arm    += -mno-unaligned-access
 SRC_C           += memcpy_aligned.c
 CFLAGS_memcpy_aligned.c = -ffreestanding
 
-SRC_CC		+= exec.cc module.cc region.cc startup.cc init_kip.cc \
-		   libc_support+.cc koptions.cc \
-		   memory.cc boot_modules.cc mod_info.cc
+SRC_CC          += exec.cc module.cc region.cc startup.cc init_kip.cc \
+                   libc_support+.cc koptions.cc \
+                   memory.cc boot_modules.cc mod_info.cc
 SRC_CC-$(BOOTSTRAP_DO_UEFI) += efi-support.cc
 
-SRC_CC_x86	+= ARCH-x86/reboot.cc base_critical.cc
+SRC_CC_x86      += ARCH-x86/reboot.cc base_critical.cc
 SRC_CC_x86-$(BOOTSTRAP_DO_MB2) += multiboot2.cc
-SRC_CC_amd64	+= ARCH-x86/reboot.cc base_critical.cc \
-		   ARCH-amd64/cpu_info.cc ARCH-amd64/paging.cc \
-		   ARCH-amd64/paging_alloc.cc
-SRC_CC_arm     	+= ARCH-arm/reboot.cc ARCH-arm/head.cc ARCH-arm/platform.cc platform_common-arm.cc
-SRC_CC_arm64   	+= ARCH-arm/reboot.cc ARCH-arm64/platform.cc platform_common-arm.cc
+SRC_CC_amd64    += ARCH-x86/reboot.cc base_critical.cc \
+                   ARCH-amd64/cpu_info.cc ARCH-amd64/paging.cc \
+                   ARCH-amd64/paging_alloc.cc
+SRC_CC_arm      += ARCH-arm/reboot.cc ARCH-arm/head.cc ARCH-arm/platform.cc platform_common-arm.cc
+SRC_CC_arm64    += ARCH-arm/reboot.cc ARCH-arm64/platform.cc platform_common-arm.cc
 SRC_CC_arm64-$(BOOTSTRAP_DO_UEFI)  += ARCH-arm64/efi.cc
 SRC_CC_arm64-y$(BOOTSTRAP_DO_UEFI) += ARCH-arm64/head.cc
-SRC_CC_mips    	+= ARCH-mips/reboot.cc ARCH-mips/head.cc \
-		   ARCH-mips/cpu.cc
+SRC_CC_mips     += ARCH-mips/reboot.cc ARCH-mips/head.cc \
+                   ARCH-mips/cpu.cc
 SRC_CC_riscv    += ARCH-riscv/reboot.cc ARCH-riscv/head.cc \
                    ARCH-riscv/platform_riscv.cc dt.cc
 SRC_CC          += $(SUPPORT_CC_$(ARCH)-$(PLATFORM_TYPE))
@@ -192,15 +192,15 @@ REQUIRES_LIBS_riscv += libfdt
 REQUIRES_LIBS       += drivers_uart libc_minimal cxx_base cxx_io
 
 ifeq ($(BOOTSTRAP_DO_UEFI)-$(ARCH),y-arm64)
-LDSCRIPT	 = bootstrap.efi.ld
+LDSCRIPT = bootstrap.efi.ld
 else
-LDSCRIPT	 = bootstrap.ld
+LDSCRIPT = bootstrap.ld
 endif
 
 vpath bootstrap%.ld.in $(SRC_DIR)/ARCH-$(ARCH)
 
 # can be overwritten by Makeconf.local
-BUILD_PIE	?= 0
+BUILD_PIE ?= 0
 
 ifeq ($(BUILD_PIE),1)
 CFLAGS            += -fpie
@@ -318,7 +318,7 @@ SRC_CC-$(CONFIG_BOOTSTRAP_COMPRESS) += uncompress.cc
 REQUIRES_LIBS-$(CONFIG_BOOTSTRAP_COMPRESS) += zlib
 
 ifneq ($(RAM_SIZE_MB),)
-CPPFLAGS	+= -DRAM_SIZE_MB=$(RAM_SIZE_MB)
+CPPFLAGS += -DRAM_SIZE_MB=$(RAM_SIZE_MB)
 endif
 
 CXXFLAGS += -fno-rtti -fno-exceptions
@@ -361,7 +361,7 @@ mod.make.inc $(od)mbi_modules.o: $(GENERAL_D_LOC) \
 
 endif
 
-CPPFLAGS	+= -DMODADDR=$(MOD_ADDR)
+CPPFLAGS += -DMODADDR=$(MOD_ADDR)
 
 all:: $(BOOTSTRAP_RAW)
 
@@ -460,10 +460,10 @@ all::
 	$(VERBOSE)BUILD_FAIL=""; \
 	echo "Performing bootstrap build check ..."; \
 	for p in $$($(SED) -En 's/^\[$(OSYSTEM)\] *([^ ]*) --.*/\1/p' $(OBJ_BASE)/Kconfig.generated.platforms.list); do \
-		$(MAKE) PT=$$p PLATFORM_CHECK=y BID_MESSAGE_TAG='$(BID_MESSAGE_TAG):'$$p || BUILD_FAIL+="\t$$p\n"; \
+	  $(MAKE) PT=$$p PLATFORM_CHECK=y BID_MESSAGE_TAG='$(BID_MESSAGE_TAG):'$$p || BUILD_FAIL+="\t$$p\n"; \
 	done; \
 	[ -z "$${BUILD_FAIL}" ] || ( \
-		printf "Bootstrap $(OSYSTEM) build check failed for:\n$${BUILD_FAIL}" && false \
+	  printf "Bootstrap $(OSYSTEM) build check failed for:\n$${BUILD_FAIL}" && false \
 	)
 	$(if $(CONFIG_HAVE_BIDPC_GNU_EFI),$(if $(filter amd64 x86 arm64,$(BUILD_ARCH)),$(MAKE) PLATFORM_CHECK=y BOOTSTRAP_DO_UEFI=y,echo "No EFI for $(BUILD_ARCH) yet."),echo "No gnu-efi available, no UEFI build test.")
 endif
