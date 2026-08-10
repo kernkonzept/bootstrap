@@ -64,6 +64,7 @@ SECTIONS
 
     CTORS
     PLATFORMS
+    DEVS
 
    /*
     * Note that these aren't the using the GNU "CONSTRUCTOR" output section
