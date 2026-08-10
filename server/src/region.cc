@@ -195,7 +195,7 @@ Region::print(bool aligned) const
 void
 Region::vprint(bool aligned) const
 {
-  static char const *types[] = {"Gap", "Kern", "Sigma0", "Boot", "Root",
+  static char const *types[] = {"", "Kern", "Sigma0", "Boot", "Root",
                                 "Arch", "Ram", "Info" };
   printf("  ");
   print(aligned);
