@@ -102,6 +102,15 @@ struct Platform_x86_1 : Platform_x86
         l4util_mb_addr_range_t *mmap;
         l4util_mb_for_each_mmap_entry(mmap, mbi)
           {
+            if constexpr (sizeof(unsigned long) < 8)
+              {
+                if (   mmap->addr + mmap->size < mmap->addr
+                    || mmap->addr + mmap->size >= 0x1'00000000)
+                  printf("  WARNING: Ignoring MB memory map entry %llx/%llx!\n",
+                         mmap->addr, mmap->size);
+                continue;
+              }
+
             switch (mmap->type)
               {
               case MB_ART_MEMORY:
