@@ -213,29 +213,9 @@ Region::vprint(bool aligned) const
 void
 Region_list::dump() const
 {
-  Region const *i;
-  Region const *j;
-  unsigned long long min, mark = 0;
-
-  printf("Regions of list '%s'\n", _name);
-  for (i = _reg; i < _end; ++i)
-    {
-      min = ~0;
-      Region const *min_idx = 0;
-      for (j = _reg; j < _end; ++j)
-        if (j->begin() < min && j->begin() >= mark)
-          {
-            min     = j->begin();
-            min_idx = j;
-          }
-      if (!min_idx)
-        {
-          i->vprint(true);
-          continue;
-        }
-      min_idx->vprint(true);
-      mark = min_idx->begin() + 1;
-    }
+  printf("Regions of list '%s':\n", _name);
+  for (Region const &i : *this)
+    i.vprint(true);
 }
 
 Region *
