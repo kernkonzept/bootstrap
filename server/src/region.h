@@ -325,15 +325,22 @@ public:
   Region *contains(Region const &o) const;
 
   /**
-   * Search for a memory region not overlapping any known region,
-   * within search.
+   * Search for a memory region not overlapping any known region, within search.
+   *
+   * \param search  The area to search for the memory region.
+   * \param size    The size of the memory region.
+   * \param align   The desired alignment of the memory region (log2-based).
    */
   unsigned long long find_free(Region const &search,
                                unsigned long long size, unsigned align) const;
 
   /**
-   * Search for a memory region not overlapping any know region, starting
-   * from the end of the search region.
+   * Search for a memory region not overlapping any known region, starting from
+   * the end of the search region.
+   *
+   * \param search  The area to search for the memory region.
+   * \param size    The size of the memory region.
+   * \param align   The desired alignment of the memory region (log2-based).
    */
   unsigned long long find_free_rev(Region const &search, unsigned long long _size,
                                    unsigned align) const;
