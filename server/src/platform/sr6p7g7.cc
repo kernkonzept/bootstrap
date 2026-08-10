@@ -54,14 +54,10 @@ class Platform_sr6p7g7 : public Platform_arm, public Boot_modules_image_mode
 
     for (auto const &r : cluster_regions)
       {
-        if (r.cluster == cluster
-            && search_area->begin() <= r.begin
-            && search_area->end() >= r.end)
+        Region cluster_region(r.begin, r.end);
+        if (r.cluster == cluster && search_area->contains(cluster_region))
           {
-            if (search_area->begin() < r.begin)
-              search_area->begin(r.begin);
-            if (search_area->end() > r.end)
-              search_area->end(r.end);
+            *search_area = search_area->intersect(cluster_region);
             return true;
           }
       }

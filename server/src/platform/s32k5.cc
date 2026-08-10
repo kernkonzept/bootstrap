@@ -45,13 +45,10 @@ class Platform_s32k5 final : public Platform_arm, public Boot_modules_image_mode
 #endif
     };
 
-    if (search_area->begin() <= Dyn_alloc_end
-        && search_area->end() >= Dyn_alloc_begin)
+    Region dyn_alloc(Dyn_alloc_begin, Dyn_alloc_end);
+    if (search_area->overlaps(dyn_alloc))
       {
-        if (search_area->begin() < Dyn_alloc_begin)
-          search_area->begin(Dyn_alloc_begin);
-        if (search_area->end() > Dyn_alloc_end)
-          search_area->end(Dyn_alloc_end);
+        *search_area = search_area->intersect(dyn_alloc);
         return true;
       }
 

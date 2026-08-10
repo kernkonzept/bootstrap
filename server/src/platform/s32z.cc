@@ -41,13 +41,10 @@ class Platform_s32z final : public Platform_arm, public Boot_modules_image_mode
       Dyn_alloc_end   = CONFIG_BOOTSTRAP_PF_S32Z_DYN_ALLOC_END,
     };
 
-    if (search_area->begin() <= Dyn_alloc_end
-        && search_area->end() >= Dyn_alloc_begin)
+    Region dyn_alloc(Dyn_alloc_begin, Dyn_alloc_end);
+    if (search_area->overlaps(dyn_alloc))
       {
-        if (search_area->begin() < Dyn_alloc_begin)
-          search_area->begin(Dyn_alloc_begin);
-        if (search_area->end() > Dyn_alloc_end)
-          search_area->end(Dyn_alloc_end);
+        *search_area = search_area->intersect(dyn_alloc);
         return true;
       }
 #else
@@ -55,25 +52,17 @@ class Platform_s32z final : public Platform_arm, public Boot_modules_image_mode
     if (node == ~0U)
       node = node_id();
 
-    if (search_area->begin() <= Rtu0_cram_end
-        && search_area->end() >= Rtu0_cram_begin
-        && node < 4)
+    Region rtu0_cram(Rtu0_cram_begin, Rtu0_cram_end);
+    if (node < 4 && search_area->overlaps(rtu0_cram))
       {
-        if (search_area->begin() < Rtu0_cram_begin)
-          search_area->begin(Rtu0_cram_begin);
-        if (search_area->end() > Rtu0_cram_end)
-          search_area->end(Rtu0_cram_end);
+        *search_area = search_area->intersect(rtu0_cram);
         return true;
       }
 
-    if (search_area->begin() <= Rtu1_cram_end
-        && search_area->end() >= Rtu1_cram_begin
-        && node >= 4)
+    Region rtu1_cram(Rtu1_cram_begin, Rtu1_cram_end);
+    if (node >= 4 && search_area->overlaps(rtu1_cram))
       {
-        if (search_area->begin() < Rtu1_cram_begin)
-          search_area->begin(Rtu1_cram_begin);
-        if (search_area->end() > Rtu1_cram_end)
-          search_area->end(Rtu1_cram_end);
+        *search_area = search_area->intersect(rtu1_cram);
         return true;
       }
 #endif
