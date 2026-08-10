@@ -12,9 +12,10 @@
 
 #include <l4/sys/kip>
 #include <l4/util/mb_info.h>
-#include "support.h"
-#include "platform.h"
 #include "boot_modules.h"
+#include "memory.h"
+#include "platform.h"
+#include "support.h"
 #include "x86_pc-base.h"
 
 #include <string.h>

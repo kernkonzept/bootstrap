@@ -10,6 +10,7 @@
 #include <l4/sys/types.h>
 #include <l4/util/mb_info.h>
 #include "efi-support.h"
+#include "memory.h"
 #include "panic.h"
 
 #if defined(ARCH_x86) || defined(ARCH_amd64)

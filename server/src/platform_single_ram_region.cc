@@ -1,5 +1,8 @@
+#include <stdio.h>
+
+#include "memory.h"
 #include "platform.h"
-#include "support.h"
+#include "region.h"
 
 #ifdef RAM_SIZE_MB
 void

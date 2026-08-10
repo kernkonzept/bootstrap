@@ -10,7 +10,7 @@
 
 #include "platform.h"
 #include "koptions-def.h"
-#include "support.h"
+#include "memory.h"
 #include "arch/arm/mem.h"
 
 #include <l4/sys/kip.h>

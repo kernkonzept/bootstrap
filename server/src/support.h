@@ -84,32 +84,4 @@ static inline unsigned long
 round_wordsize(unsigned long s)
 { return (s + sizeof(unsigned long) - 1) & ~(sizeof(unsigned long) - 1); }
 
-struct Memory
-{
-  Region_list *ram;
-  Region_list *regions;
-  unsigned long find_free_ram(unsigned long size, unsigned long min_addr = 0,
-                              unsigned long max_addr = ~0UL,
-                              unsigned align = L4_PAGESHIFT,
-                              unsigned node = ~0U);
-  unsigned long find_free_ram_rev(unsigned long size, unsigned long min_addr = 0,
-                                  unsigned long max_addr = ~0UL,
-                                  unsigned align = L4_PAGESHIFT,
-                                  unsigned node = ~0U);
-
-  /**
-   * Optional callback to constrain dynamic allocations.
-   *
-   * The function may narrow the `search_area`.
-   *
-   * @param search_area   A candidate RAM area.
-   * @param node          Applicable AMP node or ~0U if unspecified.
-   *
-   * @returns   True if area can be used, otherwise false.
-   */
-  bool (*validate)(Region *search_area, unsigned node);
-};
-
-extern Memory *mem_manager;
-
 #endif /* __BOOTSTRAP__SUPPORT_H__ */

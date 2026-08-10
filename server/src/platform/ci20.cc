@@ -10,6 +10,7 @@
 #include <l4/drivers/uart_16550.h>
 #endif
 #include <l4/sys/compiler.h>
+#include "memory.h"
 #include "support.h"
 #include "platform-mips.h"
 #include "startup.h"

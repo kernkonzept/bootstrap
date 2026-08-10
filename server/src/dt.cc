@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "memory.h"
 #include "panic.h"
-#include "support.h"
+#include "region.h"
 
 #include "dt.h"
 

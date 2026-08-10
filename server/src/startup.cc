@@ -33,15 +33,16 @@
 #include "panic.h"
 
 /* local stuff */
-#include "platform.h"
 #include "exec.h"
-#include "region.h"
+#include "memory.h"
 #include "memcpy_aligned.h"
 #include "module.h"
-#include "startup.h"
-#include "support.h"
 #include "init_kip.h"
 #include "koptions.h"
+#include "platform.h"
+#include "region.h"
+#include "startup.h"
+#include "support.h"
 
 #if defined(__aarch64__) || defined(__arm__)
 #include "arch/arm/mem.h"

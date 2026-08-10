@@ -1,4 +1,7 @@
-#include "support.h"
+#include "memory.h"
+#include "region.h"
+
+#include <l4/cxx/minmax>
 
 unsigned long
 Memory::find_free_ram(unsigned long size,

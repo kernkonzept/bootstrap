@@ -6,14 +6,18 @@
  */
 
 #include <endian.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <l4/util/mb_info.h>
 #include <l4/sys/types.h>
 
+#include "memory.h"
+#include "panic.h"
 #include "qemu_fw_cfg.h"
 #include "qemu_ramfb.h"
-#include "panic.h"
-#include "support.h"
+#include "region.h"
 
 namespace
 {

@@ -7,9 +7,12 @@
 
 #include <l4/sys/types.h>
 
+#include <string.h>
+
+#include "memory.h"
 #include "panic.h"
 #include "paging.h"
-#include "support.h"
+#include "region.h"
 
 extern "C" void
 ptab_alloc(l4_uint32_t *out_ptab_pa)
