@@ -375,7 +375,7 @@ dump_ram_map(bool show_total = false)
   for (Region const &r : ram)
     {
       l4util_human_readable_size(s, sizeof(s), r.size());
-      printf("  RAM: %016llx - %016llx: %s\n", r.begin(), r.end(), s);
+      printf("  RAM: %016lx - %016lx: %s\n", r.begin(), r.end(), s);
       sum += r.size();
     }
   if (show_total)

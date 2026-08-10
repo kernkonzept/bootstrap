@@ -77,9 +77,9 @@ struct Platform_x86_1 : Platform_x86
    if (!(mbi->flags & L4UTIL_MB_MEM_MAP))
       {
         assert(mbi->flags & L4UTIL_MB_MEMORY);
-        ram->add(Region::start_size(0ULL, mbi->mem_lower << 10, ".ram",
+        ram->add(Region::start_size(0UL, mbi->mem_lower << 10, ".ram",
                                     Region::Ram));
-        ram->add(Region::start_size(1ULL << 20, mbi->mem_upper << 10, ".ram",
+        ram->add(Region::start_size(1UL << 20, mbi->mem_upper << 10, ".ram",
                                     Region::Ram));
 
         // Fix EBDA in conventional memory
@@ -145,7 +145,7 @@ struct Platform_x86_1 : Platform_x86
           }
       }
 
-    regions->add(Region::start_size(0ULL, 0x1000, ".BIOS", Region::Arch));
+    regions->add(Region::start_size(0UL, 0x1000, ".BIOS", Region::Arch));
   }
 
   void late_setup(l4_kernel_info_t *kip) override

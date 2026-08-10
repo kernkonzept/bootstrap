@@ -67,10 +67,10 @@ public:
   Region() = default;
 
   /** Create an invalid region. */
-  Region(Type) : Region(0ULL) {};
+  Region(Type) : Region(0UL) {};
 
   /** Create a 1byte region at begin, basically for lookups */
-  Region(unsigned long long begin)
+  Region(unsigned long begin)
   : _begin(begin), _end(begin), _name(0), _t(No_mem), _s(0), _eager(false)
   {}
 
@@ -91,9 +91,8 @@ public:
    * @param sub The subtype of the region.
    * @param eager Mark region as eagerly mapped by kernel
    */
-  Region(unsigned long long begin, unsigned long long end,
-         char const *name = 0, Type t = No_mem, Subtype_info sub = No_subtype,
-         bool eager = false)
+  Region(unsigned long begin, unsigned long end, char const *name = 0,
+         Type t = No_mem, Subtype_info sub = No_subtype, bool eager = false)
   : _begin(begin), _end(end), _name(name), _t(t), _s(sub), _eager(eager)
   {
     assert(_begin <= _end);
@@ -105,7 +104,7 @@ public:
    * @param begin the start address of the new region
    * @param end the end address (inclusive) of the new region
    */
-  Region(Region const &other, unsigned long long begin, unsigned long long end)
+  Region(Region const &other, unsigned long begin, unsigned long end)
   : _begin(begin), _end(end), _name(other._name), _t(other._t), _s(other._s),
     _eager(other._eager)
   {
@@ -121,7 +120,7 @@ public:
    * @param sub the subtype of the region
    * @param eager Mark region as eagerly mapped by kernel
    */
-  static Region start_size(unsigned long long begin, unsigned long long size,
+  static Region start_size(unsigned long begin, unsigned long size,
                            char const *name = 0, Type t = No_mem,
                            Subtype_info sub = No_subtype, bool eager = false)
   {
@@ -138,7 +137,7 @@ public:
    * @param sub the subtype of the region
    * @param eager Mark region as eagerly mapped by kernel
    */
-  static Region start_size(void const *begin, unsigned long long size,
+  static Region start_size(void const *begin, unsigned long size,
                            char const *name = 0, Type t = No_mem,
                            Subtype_info sub = No_subtype, bool eager = false)
   {
@@ -181,19 +180,19 @@ public:
   }
 
   /** Get the start address. */
-  unsigned long long begin() const { return _begin; }
+  unsigned long begin() const { return _begin; }
   /** Get the address of the last byte. */
-  unsigned long long end() const { return _end; }
+  unsigned long end() const { return _end; }
 
   /** Set the start address. */
-  void begin(unsigned long long begin)
+  void begin(unsigned long begin)
   {
     _begin = begin;
     assert(_begin <= _end);
   }
 
   /** Set the address of the last byte. */
-  void end(unsigned long long end)
+  void end(unsigned long end)
   {
     _end = end;
     assert(_begin <= _end);
@@ -202,7 +201,7 @@ public:
   /** Get the name of the region. */
   char const *name() const { return _name; }
   /** Get size of the region */
-  unsigned long long size() const { return _end - _begin + 1; }
+  unsigned long size() const { return _end - _begin + 1; }
   /** Set the name of the region. */
   void name(char const *name) { _name = name; }
   /** Get the type of the region. */
@@ -250,7 +249,7 @@ public:
   bool eager() const { return _eager; }
 
 private:
-  unsigned long long _begin, _end;
+  unsigned long _begin, _end;
   char const *_name;
   unsigned char _t, _s;
   bool _eager;
@@ -275,8 +274,8 @@ public:
    */
   void init(Region *store, unsigned size,
             const char *name,
-            unsigned long long max_combined_size = ~0ULL,
-            unsigned long long address_limit = ~0ULL)
+            unsigned long max_combined_size = ~0UL,
+            unsigned long address_limit = ~0UL)
   {
     _reg = _end = store;
     _max = _reg + size;
@@ -311,8 +310,8 @@ public:
   template<typename STORE>
   void init(STORE &store,
             const char *name,
-            unsigned long long max_combined_size = ~0ULL,
-            unsigned long long address_limit = ~0ULL)
+            unsigned long max_combined_size = ~0UL,
+            unsigned long address_limit = ~0UL)
   {
     init(store, Array_type_helper<STORE>::size, name,
          max_combined_size, address_limit);
@@ -331,8 +330,8 @@ public:
    * \param size    The size of the memory region.
    * \param align   The desired alignment of the memory region (log2-based).
    */
-  unsigned long long find_free(Region const &search,
-                               unsigned long long size, unsigned align) const;
+  unsigned long find_free(Region const &search,
+                          unsigned long size, unsigned align) const;
 
   /**
    * Search for a memory region not overlapping any known region, starting from
@@ -342,8 +341,8 @@ public:
    * \param size    The size of the memory region.
    * \param align   The desired alignment of the memory region (log2-based).
    */
-  unsigned long long find_free_rev(Region const &search, unsigned long long _size,
-                                   unsigned align) const;
+  unsigned long find_free_rev(Region const &search,
+                              unsigned long _size, unsigned align) const;
   /**
    * Add a new region, with a upper limit check and verboseness.
    */
@@ -385,9 +384,9 @@ protected:
   Region *_reg;
 
   const char *_name;
-  unsigned long long _max_combined_size;
-  unsigned long long _address_limit;
-  unsigned long long _combined_size;
+  unsigned long _max_combined_size;
+  unsigned long _address_limit;
+  unsigned long _combined_size;
 
 private:
   /**

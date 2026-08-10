@@ -18,13 +18,13 @@
 #include "region.h"
 #include "module.h"
 
-unsigned long long
-Region_list::find_free(Region const &search, unsigned long long _size,
+unsigned long
+Region_list::find_free(Region const &search, unsigned long _size,
                        unsigned align) const
 {
-  unsigned long long start = search.begin();
-  unsigned long long end   = search.end();
-  unsigned long long size  = l4_round_size(_size, align);
+  unsigned long start = search.begin();
+  unsigned long end   = search.end();
+  unsigned long size  = l4_round_size(_size, align);
   while (1)
     {
       start = l4_round_size(start, align);
@@ -43,13 +43,13 @@ Region_list::find_free(Region const &search, unsigned long long _size,
     }
 }
 
-unsigned long long
-Region_list::find_free_rev(Region const &search, unsigned long long _size,
+unsigned long
+Region_list::find_free_rev(Region const &search, unsigned long _size,
                            unsigned align) const
 {
-  unsigned long long start = search.begin();
-  unsigned long long end   = search.end();
-  unsigned long long size  = l4_round_size(_size, align);
+  unsigned long start = search.begin();
+  unsigned long end   = search.end();
+  unsigned long size  = l4_round_size(_size, align);
   while (1)
     {
       end = l4_trunc_size(end - (size - 1), align);
@@ -125,7 +125,7 @@ Region_list::add(Region const &region, bool may_overlap)
     {
       printf("  Dropping '%s' region ", _name);
       mem.print();
-      printf(" due to %llu MiB address limit\n", _address_limit >> 20);
+      printf(" due to %lu MiB address limit\n", _address_limit >> 20);
       return;
     }
 
@@ -136,7 +136,7 @@ Region_list::add(Region const &region, bool may_overlap)
       mem.end(_address_limit - 1);
       printf(" to ");
       mem.print();
-      printf(" due to %llu MiB address limit\n", _address_limit >> 20);
+      printf(" due to %lu MiB address limit\n", _address_limit >> 20);
 
     }
 
@@ -144,7 +144,7 @@ Region_list::add(Region const &region, bool may_overlap)
     {
       printf("  Dropping '%s' region ", _name);
       mem.print();
-      printf(" due to %llu MiB size limit\n", _max_combined_size >> 20);
+      printf(" due to %lu MiB size limit\n", _max_combined_size >> 20);
       return;
     }
 
@@ -155,7 +155,7 @@ Region_list::add(Region const &region, bool may_overlap)
       mem.end(mem.begin() + _max_combined_size - _combined_size - 1);
       printf(" to ");
       mem.print();
-      printf(" due to %llu MiB size limit\n", _max_combined_size >> 20);
+      printf(" due to %lu MiB size limit\n", _max_combined_size >> 20);
     }
 
   add_nolimitcheck(mem, may_overlap);
@@ -187,9 +187,9 @@ Region::print(bool aligned) const
   char s[64];
   l4util_human_readable_size(s, sizeof(s), size());
   if (aligned)
-    printf("  [%9llx, %9llx] {%10s}", begin(), end(), s);
+    printf("  [%9lx, %9lx] {%10s}", begin(), end(), s);
   else
-    printf("[%llx, %llx] {%s}", begin(), end(), s);
+    printf("[%lx, %lx] {%s}", begin(), end(), s);
 }
 
 void

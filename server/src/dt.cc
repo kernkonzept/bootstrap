@@ -264,7 +264,7 @@ void Dt::setup_memory() const
   Region r_fdt_new
     = Region::start_size(_fdt, fdt_totalsize(_fdt), ".dtb", Region::Root);
   if (Region *r_fdt_found = mem_manager->regions->find(r_fdt_new))
-    warn("No .dtb region: bootloader has already reserved DT region %llx-%llx!\n",
+    warn("No .dtb region: bootloader has already reserved DT region %lx-%lx!\n",
          r_fdt_found->begin(), r_fdt_found->end());
   else
     mem_manager->regions->add(r_fdt_new);
