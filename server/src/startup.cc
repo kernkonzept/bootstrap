@@ -1043,10 +1043,10 @@ l4_exec_add_region(void *opaque, ElfW(Phdr) const *ph,
 
   if (Region const *r = find_region_overlap(n))
     {
-      printf("  New region for list %s:\t", n.name());
-      n.vprint();
-      printf("  overlaps with:         \t");
-      r->vprint();
+      printf("  New region:   ");
+      n.vprint(true);
+      printf("  overlaps with:");
+      r->vprint(true);
       regions.dump();
       panic("Region overlap");
     }

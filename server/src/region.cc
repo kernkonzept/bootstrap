@@ -93,10 +93,10 @@ Region_list::add_nolimitcheck(Region const &region, bool may_overlap)
         {
           if (!may_overlap && !(region < *r))
             {
-              printf("  New region for list %s:\t", _name);
-              region.vprint();
-              printf("  overlaps with:         \t");
-              r->vprint();
+              int ret = printf("  New region for list '%s':", _name);
+              region.vprint(true);
+              printf("  overlaps with:%*s", ret - 16, "");
+              r->vprint(true);
 
               dump();
               panic("Region overlap");
@@ -193,14 +193,13 @@ Region::print(bool aligned) const
 }
 
 void
-Region::vprint() const
+Region::vprint(bool aligned) const
 {
-  static char const *types[] = {"Gap   ", "Kern  ", "Sigma0",
-                                "Boot  ", "Root  ", "Arch  ", "Ram   ",
-                                "Info  " };
+  static char const *types[] = {"Gap", "Kern", "Sigma0", "Boot", "Root",
+                                "Arch", "Ram", "Info" };
   printf("  ");
-  print(true);
-  printf(" %s ", types[type()]);
+  print(aligned);
+  printf(" %*s ", aligned ? -6 : 0, types[type()]);
   if (name())
     {
       if (*name() == '.')
@@ -231,10 +230,10 @@ Region_list::dump() const
           }
       if (!min_idx)
         {
-          i->vprint();
+          i->vprint(true);
           continue;
         }
-      min_idx->vprint();
+      min_idx->vprint(true);
       mark = min_idx->begin() + 1;
     }
 }

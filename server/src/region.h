@@ -218,7 +218,7 @@ public:
   void print(bool aligned = false) const;
 
   /** Print the region verbose (with name and type). */
-  void vprint() const;
+  void vprint(bool aligned) const;
 
   /** Compare two regions. */
   bool operator < (Region const &o) const

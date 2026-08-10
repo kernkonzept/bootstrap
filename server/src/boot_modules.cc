@@ -183,7 +183,7 @@ Boot_modules::_move_module(unsigned index, void *dest,
         {
           printf("ERROR: module target [%p-%p) overlaps\n",
                  dest, static_cast<char *>(dest) + size - 1);
-          overlap->vprint();
+          overlap->vprint(true);
           mem_manager->regions->dump();
           panic("Cannot move module");
         }
