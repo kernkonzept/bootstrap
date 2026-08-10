@@ -105,10 +105,12 @@ struct Platform_x86_1 : Platform_x86
             if constexpr (sizeof(unsigned long) < 8)
               {
                 if (   mmap->addr + mmap->size < mmap->addr
-                    || mmap->addr + mmap->size >= 0x1'00000000)
-                  printf("  WARNING: Ignoring MB memory map entry %llx/%llx!\n",
-                         mmap->addr, mmap->size);
-                continue;
+                    || mmap->addr + mmap->size > 0x1'00000000ULL)
+                  {
+                    printf("  WARNING: Ignoring MB memory map entry %llx/%llx!\n",
+                           mmap->addr, mmap->size);
+                    continue;
+                  }
               }
 
             switch (mmap->type)
