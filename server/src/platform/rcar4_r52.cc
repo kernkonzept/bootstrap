@@ -9,6 +9,7 @@
 #include "platform-arm.h"
 #include "startup.h"
 #include "support.h"
+#include "memory.h"
 
 namespace {
 

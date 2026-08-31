@@ -11,6 +11,7 @@
 #include "arch/arm/mpu.h"
 #include "platform-arm.h"
 #include "startup.h"
+#include "memory.h"
 
 namespace {
 

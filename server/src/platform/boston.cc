@@ -12,6 +12,7 @@
 
 #include <l4/drivers/uart_16550.h>
 #include "support.h"
+#include "memory.h"
 #include "panic.h"
 #include "platform-mips.h"
 #include "startup.h"

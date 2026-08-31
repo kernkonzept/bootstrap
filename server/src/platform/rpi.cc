@@ -19,6 +19,7 @@
 #include "arch/arm/mem.h"
 #include "platform_dt-arm.h"
 #include "panic.h"
+#include "memory.h"
 
 namespace {
 

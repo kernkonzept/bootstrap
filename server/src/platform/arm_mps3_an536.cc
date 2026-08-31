@@ -16,6 +16,7 @@
 #include "platform-arm.h"
 #include "support.h"
 #include "startup.h"
+#include "memory.h"
 
 namespace {
 

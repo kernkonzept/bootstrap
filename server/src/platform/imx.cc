@@ -17,7 +17,7 @@
 #include "support.h"
 #include "platform-arm.h"
 #include "startup.h"
-
+#include "memory.h"
 
 namespace {
 class Platform_arm_imx
