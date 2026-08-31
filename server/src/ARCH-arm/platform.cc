@@ -63,7 +63,7 @@ Platform_arm::setup_kernel_config(l4_kernel_info_t *kip)
       if (!arm_switch_to_hyp())
         panic("No switching functionality available on this platform.");
       if (!running_in_hyp_mode())
-        panic("Failed to switch to HYP as required by Fiasco.OC.");
+        panic("Failed to switch to HYP as required by Fiasco.");
     }
 
   if (kernel_type == EL_Support::EL1 && running_in_hyp_mode())
