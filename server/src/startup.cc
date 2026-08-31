@@ -393,25 +393,31 @@ parse_mem_layout(const char *s, unsigned long *size, unsigned long *offset)
 static void
 dump_ram_map(bool show_total = false)
 {
-  unsigned long sum_ram = 0;
+  // 'unsigned long long' required to show a size of 4 GiB on 32-bit hosts
+  unsigned long long sum_ram = 0;
   for (Region const &r : ram)
     {
       char s[64];
-      l4util_human_readable_size(s, sizeof(s), r.size());
+      l4util_human_readable_size_region(s, sizeof(s), r.begin(), r.end());
       printf("  RAM: %016lx - %016lx: %s\n", r.begin(), r.end(), s);
       sum_ram += r.size();
     }
-
-  unsigned long sum_sysalloc = 0;
-  for (Region const &r : sysalloc)
-    sum_sysalloc += r.size();
 
   if (show_total)
     {
       char s_ram[64];
       l4util_human_readable_size(s_ram, sizeof(s_ram), sum_ram);
+
+      unsigned long long sum_sysalloc = 0;
+      for (Region const &r : sysalloc)
+        sum_sysalloc += r.size();
       char s_sysalloc[64];
-      l4util_human_readable_size(s_sysalloc, sizeof(s_sysalloc), sum_sysalloc);
+      // unfortunately this special case is required for 64-bit hosts
+      if (!sysalloc.empty() && sum_sysalloc == 0)
+        l4util_human_readable_size_region(s_sysalloc, sizeof(s_sysalloc), 0, ~0UL);
+      else
+        l4util_human_readable_size(s_sysalloc, sizeof(s_sysalloc), sum_sysalloc);
+
       printf("  Total RAM: %s; available for Bootstrap/Sigma0/Kernel: %s\n",
              s_ram, s_sysalloc);
     }
@@ -840,7 +846,8 @@ setup_kmem_areas(char const *cmdline)
 
   if (added)
     {
-      unsigned long sum_kmem = 0;
+      // 'unsigned long long' required to show a size of 4 GiB on 32-bit hosts
+      unsigned long long sum_kmem = 0;
       for (Region const &r : regions)
         if (r.type() == Region::Kmem)
           sum_kmem += r.size();
