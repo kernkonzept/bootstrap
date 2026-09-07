@@ -10,6 +10,11 @@
 #include <l4/sys/compiler.h>
 #include <l4/sys/consts.h>
 
+// musl libc defined PAGE_SIZE
+#ifdef PAGE_SIZE
+#undef PAGE_SIZE
+#endif
+
 enum
 {
   PAGE_SIZE      = (1 << 12),
