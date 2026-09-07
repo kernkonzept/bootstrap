@@ -57,12 +57,12 @@ struct Platform_arm_fvp_base_common : public Platform_arm,
   void setup_memory_map() override
   {
     // FVP is a virtual platform, so be flexible wrt our memory configuration
-    unsigned size_mb = RAM_SIZE_MB;
+    unsigned long size_mb = RAM_SIZE_MB;
     if (sizeof(unsigned long) == 4 && size_mb > 2048U)
       size_mb = 2048U;
 
     mem_manager->ram->add(
-      Region::start_size(Ram_base_low, cxx::max(size_mb, 2048U) << 20, ".ram"));
+      Region::start_size(Ram_base_low, cxx::min(size_mb, 2048UL) << 20, ".ram"));
     if (sizeof(unsigned long) == 8 && size_mb > 2048U)
       mem_manager->ram->add(
         Region::start_size(Ram_base_high, (size_mb - 2048U) << 20, ".ram"));
