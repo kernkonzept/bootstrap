@@ -927,6 +927,7 @@ startup(char const *cmdline)
   if (!mseq.empty())
     printf("  L4Image sequence info: #%.*s\n", mseq.len(), mseq.start());
 
+  printf("  Bootstrap cmdline: '%s'\n", cmdline);
 
   if (print_cpu_info)
     print_cpu_info();
