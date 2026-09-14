@@ -19,12 +19,7 @@ imaxdiv_t imaxdiv(intmax_t, intmax_t);
 intmax_t strtoimax(const char *__restrict, char **__restrict, int);
 uintmax_t strtoumax(const char *__restrict, char **__restrict, int);
 
-#ifndef LIBCL4
-intmax_t wcstoimax(const wchar_t *__restrict, wchar_t **__restrict, int);
-uintmax_t wcstoumax(const wchar_t *__restrict, wchar_t **__restrict, int);
-#endif /* LIBCL4 */
-
-#if UINTPTR_MAX == UINT64_MAX
+#if __SIZEOF_LONG__ == 8
 #define __PRI64  "l"
 #define __PRIPTR "l"
 #else

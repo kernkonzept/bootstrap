@@ -489,5 +489,4 @@ $(foreach svar,C CC S,\
 
 # 32 bit code must not include the libc specific to 64 bit
 %.o32: LIBCINCDIR = $(BID_NOSTDINC) $(I_GCCINCDIR) -I$(SRC_DIR)/ARCH-amd64/libc32/include/
-%.o32: DEFINES += -DLIBCL4
 endif
