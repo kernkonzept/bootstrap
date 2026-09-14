@@ -147,19 +147,22 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
   _x86_pc_platform.init();
   init_modules_infos();
 
-  // Append commandline given in modules.list. This needs to be done before
+  // Append command line given in modules.list. This needs to be done before
   // setup_uart because the user might have given us options for the uart.
 
   // Check if still space available
-  if (strlen(efi_cmdline) < Platform_x86_efi::Max_cmdline_length)
+  if (size_t len = strlen(efi_cmdline) < Platform_x86_efi::Max_cmdline_length)
     {
       // Append separator if necessary
-      if (strlen(efi_cmdline) > 0)
-        strncat(efi_cmdline, " ", 1);
+      if (len > 0)
+        {
+          strncat(efi_cmdline, " ", Platform_x86_efi::Max_cmdline_length - len);
+          len = strlen(efi_cmdline);
+        }
 
       // Append mod_header cmdline
       strncat(efi_cmdline, mod_header->mbi_cmdline(),
-              Platform_x86_efi::Max_cmdline_length - strlen(efi_cmdline));
+              Platform_x86_efi::Max_cmdline_length - len);
     }
 
   _x86_pc_platform.setup_uart(efi_cmdline, &_x86_pc_platform._efi_uart);
