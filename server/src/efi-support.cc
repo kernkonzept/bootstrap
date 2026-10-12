@@ -196,10 +196,15 @@ Efi::setup_memory()
 
       switch (m->Type)
         {
-        case EfiLoaderCode:
-        case EfiLoaderData:
         case EfiBootServicesCode:
         case EfiBootServicesData:
+          // These regions are RAM, but while Boot Services are available they
+          // are reserved.
+          // Region::Ram_dont_use is not forwarded to KIP.
+          regions->add(new_region(m, ".efi", Region::Ram_dont_use), true);
+          /* fallthru */
+        case EfiLoaderCode:
+        case EfiLoaderData:
         case EfiConventionalMemory:
           // Must allow overlaps of RAM regions. This has been observed on
           // Ampere Altra...
