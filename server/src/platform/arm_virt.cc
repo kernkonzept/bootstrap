@@ -12,6 +12,9 @@
 #include "platform_dt-arm.h"
 #include "qemu_fw_cfg.h"
 #include "qemu_ramfb.h"
+#ifdef BOOTSTRAP_DO_UEFI
+#include "efi-support.h"
+#endif
 
 extern char _start;
 
@@ -94,6 +97,18 @@ class Platform_arm_virt : public Platform_dt_arm
   {
     reboot_psci();
   }
+
+#ifdef BOOTSTRAP_DO_UEFI
+  void firmware_announce_memory(Region n) override
+  {
+    efi.firmware_announce_memory(n);
+  }
+
+  void exit_boot_services() override
+  {
+    efi.exit_boot_services();
+  }
+#endif
 };
 }
 

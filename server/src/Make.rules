@@ -89,6 +89,7 @@ ifeq ($(BOOTSTRAP_DO_UEFI),y)
   CXXFLAGS            += -fshort-wchar
   CFLAGS              += -fshort-wchar
   DEFINES             += -DGNU_EFI_USE_MS_ABI
+  DEFINES             += -DBOOTSTRAP_DO_UEFI
   LDFLAGS             += --no-gc-sections
 else
   BOOTSTRAP_DO_MB2 := y
